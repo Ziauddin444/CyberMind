@@ -67,9 +67,7 @@ The application automatically detects your operating system and configures:
 # Backend (works on all platforms)
 cd cybermind-backend
 python3 -m venv venv
-source venv/bin/activate  # Windows: .\venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-python3 main.py
+source venv/bin/activate
 
 # Frontend (works on all platforms)
 cd cybermind-frontend
