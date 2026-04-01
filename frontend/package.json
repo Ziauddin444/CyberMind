@@ -1,0 +1,13 @@
+{
+  "name": "cybermind-frontend",
+  "version": "1.0.0",
+  "description": "CyberMind Sentinel — Frontend",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^6.2.0"
+  }
+}

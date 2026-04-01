@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberMind-Setinel • SME Security</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
+
+        :root {
+            --primary: 234 179 8;
+        }
+
+        .tail-container {
+            font-family: 'Inter', system_ui, sans-serif;
+        }
+
+        .logo-font {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .hero-bg {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+        }
+
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card-hover:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.4);
+        }
+
+        .nav-link {
+            position: relative;
+        }
+
+        .nav-link:after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -2px;
+            left: 0;
+            background-color: rgb(234 179 8);
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover:after {
+            width: 100%;
+        }
+
+        .log-line {
+            animation: logFade 4s infinite ease-in-out;
+        }
+
+        @keyframes logFade {
+
+            0%,
+            100% {
+                opacity: 0.4;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .threat-pulse {
+            animation: threatPulse 2s infinite;
+        }
+
+        @keyframes threatPulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.5);
+            }
+
+            70% {
+                box-shadow: 0 0 0 15px rgba(234, 179, 8, 0);
+            }
+        }
+
+        .dashboard-grid {
+            background:
+                linear-gradient(to right, #27272a 1px, transparent 1px),
+                linear-gradient(to bottom, #27272a 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        .terminal {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 13px;
+            line-height: 1.3;
+        }
+    </style>
+</head>
+
+<body class="tail-container bg-zinc-950 text-zinc-200">
+    <div class="max-w-screen-xl mx-auto">
+        <!-- NAVBAR -->
+        <nav class="bg-black border-b border-zinc-800 fixed w-full z-50">
+            <div class="px-8 py-5 flex items-center justify-between">
+                <div class="flex items-center gap-x-3">
+                    <div class="w-9 h-9 bg-yellow-400 flex items-center justify-center rounded-2xl shadow-inner">
+                        <i class="fa-solid fa-shield-halved text-zinc-950 text-2xl"></i>
+                    </div>
+                    <div>
+                        <span class="logo-font text-3xl font-semibold tracking-tighter text-white">cyber</span>
+                        <span class="logo-font text-3xl font-semibold tracking-tighter text-yellow-400">mind</span>
+                    </div>
+                </div>
+
+                <div class="hidden md:flex items-center gap-x-8 text-sm font-medium">
+                    <a href="#" onclick="navigateTo('dashboard')"
+                        class="nav-link text-white flex items-center gap-x-1.5">
+                        <i class="fa-solid fa-gauge-high"></i>
+                        <span>DASHBOARD</span>
+                    </a>
+                    <a href="#" onclick="navigateTo('logs')"
+                        class="nav-link text-zinc-400 hover:text-white flex items-center gap-x-1.5">
+                        <i class="fa-solid fa-file-lines"></i>
+                        <span>LOGS</span>
+                    </a>
+                    <a href="#" onclick="navigateTo('honeypot')"
+                        class="nav-link text-zinc-400 hover:text-white flex items-center gap-x-1.5">
+                        <i class="fa-solid fa-bug"></i>
+                        <span>HONEYPOT</span>
+                    </a>
+                    <a href="#" onclick="navigateTo('phish')"
+                        class="nav-link text-zinc-400 hover:text-white flex items-center gap-x-1.5">
+                        <i class="fa-solid fa-link"></i>
+                        <span>PHISH CHECK</span>
+                    </a>
+                </div>
+
+                <div class="flex items-center gap-x-6">
+                    <div
+                        class="flex items-center gap-x-2 bg-zinc-900 px-4 py-2 rounded-3xl text-xs font-mono border border-zinc-700">
+                        <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                        <span class="text-emerald-400">ALL SYSTEMS ONLINE</span>
+                    </div>
+
+                    <div class="flex items-center gap-x-3">
+                        <div class="text-right">
+                            <div class="text-sm font-medium text-white">Acme Bakery</div>
+                            <div class="text-[10px] text-zinc-500 -mt-0.5">3 devices • 2 online</div>
+                        </div>
+                        <div
+                            class="w-8 h-8 bg-amber-300 text-zinc-900 rounded-2xl flex items-center justify-center font-bold text-lg shadow-inner">
+                            AB</div>
+                    </div>
+
+                    <button onclick="toggleMobileMenu()"
+                        class="md:hidden w-10 h-10 flex items-center justify-center text-2xl">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- MOBILE MENU -->
+            <div id="mobile-menu" class="hidden md:hidden bg-zinc-900 border-t border-zinc-800 py-4 px-6">
+                <div class="flex flex-col gap-y-6 text-sm">
+                    <a href="#" onclick="navigateTo('dashboard');toggleMobileMenu()"
+                        class="flex items-center gap-x-3 py-2">
+                        <i class="fa-solid fa-gauge-high w-5"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="#" onclick="navigateTo('logs');toggleMobileMenu()" class="flex items-center gap-x-3 py-2">
+                        <i class="fa-solid fa-file-lines w-5"></i>
+                        <span>Security Logs</span>
+                    </a>
+                    <a href="#" onclick="navigateTo('honeypot');toggleMobileMenu()"
+                        class="flex items-center gap-x-3 py-2">
+                        <i class="fa-solid fa-bug w-5"></i>
+                        <span>Honeypot Decoy</span>
+                    </a>
+                    <a href="#" onclick="navigateTo('phish');toggleMobileMenu()" class="flex items-center gap-x-3 py-2">
+                        <i class="fa-solid fa-link w-5"></i>
+                        <span>Phishing Sandbox</span>
+                    </a>
+                    <a href="#" onclick="navigateTo('killswitch');toggleMobileMenu()"
+                        class="flex items-center gap-x-3 py-2">
+                        <i class="fa-solid fa-bolt w-5"></i>
+                        <span>Ransomware Kill Switch</span>
+                    </a>
+
+                    <div class="pt-6 border-t border-zinc-700">
+                        <button onclick="simulateRemediation();toggleMobileMenu()"
+                            class="w-full py-4 bg-red-500 hover:bg-red-600 transition-colors text-white rounded-3xl flex items-center justify-center gap-x-2 font-semibold">
+                            <i class="fa-solid fa-shield-halved"></i>
+                            <span>ACTIVATE GLOBAL DEFENSE</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="h-20"></div>
+
+        <!-- HERO / MAIN DASHBOARD -->
+        <div id="dashboard-screen">
+            <div class="hero-bg pt-8 pb-6 px-8 rounded-b-3xl">
+                <div class="flex flex-col lg:flex-row gap-8">
+                    <!-- LEFT COL -->
+                    <div class="lg:w-2/3">
+                        <div class="flex justify-between items-end mb-6">
+                            <div>
+                                <span
+                                    class="px-4 py-1.5 text-xs font-mono bg-yellow-400/10 text-yellow-400 rounded-3xl border border-yellow-400/30">PROTECTED</span>
+                                <h1 class="text-5xl font-semibold text-white logo-font tracking-tighter mt-2">Your
+                                    Security Analyst</h1>
+                                <p class="text-zinc-400 mt-2 max-w-md">24/7 AI monitoring for Acme Bakery. No tech
+                                    expertise required.</p>
+                            </div>
+
+                            <div class="hidden sm:flex items-center gap-x-8">
+                                <div class="text-center">
+                                    <div class="text-4xl font-semibold text-emerald-400">98.4%</div>
+                                    <div class="text-xs text-zinc-400 tracking-widest">SAFETY SCORE</div>
+                                </div>
+                                <div class="h-9 border-l border-zinc-700"></div>
+                                <div>
+                                    <div class="flex items-center gap-x-5">
+                                        <div class="text-center">
+                                            <i class="fa-solid fa-laptop text-sky-400 text-3xl"></i>
+                                            <div class="text-xs mt-1 text-zinc-400">3</div>
+                                        </div>
+                                        <div class="text-center">
+                                            <i class="fa-solid fa-mobile-screen text-violet-400 text-3xl"></i>
+                                            <div class="text-xs mt-1 text-zinc-400">1</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- STATUS BARS -->
+                        <div class="grid grid-cols-3 gap-4">
+                            <!-- Threats -->
+                            <div onclick="showThreatDetail()"
+                                class="bg-zinc-900 rounded-3xl p-5 card-hover cursor-pointer border border-rose-400/30">
+                                <div class="flex justify-between">
+                                    <div>
+                                        <i class="fa-solid fa-triangle-exclamation text-rose-400 text-2xl"></i>
+                                        <div class="mt-6">
+                                            <div class="text-5xl font-semibold text-white">2</div>
+                                            <div class="text-sm text-rose-400 font-medium">ACTIVE THREATS</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div
+                                            class="px-3 py-1 text-[10px] bg-rose-400/10 text-rose-400 rounded-3xl inline-flex items-center gap-x-1">
+                                            <span class="relative flex h-3 w-3">
+                                                <span
+                                                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                                                <span
+                                                    class="relative inline-flex rounded-full h-3 w-3 bg-rose-400"></span>
+                                            </span>
+                                            LIVE
+                                        </div>
+                                        <div class="mt-10 text-xs font-mono text-zinc-500">LAST DETECTED</div>
+                                        <div class="text-xs font-medium text-white">17s ago</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Devices -->
+                            <div class="bg-zinc-900 rounded-3xl p-5 card-hover cursor-pointer">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <i class="fa-solid fa-network-wired text-sky-400 text-2xl"></i>
+                                        <div class="mt-8">
+                                            <div class="flex items-baseline gap-x-3">
+                                                <div class="text-5xl font-semibold text-white">4</div>
+                                                <div class="text-emerald-400 text-sm font-medium">ONLINE</div>
+                                            </div>
+                                            <div class="text-sm text-zinc-400">Fleet devices</div>
+                                        </div>
+                                    </div>
+                                    <div class="bg-zinc-800 rounded-2xl p-1 text-xs">
+                                        <div class="flex -space-x-4">
+                                            <div
+                                                class="w-6 h-6 bg-blue-500 rounded-xl flex items-center justify-center text-[10px] ring-2 ring-zinc-800">
+                                                P</div>
+                                            <div
+                                                class="w-6 h-6 bg-purple-500 rounded-xl flex items-center justify-center text-[10px] ring-2 ring-zinc-800">
+                                                M</div>
+                                            <div
+                                                class="w-6 h-6 bg-teal-500 rounded-xl flex items-center justify-center text-[10px] ring-2 ring-zinc-800">
+                                                S</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- AI Confidence -->
+                            <div
+                                class="bg-zinc-900 rounded-3xl p-5 card-hover cursor-pointer border border-yellow-400/30">
+                                <div class="flex items-center justify-between">
+                                    <div class="text-yellow-300">
+                                        <i class="fa-solid fa-brain"></i>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-xs uppercase font-medium tracking-widest">AI Analyst</div>
+                                        <div class="text-4xl font-bold text-yellow-400">92%</div>
+                                        <div class="text-xs text-yellow-400/70">confidence</div>
+                                    </div>
+                                </div>
+                                <div class="h-2 bg-zinc-800 rounded-3xl mt-8 overflow-hidden">
+                                    <div class="h-2 w-[92%] bg-gradient-to-r from-yellow-400 to-amber-400 rounded-3xl">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT COL - LIVE LOG -->
+                    <div class="lg:w-1/3 bg-black border border-zinc-800 rounded-3xl p-6 flex flex-col">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="uppercase text-xs font-mono tracking-widest flex items-center gap-x-2">
+                                <i class="fa-solid fa-terminal text-yellow-400"></i>
+                                <span>LIVE TRANSLATION</span>
+                            </div>
+                            <div onclick="refreshLogs()"
+                                class="text-yellow-400 text-xs flex items-center cursor-pointer hover:text-amber-300">
+                                <i class="fa-solid fa-arrows-rotate mr-1"></i>
+                                <span>REFRESH</span>
+                            </div>
+                        </div>
+
+                        <div id="live-log"
+                            class="terminal flex-1 bg-zinc-950 p-4 rounded-2xl text-emerald-300 overflow-hidden text-xs leading-relaxed border border-zinc-800 font-light">
+                            <div class="log-line mb-3 text-amber-300">[12:41:09] Event ID 4625 - Failed login attempt
+                                from 185.53.177.54</div>
+                            <div class="log-line mb-3 text-white">→ <span class="text-sky-400">AI TRANSLATION:</span>
+                                Someone in Romania is trying to guess your admin password. Blocked after 7 attempts.
+                            </div>
+                            <div class="log-line mb-6 text-zinc-500">IP has been added to block list.</div>
+
+                            <div class="log-line mb-3 text-violet-300">[12:41:22] File change detected:
+                                invoice_043.pdf.exe</div>
+                            <div class="log-line text-white">→ <span class="text-sky-400">AI TRANSLATION:</span> A
+                                suspicious file was just downloaded. Looks like phishing bait. Quarantined
+                                automatically.</div>
+                        </div>
+
+                        <button onclick="speakLastAlert()"
+                            class="mt-6 text-xs flex items-center justify-center gap-x-2 py-3 px-6 bg-zinc-900 hover:bg-zinc-800 transition-colors border border-yellow-400/30 rounded-3xl">
+                            <i class="fa-solid fa-volume-high"></i>
+                            <span>HEAR AI ALERT</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FLEET MONITOR -->
+            <div class="px-8 mt-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="font-semibold text-lg flex items-center gap-x-2">
+                        <span class="text-white">Your Fleet</span>
+                        <span
+                            class="bg-teal-400 text-teal-950 text-[10px] px-3 rounded-3xl h-5 flex items-center font-mono">3
+                            DEVICES</span>
+                    </h2>
+                    <button onclick="addDevice()"
+                        class="flex items-center gap-x-2 text-xs bg-white text-zinc-900 px-5 h-8 rounded-3xl hover:shadow-xl transition-all">
+                        <i class="fa-solid fa-plus"></i>
+                        <span class="font-medium">ADD DEVICE</span>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="fleet-grid">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- QUICK ACTIONS -->
+            <div class="mt-16 px-8">
+                <div class="bg-zinc-900 rounded-3xl p-8">
+                    <h3 class="text-sm font-medium text-yellow-300 mb-6 flex items-center gap-x-2">
+                        <i class="fa-solid fa-bolt"></i>
+                        <span>ONE-CLICK REMEDIATION</span>
+                    </h3>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <button onclick="runPlaybook(1)"
+                            class="group bg-zinc-800 hover:bg-red-500/10 border border-transparent hover:border-red-400 transition-all p-6 rounded-3xl text-left">
+                            <div class="text-red-400 mb-4">
+                                <i class="fa-solid fa-ban text-3xl group-active:scale-110 transition-transform"></i>
+                            </div>
+                            <div class="font-medium">Block Suspicious IP</div>
+                            <div class="text-xs text-zinc-400">185.53.177.54</div>
+                        </button>
+
+                        <button onclick="runPlaybook(2)"
+                            class="group bg-zinc-800 hover:bg-amber-500/10 border border-transparent hover:border-amber-400 transition-all p-6 rounded-3xl text-left">
+                            <div class="text-amber-400 mb-4">
+                                <i
+                                    class="fa-solid fa-file-shield text-3xl group-active:scale-110 transition-transform"></i>
+                            </div>
+                            <div class="font-medium">Quarantine Device</div>
+                            <div class="text-xs text-zinc-400">MacBook-Air.local</div>
+                        </button>
+
+                        <button onclick="runPlaybook(3)"
+                            class="group bg-zinc-800 hover:bg-sky-500/10 border border-transparent hover:border-sky-400 transition-all p-6 rounded-3xl text-left">
+                            <div class="text-sky-400 mb-4">
+                                <i
+                                    class="fa-solid fa-magnifying-glass text-3xl group-active:scale-110 transition-transform"></i>
+                            </div>
+                            <div class="font-medium">Scan All Devices</div>
+                            <div class="text-xs text-zinc-400">Deep scan • 3m ago</div>
+                        </button>
+
+                        <button onclick="activateKillSwitch()"
+                            class="group bg-zinc-800 hover:bg-purple-500/10 border border-transparent hover:border-purple-400 transition-all p-6 rounded-3xl text-left relative overflow-hidden">
+                            <div class="absolute top-0 right-0 text-[180px] leading-none font-black text-purple-500/10">
+                                K</div>
+                            <div class="text-purple-400 mb-4">
+                                <i class="fa-solid fa-skull text-3xl group-active:scale-110 transition-transform"></i>
+                            </div>
+                            <div class="font-medium">Ransomware Kill Switch</div>
+                            <div class="text-xs text-zinc-400">Monitor file encryption</div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FEATURE TABS -->
+            <div class="mt-20 px-8">
+                <div class="flex border-b border-zinc-700">
+                    <button onclick="switchTab(0)" id="tab-0"
+                        class="tab-button px-8 py-4 border-b-2 border-yellow-400 text-yellow-400 font-medium text-sm">HONEYPOT</button>
+                    <button onclick="switchTab(1)" id="tab-1"
+                        class="tab-button px-8 py-4 text-zinc-400 hover:text-zinc-200 font-medium text-sm">PHISH
+                        SANDBOX</button>
+                    <button onclick="switchTab(2)" id="tab-2"
+                        class="tab-button px-8 py-4 text-zinc-400 hover:text-zinc-200 font-medium text-sm">LOG
+                        TRANSLATOR</button>
+                </div>
+
+                <!-- HONEYPOT TAB -->
+                <div id="tab-content-0" class="tab-content pt-8">
+                    <div class="flex gap-8">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-x-3 mb-4">
+                                <div class="w-6 h-px bg-gradient-to-r from-transparent via-yellow-400 to-yellow-400">
+                                </div>
+                                <span class="uppercase text-xs tracking-[1px]">Decoy files deployed</span>
+                            </div>
+                            <div class="bg-zinc-900 p-6 rounded-3xl">
+                                <div class="flex gap-8 items-center">
+                                    <div>
+                                        <div class="text-7xl font-bold text-white tabular-nums" id="honeypot-count">14
+                                        </div>
+                                        <div class="text-xs text-lime-400">traps triggered</div>
+                                    </div>
+                                    <div class="flex-1 h-px bg-gradient-to-r from-lime-300/30 to-transparent"></div>
+                                    <div class="text-xs max-w-[210px]">
+                                        2 hackers have been lured into our decoy folder in the last 48 hours.
+                                        <span class="block text-lime-400 mt-2 font-medium">All decoys are safe.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div onclick="triggerHoneypot()"
+                            class="flex-1 bg-gradient-to-br from-zinc-900 to-zinc-950 border border-dashed border-lime-400 rounded-3xl p-8 flex flex-col items-center justify-center cursor-pointer hover:border-lime-300 group">
+                            <i
+                                class="fa-solid fa-bug-slash text-6xl text-lime-400 mb-4 group-active:rotate-12 transition-transform"></i>
+                            <div class="text-lime-300 font-medium">DEPLOY NEW DECOY</div>
+                            <div class="text-xs text-center text-zinc-400 mt-1">Invoice-2025-confidential.pdf</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PHISH SANDBOX TAB -->
+                <div id="tab-content-1" class="tab-content pt-8 hidden">
+                    <div class="max-w-lg mx-auto bg-zinc-900 rounded-3xl p-8">
+                        <label class="block text-xs font-medium mb-3 text-zinc-400">PASTE SUSPICIOUS LINK HERE</label>
+                        <div class="flex">
+                            <input id="phish-input" type="text" value="https://secure-bank-login.com/claim-bonus"
+                                class="flex-1 bg-black border border-zinc-700 focus:border-yellow-400 rounded-l-3xl px-6 py-5 outline-none text-sm">
+                            <button onclick="checkPhishingLink()"
+                                class="bg-yellow-400 hover:bg-amber-300 transition-colors text-zinc-950 px-10 font-semibold rounded-r-3xl">CHECK</button>
+                        </div>
+                        <div id="phish-result" class="mt-8 hidden">
+                            <div class="flex items-center gap-x-4 bg-emerald-900/30 text-emerald-400 p-5 rounded-3xl">
+                                <i class="fa-solid fa-circle-check text-4xl"></i>
+                                <div>
+                                    <div class="font-semibold">This link is dangerous</div>
+                                    <div class="text-xs">It impersonates Chase Bank and is known to steal credentials.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LOG TRANSLATOR TAB -->
+                <div id="tab-content-2" class="tab-content pt-8 hidden">
+                    <div class="max-w-2xl mx-auto">
+                        <div class="bg-black p-5 rounded-3xl text-xs font-light terminal border border-zinc-700">
+                            <div class="mb-4 text-zinc-400">Raw log entry:</div>
+                            <div class="bg-zinc-900 p-5 rounded-2xl mb-6 font-mono text-amber-200 text-[13px]">
+                                2025-02-18 12:41:09 WinEventLog:Security<br>
+                                EventCode=4625<br>
+                                AccountName=Administrator<br>
+                                WorkstationName=SRV01<br>
+                                IpAddress=185.53.177.54
+                            </div>
+                            <div onclick="translateMockLog()"
+                                class="inline-flex items-center gap-x-3 bg-white text-zinc-900 text-sm px-7 py-4 rounded-3xl cursor-pointer hover:shadow-2xl">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                <span class="font-semibold">Translate with AI</span>
+                            </div>
+                            <div id="translated-log" class="mt-8 bg-zinc-900 p-6 rounded-3xl hidden">
+                                <span class="text-emerald-300">Plain English:</span><br>
+                                <span class="text-white">An attacker from an unknown IP address in Eastern Europe is
+                                    trying to brute-force your administrator account. They tried 14 different passwords
+                                    in under a minute.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LOGS SCREEN -->
+        <div id="logs-screen" class="hidden px-8 py-10">
+            <div class="flex justify-between items-baseline">
+                <h1 class="text-4xl font-semibold logo-font tracking-tight">Security Logs</h1>
+                <div class="flex items-center text-xs bg-zinc-900 rounded-3xl px-5 py-3">
+                    <span class="text-emerald-400 mr-2">●</span>
+                    <span class="font-medium">Live feed enabled</span>
+                </div>
+            </div>
+
+            <div class="mt-8 border border-zinc-700 rounded-3xl overflow-hidden">
+                <table class="w-full">
+                    <thead>
+                        <tr class="bg-zinc-900 border-b border-zinc-700">
+                            <th class="py-5 px-8 text-left text-xs font-medium text-zinc-400">TIME</th>
+                            <th class="py-5 px-8 text-left text-xs font-medium text-zinc-400">DEVICE</th>
+                            <th class="py-5 px-8 text-left text-xs font-medium text-zinc-400">EVENT</th>
+                            <th class="py-5 px-8 text-left text-xs font-medium text-zinc-400">AI SUMMARY</th>
+                            <th class="py-5 px-8 text-right text-xs font-medium text-zinc-400">ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody id="log-table-body" class="text-sm divide-y divide-zinc-700">
+                        <!-- JS populated -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- HONEYPOT FULL SCREEN -->
+        <div id="honeypot-screen" class="hidden px-8 py-10">
+            <div class="max-w-4xl mx-auto">
+                <div class="flex gap-3 items-center mb-8">
+                    <i class="fa-solid fa-bug text-yellow-400 text-4xl"></i>
+                    <div>
+                        <span class="uppercase tracking-widest text-xs text-lime-400 font-medium">Advanced Threat
+                            Detection</span>
+                        <h2 class="text-4xl font-semibold text-white">Honeypot Decoy Network</h2>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-12 gap-6">
+                    <div class="col-span-12 md:col-span-7 bg-zinc-900 rounded-3xl p-8">
+                        <div class="flex justify-between items-center">
+                            <div class="text-zinc-400 text-sm">DECOY ACTIVITY</div>
+                            <div class="flex items-center gap-x-2 text-lime-300 text-xs">
+                                <div class="h-px w-12 bg-lime-400"></div>
+                                <span>3 attacks trapped today</span>
+                            </div>
+                        </div>
+
+                        <div id="honeypot-timeline" class="mt-8 space-y-8">
+                            <!-- populated by JS -->
+                        </div>
+                    </div>
+
+                    <div class="col-span-12 md:col-span-5">
+                        <div class="bg-zinc-900 h-full rounded-3xl p-8 flex flex-col">
+                            <div class="flex-1">
+                                <div class="text-xs text-zinc-400 mb-2">CURRENT DECOYS ACTIVE</div>
+                                <ul class="space-y-6 text-sm" id="decoy-list">
+                                    <!-- populated by JS -->
+                                </ul>
+                            </div>
+
+                            <button onclick="deployNewDecoy()"
+                                class="mt-auto flex items-center justify-center gap-x-3 bg-lime-400 text-zinc-950 py-6 rounded-3xl font-semibold">
+                                <i class="fa-solid fa-plus"></i>
+                                <span>DEPLOY NEW DECOY FILE</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KILL SWITCH MODAL -->
+        <div onclick="if(event.target.id === 'kill-modal') this.classList.add('hidden')" id="kill-modal"
+            class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-[999]">
+            <div onclick="event.stopImmediatePropagation()" class="max-w-md w-full bg-zinc-900 rounded-3xl p-8">
+                <div class="flex justify-center mb-6">
+                    <div class="threat-pulse w-20 h-20 bg-red-500/10 flex items-center justify-center rounded-full">
+                        <i class="fa-solid fa-skull-crossbones text-red-500 text-5xl"></i>
+                    </div>
+                </div>
+
+                <h3 class="text-center text-2xl font-medium text-red-400">Ransomware Kill Switch</h3>
+                <p class="text-center text-zinc-400 text-sm mt-3">Mass file modification detected on <span
+                        class="font-medium text-white">DESKTOP-3F9K1M</span></p>
+
+                <div class="my-8 border border-red-900 bg-black rounded-2xl p-5 text-xs font-light text-red-200">
+                    183 files encrypted in the last 42 seconds.<br>
+                    Suspected strain: LockBit variant
+                </div>
+
+                <div class="flex gap-x-4">
+                    <button onclick="document.getElementById('kill-modal').classList.add('hidden')"
+                        class="flex-1 py-6 text-xs border border-zinc-700 rounded-3xl">DISMISS</button>
+                    <button onclick="triggerKillSwitch()"
+                        class="flex-1 py-6 text-xs bg-red-500 hover:bg-red-600 transition-colors rounded-3xl font-semibold">ISOLATE
+                        DEVICE NOW</button>
+                </div>
+
+                <div class="text-[10px] text-center text-zinc-500 mt-8">This will cut the device off the network
+                    instantly</div>
+            </div>
+        </div>
+
+        <!-- FOOTER BAR -->
+        <div
+            class="fixed bottom-0 left-0 right-0 bg-zinc-900 border-t border-zinc-700 h-14 hidden lg:flex items-center px-8 text-xs z-50">
+            <div class="flex-1 flex items-center gap-x-8">
+                <div onclick="navigateTo('dashboard')" class="flex items-center gap-x-2 cursor-pointer">
+                    <i class="fa-solid fa-house"></i>
+                    <span class="font-medium">Home</span>
+                </div>
+                <div onclick="navigateTo('logs')" class="flex items-center gap-x-2 cursor-pointer">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span class="font-medium">Logs</span>
+                </div>
+                <div onclick="navigateTo('honeypot')" class="flex items-center gap-x-2 cursor-pointer">
+                    <i class="fa-solid fa-bug"></i>
+                    <span class="font-medium">Honeypot</span>
+                </div>
+            </div>
+
+            <div class="text-[10px] font-mono text-zinc-500 flex items-center gap-x-5">
+                <div>POWERED BY MOCK LLM</div>
+                <div class="w-px h-3 bg-zinc-600"></div>
+                <div class="flex items-center gap-x-1">
+                    <div class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></div>
+                    CONNECTED
+                </div>
+            </div>
+
+            <div class="flex-1 flex justify-end items-center gap-x-6 text-xs">
+                <button onclick="showSettings()"
+                    class="px-5 py-2 border border-zinc-600 rounded-3xl flex items-center gap-x-2 hover:bg-zinc-800">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Settings</span>
+                </button>
+
+                <button onclick="logout()"
+                    class="px-6 py-2 bg-white text-zinc-900 rounded-3xl font-medium">LOGOUT</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div id="toast" onclick="this.classList.add('hidden')"
+        class="hidden fixed bottom-8 right-8 bg-zinc-800 border border-yellow-400 text-yellow-300 rounded-3xl shadow-2xl flex items-center gap-x-3 py-4 px-6 text-sm cursor-pointer">
+        <i class="fa-solid fa-check-circle"></i>
+        <span id="toast-text"></span>
+    </div>
+
+    <script>
+        // Tailwind script run
+        function initializeTailwind() {
+            tailwind.config = {
+                content: [],
+                theme: {
+                    extend: {}
+                }
+            }
+        }
+
+        let currentScreen = 'dashboard'
+        let devices = [
+            {
+                id: 1,
+                name: "MacBook-Air",
+                status: "online",
+                lastThreat: "None",
+                safety: 96
+            },
+            {
+                id: 2,
+                name: "Windows-Server",
+                status: "online",
+                lastThreat: "Brute force attempt",
+                safety: 71
+            },
+            {
+                id: 3,
+                name: "POS-Terminal-1",
+                status: "offline",
+                lastThreat: "None",
+                safety: 100
+            }
+        ]
+
+        let mockLogs = [
+            {
+                time: "12:41",
+                device: "MacBook-Air",
+                event: "Failed login",
+                summary: "Brute-force attempt from Russia",
+                action: "Blocked"
+            },
+            {
+                time: "12:39",
+                device: "Windows-Server",
+                event: "File created",
+                summary: "Suspicious .exe file downloaded",
+                action: "Quarantined"
+            },
+            {
+                time: "12:33",
+                device: "POS-Terminal-1",
+                event: "USB inserted",
+                summary: "Unknown USB device connected",
+                action: "Monitored"
+            }
+        ]
+
+        let honeypotEvents = []
+
+        function populateFleet() {
+            const container = document.getElementById("fleet-grid")
+            container.innerHTML = ""
+
+            devices.forEach(device => {
+                const statusColor = device.status === "online" ? "emerald" : "zinc"
+
+                const div = document.createElement("div")
+                div.className = `bg-zinc-900 border border-${statusColor}-400/30 rounded-3xl px-6 py-6 card-hover cursor-pointer`
+                div.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="flex items-center gap-x-2">
+                                <i class="fa-solid fa-laptop text-${statusColor}-400"></i>
+                                <span class="font-medium text-white">${device.name}</span>
+                            </div>
+                            <div class="text-xs mt-6 text-zinc-400">SAFETY</div>
+                            <div class="flex items-baseline gap-x-1">
+                                <span class="text-6xl font-semibold text-white">${device.safety}</span>
+                                <span class="text-xs text-zinc-400">/100</span>
+                            </div>
+                        </div>
+                        
+                        <div class="text-right">
+                            <span onclick="event.stopImmediatePropagation();toggleDeviceStatus(${device.id});" 
+                                  class="inline-block text-[10px] px-4 py-1 rounded-3xl bg-${statusColor}-400/10 text-${statusColor}-300">
+                                ${device.status.toUpperCase()}
+                            </span>
+                            <div class="mt-12 text-xs text-zinc-400">LAST THREAT</div>
+                            <div class="text-xs text-white">${device.lastThreat}</div>
+                        </div>
+                    </div>
+                `
+                container.append(div)
+            })
+        }
+
+        function populateLogTable() {
+            const tbody = document.getElementById("log-table-body")
+            tbody.innerHTML = ""
+
+            mockLogs.forEach(log => {
+                const row = document.createElement("tr")
+                row.className = "hover:bg-yellow-300/5 transition-colors"
+                row.innerHTML = `
+                    <td class="py-6 px-8 font-mono text-xs text-zinc-400">${log.time}</td>
+                    <td class="py-6 px-8">${log.device}</td>
+                    <td class="py-6 px-8 text-amber-300">${log.event}</td>
+                    <td class="py-6 px-8 text-xs text-white">${log.summary}</td>
+                    <td class="py-6 px-8 text-right">
+                        <span class="text-xs px-5 py-2 bg-zinc-800 text-emerald-300 rounded-3xl">${log.action}</span>
+                    </td>
+                `
+                tbody.append(row)
+            })
+        }
+
+        function populateHoneypotTimeline() {
+            const container = document.getElementById("honeypot-timeline")
+            container.innerHTML = `
+                <div class="flex gap-4">
+                    <div class="w-5 h-5 bg-lime-400 text-zinc-950 text-[10px] flex items-center justify-center rounded-xl font-bold">1</div>
+                    <div class="flex-1">
+                        <div class="flex justify-between text-xs">
+                            <div class="text-white">invoice.docm.exe</div>
+                            <div class="font-mono text-zinc-500">11:04</div>
+                        </div>
+                        <div class="text-xs text-lime-300">Accessed by IP 194.156.87.22 • Trapped</div>
+                    </div>
+                </div>
+                
+                <div class="flex gap-4">
+                    <div class="w-5 h-5 bg-lime-400 text-zinc-950 text-[10px] flex items-center justify-center rounded-xl font-bold">2</div>
+                    <div class="flex-1">
+                        <div class="flex justify-between text-xs">
+                            <div class="text-white">passwords.xlsx</div>
+                            <div class="font-mono text-zinc-500">10:51</div>
+                        </div>
+                        <div class="text-xs text-lime-300">Accessed by unknown user • Trapped</div>
+                    </div>
+                </div>
+            `
+        }
+
+        function populateDecoyList() {
+            const container = document.getElementById("decoy-list")
+            container.innerHTML = `
+                <li class="flex justify-between items-center">
+                    <div class="flex items-center gap-x-3">
+                        <i class="fa-solid fa-file text-amber-200"></i>
+                        <div>
+                            <div class="text-sm">tax-return-2024.pdf</div>
+                            <div class="text-xs text-zinc-500">modified 2hrs ago</div>
+                        </div>
+                    </div>
+                    <div class="text-emerald-400 text-xs">ACTIVE</div>
+                </li>
+                <li class="flex justify-between items-center">
+                    <div class="flex items-center gap-x-3">
+                        <i class="fa-solid fa-file text-sky-200"></i>
+                        <div>
+                            <div class="text-sm">client-contracts.docx</div>
+                            <div class="text-xs text-zinc-500">modified 5hrs ago</div>
+                        </div>
+                    </div>
+                    <div class="text-emerald-400 text-xs">ACTIVE</div>
+                </li>
+            `
+        }
+
+        function switchTab(tabIndex) {
+            // remove active states
+            document.querySelectorAll('.tab-button').forEach((btn, index) => {
+                if (index === tabIndex) {
+                    btn.classList.add('border-b-2', 'border-yellow-400', 'text-yellow-400')
+                } else {
+                    btn.classList.remove('border-b-2', 'border-yellow-400', 'text-yellow-400')
+                }
+            })
+
+            // hide all contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden')
+            })
+
+            // show the right one
+            const contentEl = document.getElementById(`tab-content-${tabIndex}`)
+            if (contentEl) contentEl.classList.remove('hidden')
+        }
+
+        function navigateTo(screen) {
+            currentScreen = screen
+
+            document.getElementById("dashboard-screen").classList.add("hidden")
+            document.getElementById("logs-screen").classList.add("hidden")
+            document.getElementById("honeypot-screen").classList.add("hidden")
+
+            if (screen === "dashboard") {
+                document.getElementById("dashboard-screen").classList.remove("hidden")
+            } else if (screen === "logs") {
+                document.getElementById("logs-screen").classList.remove("hidden")
+                populateLogTable()
+            } else if (screen === "honeypot") {
+                document.getElementById("honeypot-screen").classList.remove("hidden")
+                populateHoneypotTimeline()
+                populateDecoyList()
+            }
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById("mobile-menu")
+            menu.classList.toggle("hidden")
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById("toast")
+            document.getElementById("toast-text").innerText = message
+            toast.classList.remove("hidden")
+            toast.style.transform = 'translateY(30px)'
+            toast.style.opacity = 0
+
+            // animate in
+            setTimeout(() => {
+                toast.style.transitionDuration = "300ms"
+                toast.style.transform = 'translateY(0)'
+                toast.style.opacity = 1
+            }, 10)
+
+            setTimeout(() => {
+                toast.style.opacity = 0
+                setTimeout(() => {
+                    toast.classList.add("hidden")
+                }, 300)
+            }, 2800)
+        }
+
+        function simulateRemediation() {
+            showToast("Global defense activated. All threats neutralized.")
+        }
+
+        function toggleDeviceStatus(id) {
+            const device = devices.find(d => d.id === id)
+            if (!device) return
+            device.status = device.status === "online" ? "offline" : "online"
+            populateFleet()
+            showToast(device.name + " status updated")
+        }
+
+        function addDevice() {
+            const names = ["iPhone-14", "Lenovo-Thinkpad", "Ubuntu-VM"]
+            const newDevice = {
+                id: Date.now(),
+                name: names[Math.floor(Math.random() * names.length)],
+                status: "online",
+                lastThreat: "None",
+                safety: Math.floor(Math.random() * 25) + 75
+            }
+            devices.unshift(newDevice)
+            populateFleet()
+            showToast("New device added to fleet")
+        }
+
+        function runPlaybook(n) {
+            let messages = [
+                "IP successfully blocked",
+                "Device isolated from network",
+                "Deep scan started on all devices"
+            ]
+            showToast(messages[n - 1])
+        }
+
+        function activateKillSwitch() {
+            const modal = document.getElementById("kill-modal")
+            modal.classList.remove("hidden")
+            modal.classList.add("flex")
+        }
+
+        function triggerKillSwitch() {
+            document.getElementById("kill-modal").classList.add("hidden")
+            showToast("DEVICE ISOLATED. Ransomware contained.")
+
+            // simulate a log entry
+            mockLogs.unshift({
+                time: "12:47",
+                device: "Windows-Server",
+                event: "Kill switch",
+                summary: "Mass encryption halted",
+                action: "ISOLATED"
+            })
+        }
+
+        function checkPhishingLink() {
+            const resultContainer = document.getElementById("phish-result")
+            resultContainer.classList.remove("hidden")
+
+            setTimeout(() => {
+                showToast("Phishing link blocked and reported")
+            }, 1200)
+        }
+
+        function translateMockLog() {
+            const translated = document.getElementById("translated-log")
+            translated.classList.remove("hidden")
+            translated.style.opacity = 0
+            setTimeout(() => translated.style.transition = "opacity 1s", 10)
+            setTimeout(() => translated.style.opacity = 1, 120)
+        }
+
+        function triggerHoneypot() {
+            showToast("New decoy deployed. Monitoring...")
+
+            const countEl = document.getElementById("honeypot-count")
+            let count = parseInt(countEl.innerText)
+            count++
+            countEl.style.transitionDuration = "400ms"
+            countEl.style.transform = "scale(1.6)"
+            countEl.innerText = count
+
+            setTimeout(() => {
+                countEl.style.transform = "scale(1)"
+            }, 420)
+        }
+
+        function deployNewDecoy() {
+            showToast("New decoy file added to all devices")
+            populateDecoyList()
+        }
+
+        function showThreatDetail() {
+            showToast("Opening threat report...")
+            setTimeout(() => {
+                navigateTo("logs")
+            }, 800)
+        }
+
+        function refreshLogs() {
+            const logContainer = document.getElementById("live-log")
+            logContainer.style.opacity = 0.6
+            setTimeout(() => {
+                logContainer.innerHTML += `
+                    <div class="log-line my-4 text-white">→ <span class="text-violet-300">NEW:</span> USB device inserted on POS terminal. Scanned and clean.</div>
+                `
+                logContainer.style.opacity = 1
+                showToast("Logs refreshed")
+            }, 420)
+        }
+
+        function speakLastAlert() {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance("Warning. Brute force password attack detected from external IP.")
+                utterance.pitch = 0.9
+                utterance.rate = 1.05
+                speechSynthesis.speak(utterance)
+            } else {
+                showToast("AI voice alert: Brute force attack detected")
+            }
+        }
+
+        function showSettings() {
+            showToast("Demo settings panel would appear here")
+        }
+
+        function logout() {
+            const logoutMsg = document.createElement("div")
+            logoutMsg.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;color:white;font-size:13px;z-index:9999"
+            logoutMsg.innerHTML = `
+                <div class="text-center">
+                    <i class="fa-solid fa-right-from-bracket text-6xl mb-6 text-yellow-300"></i>
+                    <div class="text-2xl font-medium">Signed out successfully</div>
+                    <div onclick="location.reload()" class="cursor-pointer inline-block mt-8 border border-white/30 text-xs tracking-wider px-8 py-6 rounded-3xl">RESTART DEMO</div>
+                </div>
+            `
+            document.body.appendChild(logoutMsg)
+        }
+
+        function generateFakeLogActivity() {
+            setInterval(() => {
+                if (Math.random() > 0.7 && currentScreen === "dashboard") {
+                    const liveLog = document.getElementById("live-log")
+                    if (liveLog) {
+                        const newEntry = document.createElement("div")
+                        newEntry.className = "log-line text-sky-200 mt-4"
+                        newEntry.innerHTML = `→ New login from trusted device`
+                        liveLog.append(newEntry)
+
+                        // keep only last 6 children
+                        if (liveLog.children.length > 6) {
+                            liveLog.removeChild(liveLog.children[0])
+                        }
+                    }
+                }
+            }, 6500)
+        }
+
+        function startLiveThreatCounter() {
+            let threatCount = 2
+            setInterval(() => {
+                if (Math.random() > 0.8) {
+                    threatCount++
+                    // could update the threat UI but for demo we just toast
+                    if (threatCount % 3 === 0) {
+                        showToast("New threat detected")
+                    }
+                }
+            }, 15000)
+        }
+
+        // Keyboard shortcuts
+        function handleKeyboard(e) {
+            if (e.metaKey && e.key === "k") {
+                e.preventDefault()
+                showToast("Command palette opened (demo)")
+            }
+        }
+
+        // Main initialization
+        function initialize() {
+            initializeTailwind()
+
+            // Tailwind ready
+            populateFleet()
+            populateLogTable()
+            populateHoneypotTimeline()
+            populateDecoyList()
+
+            // Make the first tab active
+            const firstTab = document.getElementById("tab-0")
+            if (firstTab) firstTab.classList.add("border-b-2", "border-yellow-400", "text-yellow-400")
+
+            // Start fake live activity
+            generateFakeLogActivity()
+            startLiveThreatCounter()
+
+            // Keyboard
+            document.addEventListener("keydown", handleKeyboard)
+
+            // Demo notification
+            setTimeout(() => {
+                showToast("AI found and blocked 1 new threat")
+            }, 2100)
+
+            // Make sure the kill switch modal can be closed by escape
+            document.addEventListener('keydown', function (e) {
+                if (e.key === "Escape") {
+                    const killModal = document.getElementById("kill-modal")
+                    if (!killModal.classList.contains("hidden")) {
+                        killModal.classList.add("hidden")
+                    }
+                }
+            })
+
+            console.log('%c✅ ShieldGuard SME Security Dashboard ready. Fully interactive demo.', 'font-family:monospace;color:#facc15;font-size:10px')
+        }
+
+        // Boot app
+        window.onload = initialize
+    </script>
+</body>
+
+</html>

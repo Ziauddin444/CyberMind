@@ -1,0 +1,11 @@
+# Terminal 1 — Start Backend
+cd /Users/ziauddin/demo/backend
+npm start
+# Terminal 2 — Start Frontend
+cd /Users/ziauddin/demo/frontend
+npm run dev
+
+
+
+sever: 
+open -a "Brave Browser" http://localhost:5173
