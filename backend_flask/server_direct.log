@@ -1,0 +1,31 @@
+[2026-04-04 05:25:15,300] INFO - __main__: Starting CyberMind Sentinel - Mode: development
+[2026-04-04 05:25:15,301] INFO: Initializing CyberMind security services...
+[2026-04-04 05:25:15,301] INFO - app: Initializing CyberMind security services...
+[2026-04-04 05:25:15,301] INFO: FirewallManager initialized for OS: Darwin
+[2026-04-04 05:25:15,301] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-04-04 05:25:15,301] INFO: AITranslator initialized with provider: openai
+[2026-04-04 05:25:15,301] INFO - app.services.ai_translator: AITranslator initialized with provider: openai
+[2026-04-04 05:25:15,301] INFO: FleetMonitor initialized
+[2026-04-04 05:25:15,301] INFO - app.services.fleet_monitor: FleetMonitor initialized
+[2026-04-04 05:25:15,301] INFO: NetworkHoneypot initialized
+[2026-04-04 05:25:15,301] INFO - app.services.network_honeypot: NetworkHoneypot initialized
+[2026-04-04 05:25:15,301] INFO: PhishingSandbox initialized
+[2026-04-04 05:25:15,301] INFO - app.services.phishing_sandbox: PhishingSandbox initialized
+[2026-04-04 05:25:15,301] INFO: RemediationPlaybook initialized
+[2026-04-04 05:25:15,301] INFO - app.services.remediation_playbook: RemediationPlaybook initialized
+[2026-04-04 05:25:15,301] INFO: KillSwitch initialized
+[2026-04-04 05:25:15,301] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-04-04 05:25:15,301] INFO: All security services initialized successfully
+[2026-04-04 05:25:15,301] INFO - app: All security services initialized successfully
+[2026-04-04 05:25:15,304] INFO: API routes registered
+[2026-04-04 05:25:15,304] INFO - app: API routes registered
+[2026-04-04 05:25:15,304] INFO: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-04-04 05:25:15,304] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-04-04 05:25:15,304] INFO - __main__: Server starting: 0.0.0.0:5000
+[2026-04-04 05:25:15,304] INFO - __main__: Dashboard: http://localhost:5000
+[2026-04-04 05:25:15,304] INFO - __main__: API Docs: http://localhost:5000/api
+ * Serving Flask app 'app'
+ * Debug mode: on
+Address already in use
+Port 5000 is in use by another program. Either identify and stop that program, or start the server with a different port.
+On macOS, try searching for and disabling 'AirPlay Receiver' in System Settings.

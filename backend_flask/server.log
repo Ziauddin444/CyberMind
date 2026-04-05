@@ -1,0 +1,68 @@
+🚀 Starting CyberMind Sentinel Backend...
+[2026-04-04 05:24:47,781] INFO - __main__: Starting CyberMind Sentinel - Mode: development
+[2026-04-04 05:24:47,782] INFO: Initializing CyberMind security services...
+[2026-04-04 05:24:47,782] INFO - app: Initializing CyberMind security services...
+[2026-04-04 05:24:47,782] INFO: FirewallManager initialized for OS: Darwin
+[2026-04-04 05:24:47,782] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-04-04 05:24:47,782] INFO: AITranslator initialized with provider: openai
+[2026-04-04 05:24:47,782] INFO - app.services.ai_translator: AITranslator initialized with provider: openai
+[2026-04-04 05:24:47,782] INFO: FleetMonitor initialized
+[2026-04-04 05:24:47,782] INFO - app.services.fleet_monitor: FleetMonitor initialized
+[2026-04-04 05:24:47,782] INFO: NetworkHoneypot initialized
+[2026-04-04 05:24:47,782] INFO - app.services.network_honeypot: NetworkHoneypot initialized
+[2026-04-04 05:24:47,782] INFO: PhishingSandbox initialized
+[2026-04-04 05:24:47,782] INFO - app.services.phishing_sandbox: PhishingSandbox initialized
+[2026-04-04 05:24:47,782] INFO: RemediationPlaybook initialized
+[2026-04-04 05:24:47,782] INFO - app.services.remediation_playbook: RemediationPlaybook initialized
+[2026-04-04 05:24:47,782] INFO: KillSwitch initialized
+[2026-04-04 05:24:47,782] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-04-04 05:24:47,782] INFO: All security services initialized successfully
+[2026-04-04 05:24:47,782] INFO - app: All security services initialized successfully
+[2026-04-04 05:24:47,785] INFO: API routes registered
+[2026-04-04 05:24:47,785] INFO - app: API routes registered
+[2026-04-04 05:24:47,785] INFO: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-04-04 05:24:47,785] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-04-04 05:24:47,785] INFO - __main__: Server starting: 0.0.0.0:5000
+[2026-04-04 05:24:47,785] INFO - __main__: Dashboard: http://localhost:5000
+[2026-04-04 05:24:47,785] INFO - __main__: API Docs: http://localhost:5000/api
+ * Serving Flask app 'app'
+ * Debug mode: on
+[2026-04-04 05:24:47,816] INFO - werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.77:5000
+[2026-04-04 05:24:47,816] INFO - werkzeug: [33mPress CTRL+C to quit[0m
+[2026-04-04 05:24:47,817] INFO - werkzeug:  * Restarting with stat
+[2026-04-04 05:24:47,891] INFO - __main__: Starting CyberMind Sentinel - Mode: development
+[2026-04-04 05:24:47,891] INFO: Initializing CyberMind security services...
+[2026-04-04 05:24:47,891] INFO - app: Initializing CyberMind security services...
+[2026-04-04 05:24:47,891] INFO: FirewallManager initialized for OS: Darwin
+[2026-04-04 05:24:47,891] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-04-04 05:24:47,891] INFO: AITranslator initialized with provider: openai
+[2026-04-04 05:24:47,891] INFO - app.services.ai_translator: AITranslator initialized with provider: openai
+[2026-04-04 05:24:47,891] INFO: FleetMonitor initialized
+[2026-04-04 05:24:47,891] INFO - app.services.fleet_monitor: FleetMonitor initialized
+[2026-04-04 05:24:47,891] INFO: NetworkHoneypot initialized
+[2026-04-04 05:24:47,891] INFO - app.services.network_honeypot: NetworkHoneypot initialized
+[2026-04-04 05:24:47,891] INFO: PhishingSandbox initialized
+[2026-04-04 05:24:47,891] INFO - app.services.phishing_sandbox: PhishingSandbox initialized
+[2026-04-04 05:24:47,891] INFO: RemediationPlaybook initialized
+[2026-04-04 05:24:47,891] INFO - app.services.remediation_playbook: RemediationPlaybook initialized
+[2026-04-04 05:24:47,891] INFO: KillSwitch initialized
+[2026-04-04 05:24:47,891] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-04-04 05:24:47,891] INFO: All security services initialized successfully
+[2026-04-04 05:24:47,891] INFO - app: All security services initialized successfully
+[2026-04-04 05:24:47,894] INFO: API routes registered
+[2026-04-04 05:24:47,894] INFO - app: API routes registered
+[2026-04-04 05:24:47,894] INFO: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-04-04 05:24:47,894] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-04-04 05:24:47,894] INFO - __main__: Server starting: 0.0.0.0:5000
+[2026-04-04 05:24:47,894] INFO - __main__: Dashboard: http://localhost:5000
+[2026-04-04 05:24:47,894] INFO - __main__: API Docs: http://localhost:5000/api
+[2026-04-04 05:24:47,906] WARNING - werkzeug:  * Debugger is active!
+[2026-04-04 05:24:47,910] INFO - werkzeug:  * Debugger PIN: 626-197-770
+./start_server.sh: line 7: 90402 Killed: 9               ./venv/bin/python run.py
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/multiprocessing/resource_tracker.py:216: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/multiprocessing/resource_tracker.py:216: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '

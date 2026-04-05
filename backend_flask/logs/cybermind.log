@@ -1,0 +1,256 @@
+[2026-04-04 05:23:45,655] INFO - app: Initializing CyberMind security services...
+[2026-04-04 05:23:45,655] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-04-04 05:23:45,655] INFO - app.services.ai_translator: AITranslator initialized with provider: openai
+[2026-04-04 05:23:45,655] INFO - app.services.fleet_monitor: FleetMonitor initialized
+[2026-04-04 05:23:45,656] INFO - app.services.network_honeypot: NetworkHoneypot initialized
+[2026-04-04 05:23:45,656] INFO - app.services.phishing_sandbox: PhishingSandbox initialized
+[2026-04-04 05:23:45,656] INFO - app.services.remediation_playbook: RemediationPlaybook initialized
+[2026-04-04 05:23:45,656] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-04-04 05:23:45,656] INFO - app: All security services initialized successfully
+[2026-04-04 05:23:45,660] INFO - app: API routes registered
+[2026-04-04 05:23:45,660] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-04-04 05:23:45,824] INFO - app: Initializing CyberMind security services...
+[2026-04-04 05:23:45,824] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-04-04 05:23:45,824] INFO - app.services.ai_translator: AITranslator initialized with provider: openai
+[2026-04-04 05:23:45,824] INFO - app.services.fleet_monitor: FleetMonitor initialized
+[2026-04-04 05:23:45,825] INFO - app.services.network_honeypot: NetworkHoneypot initialized
+[2026-04-04 05:23:45,825] INFO - app.services.phishing_sandbox: PhishingSandbox initialized
+[2026-04-04 05:23:45,825] INFO - app.services.remediation_playbook: RemediationPlaybook initialized
+[2026-04-04 05:23:45,825] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-04-04 05:23:45,825] INFO - app: All security services initialized successfully
+[2026-04-04 05:23:45,827] INFO - app: API routes registered
+[2026-04-04 05:23:45,827] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-04-04 05:24:15,045] INFO - app: Initializing CyberMind security services...
+[2026-04-04 05:24:15,046] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-04-04 05:24:15,046] INFO - app.services.ai_translator: AITranslator initialized with provider: openai
+[2026-04-04 05:24:15,046] INFO - app.services.fleet_monitor: FleetMonitor initialized
+[2026-04-04 05:24:15,046] INFO - app.services.network_honeypot: NetworkHoneypot initialized
+[2026-04-04 05:24:15,046] INFO - app.services.phishing_sandbox: PhishingSandbox initialized
+[2026-04-04 05:24:15,046] INFO - app.services.remediation_playbook: RemediationPlaybook initialized
+[2026-04-04 05:24:15,046] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-04-04 05:24:15,046] INFO - app: All security services initialized successfully
+[2026-04-04 05:24:15,048] INFO - app: API routes registered
+[2026-04-04 05:24:15,048] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-04-04 05:24:24,684] INFO - app: Initializing CyberMind security services...
+[2026-04-04 05:24:24,684] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-04-04 05:24:24,684] INFO - app.services.ai_translator: AITranslator initialized with provider: openai
+[2026-04-04 05:24:24,684] INFO - app.services.fleet_monitor: FleetMonitor initialized
+[2026-04-04 05:24:24,684] INFO - app.services.network_honeypot: NetworkHoneypot initialized
+[2026-04-04 05:24:24,684] INFO - app.services.phishing_sandbox: PhishingSandbox initialized
+[2026-04-04 05:24:24,684] INFO - app.services.remediation_playbook: RemediationPlaybook initialized
+[2026-04-04 05:24:24,684] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-04-04 05:24:24,684] INFO - app: All security services initialized successfully
+[2026-04-04 05:24:24,687] INFO - app: API routes registered
+[2026-04-04 05:24:24,687] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-04-04 05:24:47,782] INFO - app: Initializing CyberMind security services...
+[2026-04-04 05:24:47,782] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-04-04 05:24:47,782] INFO - app.services.ai_translator: AITranslator initialized with provider: openai
+[2026-04-04 05:24:47,782] INFO - app.services.fleet_monitor: FleetMonitor initialized
+[2026-04-04 05:24:47,782] INFO - app.services.network_honeypot: NetworkHoneypot initialized
+[2026-04-04 05:24:47,782] INFO - app.services.phishing_sandbox: PhishingSandbox initialized
+[2026-04-04 05:24:47,782] INFO - app.services.remediation_playbook: RemediationPlaybook initialized
+[2026-04-04 05:24:47,782] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-04-04 05:24:47,782] INFO - app: All security services initialized successfully
+[2026-04-04 05:24:47,785] INFO - app: API routes registered
+[2026-04-04 05:24:47,785] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-04-04 05:24:47,891] INFO - app: Initializing CyberMind security services...
+[2026-04-04 05:24:47,891] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-04-04 05:24:47,891] INFO - app.services.ai_translator: AITranslator initialized with provider: openai
+[2026-04-04 05:24:47,891] INFO - app.services.fleet_monitor: FleetMonitor initialized
+[2026-04-04 05:24:47,891] INFO - app.services.network_honeypot: NetworkHoneypot initialized
+[2026-04-04 05:24:47,891] INFO - app.services.phishing_sandbox: PhishingSandbox initialized
+[2026-04-04 05:24:47,891] INFO - app.services.remediation_playbook: RemediationPlaybook initialized
+[2026-04-04 05:24:47,891] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-04-04 05:24:47,891] INFO - app: All security services initialized successfully
+[2026-04-04 05:24:47,894] INFO - app: API routes registered
+[2026-04-04 05:24:47,894] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-04-04 05:25:15,301] INFO - app: Initializing CyberMind security services...
+[2026-04-04 05:25:15,301] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-04-04 05:25:15,301] INFO - app.services.ai_translator: AITranslator initialized with provider: openai
+[2026-04-04 05:25:15,301] INFO - app.services.fleet_monitor: FleetMonitor initialized
+[2026-04-04 05:25:15,301] INFO - app.services.network_honeypot: NetworkHoneypot initialized
+[2026-04-04 05:25:15,301] INFO - app.services.phishing_sandbox: PhishingSandbox initialized
+[2026-04-04 05:25:15,301] INFO - app.services.remediation_playbook: RemediationPlaybook initialized
+[2026-04-04 05:25:15,301] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-04-04 05:25:15,301] INFO - app: All security services initialized successfully
+[2026-04-04 05:25:15,304] INFO - app: API routes registered
+[2026-04-04 05:25:15,304] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-04-04 05:38:58,525] INFO - app: Initializing CyberMind security services...
+[2026-04-04 05:38:58,525] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-04-04 05:38:58,525] INFO - app.services.ai_translator: AITranslator initialized with provider: openai
+[2026-04-04 05:38:58,525] INFO - app.services.rogue_asset_detector: RogueAssetDetector initialized
+[2026-04-04 05:38:58,525] INFO - app.services.network_honeypot: NetworkHoneypot initialized
+[2026-04-04 05:38:58,525] INFO - app.services.phishing_sandbox: PhishingSandbox initialized
+[2026-04-04 05:38:58,525] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-04-04 05:38:58,525] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-04-04 05:38:58,525] INFO - app: All security services initialized successfully
+[2026-04-04 05:38:58,529] INFO - app: API routes registered
+[2026-04-04 05:38:58,529] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-04-04 05:40:00,862] INFO - app: Initializing CyberMind security services...
+[2026-04-04 05:40:00,862] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-04-04 05:40:00,862] INFO - app.services.ai_translator: AITranslator initialized with provider: openai
+[2026-04-04 05:40:00,862] INFO - app.services.rogue_asset_detector: RogueAssetDetector initialized
+[2026-04-04 05:40:00,862] INFO - app.services.network_honeypot: NetworkHoneypot initialized
+[2026-04-04 05:40:00,862] INFO - app.services.phishing_sandbox: PhishingSandbox initialized
+[2026-04-04 05:40:00,862] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-04-04 05:40:00,862] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-04-04 05:40:00,862] INFO - app: All security services initialized successfully
+[2026-04-04 05:40:00,865] INFO - app: API routes registered
+[2026-04-04 05:40:00,865] INFO - app: CyberMind Sentinel Flask App initialized - Mode: production
+[2026-04-04 05:40:38,942] INFO - app: Initializing CyberMind security services...
+[2026-04-04 05:40:38,942] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-04-04 05:40:38,942] INFO - app.services.ai_translator: AITranslator initialized with provider: openai
+[2026-04-04 05:40:38,942] INFO - app.services.rogue_asset_detector: RogueAssetDetector initialized
+[2026-04-04 05:40:38,942] INFO - app.services.network_honeypot: NetworkHoneypot initialized
+[2026-04-04 05:40:38,942] INFO - app.services.phishing_sandbox: PhishingSandbox initialized
+[2026-04-04 05:40:38,942] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-04-04 05:40:38,942] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-04-04 05:40:38,942] INFO - app: All security services initialized successfully
+[2026-04-04 05:40:38,945] INFO - app: API routes registered
+[2026-04-04 05:40:38,945] INFO - app: CyberMind Sentinel Flask App initialized - Mode: production
+[2026-04-04 05:40:55,890] INFO - app: Initializing CyberMind security services...
+[2026-04-04 05:40:55,890] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-04-04 05:40:55,890] INFO - app.services.ai_translator: AITranslator initialized with provider: openai
+[2026-04-04 05:40:55,890] INFO - app.services.rogue_asset_detector: RogueAssetDetector initialized
+[2026-04-04 05:40:55,890] INFO - app.services.network_honeypot: NetworkHoneypot initialized
+[2026-04-04 05:40:55,890] INFO - app.services.phishing_sandbox: PhishingSandbox initialized
+[2026-04-04 05:40:55,890] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-04-04 05:40:55,890] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-04-04 05:40:55,891] INFO - app: All security services initialized successfully
+[2026-04-04 05:40:55,893] INFO - app: API routes registered
+[2026-04-04 05:40:55,893] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-04-04 05:40:56,019] INFO - app: Initializing CyberMind security services...
+[2026-04-04 05:40:56,019] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-04-04 05:40:56,019] INFO - app.services.ai_translator: AITranslator initialized with provider: openai
+[2026-04-04 05:40:56,019] INFO - app.services.rogue_asset_detector: RogueAssetDetector initialized
+[2026-04-04 05:40:56,019] INFO - app.services.network_honeypot: NetworkHoneypot initialized
+[2026-04-04 05:40:56,019] INFO - app.services.phishing_sandbox: PhishingSandbox initialized
+[2026-04-04 05:40:56,019] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-04-04 05:40:56,019] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-04-04 05:40:56,019] INFO - app: All security services initialized successfully
+[2026-04-04 05:40:56,022] INFO - app: API routes registered
+[2026-04-04 05:40:56,022] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-04-04 05:41:07,480] INFO - app.services.ai_translator: Translating traffic telemetry entries: 1
+[2026-04-04 05:41:07,480] INFO - app.services.ai_translator: Translating 1 network log entries
+[2026-04-04 05:41:07,486] WARNING - app.services.ip_blacklist_service: One-click blacklist requested for IP: 1.2.3.4
+[2026-04-04 05:41:07,486] INFO - app.core.firewall_manager: Attempting to block IP: 1.2.3.4
+[2026-04-04 05:41:27,065] INFO - app: Initializing CyberMind security services...
+[2026-04-04 05:41:27,065] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-04-04 05:41:27,065] INFO - app.services.ai_translator: AITranslator initialized with provider: openai
+[2026-04-04 05:41:27,065] INFO - app.services.rogue_asset_detector: RogueAssetDetector initialized
+[2026-04-04 05:41:27,065] INFO - app.services.network_honeypot: NetworkHoneypot initialized
+[2026-04-04 05:41:27,065] INFO - app.services.phishing_sandbox: PhishingSandbox initialized
+[2026-04-04 05:41:27,065] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-04-04 05:41:27,066] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-04-04 05:41:27,066] INFO - app: All security services initialized successfully
+[2026-04-04 05:41:27,068] INFO - app: API routes registered
+[2026-04-04 05:41:27,068] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-04-04 05:41:56,654] INFO - app: Initializing CyberMind security services...
+[2026-04-04 05:41:56,654] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-04-04 05:41:56,654] INFO - app.services.ai_translator: AITranslator initialized with provider: openai
+[2026-04-04 05:41:56,654] INFO - app.services.rogue_asset_detector: RogueAssetDetector initialized
+[2026-04-04 05:41:56,654] INFO - app.services.network_honeypot: NetworkHoneypot initialized
+[2026-04-04 05:41:56,654] INFO - app.services.phishing_sandbox: PhishingSandbox initialized
+[2026-04-04 05:41:56,654] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-04-04 05:41:56,654] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-04-04 05:41:56,654] INFO - app: All security services initialized successfully
+[2026-04-04 05:41:56,657] INFO - app: API routes registered
+[2026-04-04 05:41:56,657] INFO - app: CyberMind Sentinel Flask App initialized - Mode: production
+[2026-04-04 05:42:08,187] INFO - app.services.ai_translator: Translating traffic telemetry entries: 1
+[2026-04-04 05:42:08,187] INFO - app.services.ai_translator: Translating 1 network log entries
+[2026-04-04 05:42:08,199] WARNING - app.services.ip_blacklist_service: One-click blacklist requested for IP: 999.999.999.999
+[2026-04-04 05:42:08,199] INFO - app.core.firewall_manager: Attempting to block IP: 999.999.999.999
+[2026-04-04 05:43:37,712] ERROR - app.core.firewall_manager: Command timeout after 10s: sudo sh -c cp /etc/pf.conf /etc/pf.conf.bak && echo 'block drop in from 1.2.3.4
+block drop out to 1.2.3.4
+' >> /etc/pf.conf && pfctl -f /etc/pf.conf
+[2026-04-04 05:43:37,713] ERROR - app.core.firewall_manager: Failed to block IP on macOS: Command timeout after 10s: sudo sh -c cp /etc/pf.conf /etc/pf.conf.bak && echo 'block drop in from 1.2.3.4
+block drop out to 1.2.3.4
+' >> /etc/pf.conf && pfctl -f /etc/pf.conf
+[2026-04-04 16:11:00,925] INFO - app: Initializing CyberMind security services...
+[2026-04-04 16:11:00,925] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-04-04 16:11:00,925] INFO - app.services.ai_translator: AITranslator initialized with provider: openai
+[2026-04-04 16:11:00,925] INFO - app.services.rogue_asset_detector: RogueAssetDetector initialized
+[2026-04-04 16:11:00,925] INFO - app.services.network_honeypot: NetworkHoneypot initialized
+[2026-04-04 16:11:00,925] INFO - app.services.phishing_sandbox: PhishingSandbox initialized
+[2026-04-04 16:11:00,925] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-04-04 16:11:00,925] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-04-04 16:11:00,925] INFO - app: All security services initialized successfully
+[2026-04-04 16:11:00,928] INFO - app: API routes registered
+[2026-04-04 16:11:00,928] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-04-04 16:33:55,517] INFO - app: Initializing CyberMind security services...
+[2026-04-04 16:33:55,518] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-04-04 16:33:55,518] INFO - app.services.ai_translator: AITranslator initialized with provider: openai
+[2026-04-04 16:33:55,518] INFO - app.services.rogue_asset_detector: RogueAssetDetector initialized
+[2026-04-04 16:33:55,518] INFO - app.services.network_honeypot: NetworkHoneypot initialized
+[2026-04-04 16:33:55,518] INFO - app.services.phishing_sandbox: PhishingSandbox initialized
+[2026-04-04 16:33:55,518] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-04-04 16:33:55,518] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-04-04 16:33:55,518] INFO - app: All security services initialized successfully
+[2026-04-04 16:33:55,520] INFO - app: API routes registered
+[2026-04-04 16:33:55,520] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-04-04 16:33:55,632] INFO - app: Initializing CyberMind security services...
+[2026-04-04 16:33:55,632] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-04-04 16:33:55,632] INFO - app.services.ai_translator: AITranslator initialized with provider: openai
+[2026-04-04 16:33:55,632] INFO - app.services.rogue_asset_detector: RogueAssetDetector initialized
+[2026-04-04 16:33:55,633] INFO - app.services.network_honeypot: NetworkHoneypot initialized
+[2026-04-04 16:33:55,633] INFO - app.services.phishing_sandbox: PhishingSandbox initialized
+[2026-04-04 16:33:55,633] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-04-04 16:33:55,633] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-04-04 16:33:55,633] INFO - app: All security services initialized successfully
+[2026-04-04 16:33:55,634] INFO - app: API routes registered
+[2026-04-04 16:33:55,635] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-04-04 16:33:56,771] INFO - app: Initializing CyberMind security services...
+[2026-04-04 16:33:56,771] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-04-04 16:33:56,771] INFO - app.services.ai_translator: AITranslator initialized with provider: openai
+[2026-04-04 16:33:56,771] INFO - app.services.rogue_asset_detector: RogueAssetDetector initialized
+[2026-04-04 16:33:56,771] INFO - app.services.network_honeypot: NetworkHoneypot initialized
+[2026-04-04 16:33:56,771] INFO - app.services.phishing_sandbox: PhishingSandbox initialized
+[2026-04-04 16:33:56,771] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-04-04 16:33:56,771] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-04-04 16:33:56,771] INFO - app: All security services initialized successfully
+[2026-04-04 16:33:56,773] INFO - app: API routes registered
+[2026-04-04 16:33:56,773] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-04-04 16:34:12,307] INFO - app: Initializing CyberMind security services...
+[2026-04-04 16:34:12,307] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-04-04 16:34:12,307] INFO - app.services.ai_translator: AITranslator initialized with provider: openai
+[2026-04-04 16:34:12,307] INFO - app.services.rogue_asset_detector: RogueAssetDetector initialized
+[2026-04-04 16:34:12,307] INFO - app.services.network_honeypot: NetworkHoneypot initialized
+[2026-04-04 16:34:12,307] INFO - app.services.phishing_sandbox: PhishingSandbox initialized
+[2026-04-04 16:34:12,307] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-04-04 16:34:12,307] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-04-04 16:34:12,307] INFO - app: All security services initialized successfully
+[2026-04-04 16:34:12,313] INFO - app: API routes registered
+[2026-04-04 16:34:12,314] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-04-04 16:34:21,203] INFO - app: Initializing CyberMind security services...
+[2026-04-04 16:34:21,203] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-04-04 16:34:21,203] INFO - app.services.ai_translator: AITranslator initialized with provider: openai
+[2026-04-04 16:34:21,203] INFO - app.services.rogue_asset_detector: RogueAssetDetector initialized
+[2026-04-04 16:34:21,203] INFO - app.services.network_honeypot: NetworkHoneypot initialized
+[2026-04-04 16:34:21,203] INFO - app.services.phishing_sandbox: PhishingSandbox initialized
+[2026-04-04 16:34:21,203] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-04-04 16:34:21,203] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-04-04 16:34:21,203] INFO - app: All security services initialized successfully
+[2026-04-04 16:34:21,205] INFO - app: API routes registered
+[2026-04-04 16:34:21,206] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-04-04 16:34:21,299] INFO - app: Initializing CyberMind security services...
+[2026-04-04 16:34:21,299] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-04-04 16:34:21,299] INFO - app.services.ai_translator: AITranslator initialized with provider: openai
+[2026-04-04 16:34:21,299] INFO - app.services.rogue_asset_detector: RogueAssetDetector initialized
+[2026-04-04 16:34:21,300] INFO - app.services.network_honeypot: NetworkHoneypot initialized
+[2026-04-04 16:34:21,300] INFO - app.services.phishing_sandbox: PhishingSandbox initialized
+[2026-04-04 16:34:21,300] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-04-04 16:34:21,300] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-04-04 16:34:21,300] INFO - app: All security services initialized successfully
+[2026-04-04 16:34:21,301] INFO - app: API routes registered
+[2026-04-04 16:34:21,302] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-04-04 16:35:10,809] INFO - app: Initializing CyberMind security services...
+[2026-04-04 16:35:10,809] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-04-04 16:35:10,809] INFO - app.services.ai_translator: AITranslator initialized with provider: openai
+[2026-04-04 16:35:10,809] INFO - app.services.rogue_asset_detector: RogueAssetDetector initialized
+[2026-04-04 16:35:10,809] INFO - app.services.network_honeypot: NetworkHoneypot initialized
+[2026-04-04 16:35:10,809] INFO - app.services.phishing_sandbox: PhishingSandbox initialized
+[2026-04-04 16:35:10,809] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-04-04 16:35:10,809] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-04-04 16:35:10,809] INFO - app: All security services initialized successfully
+[2026-04-04 16:35:10,811] INFO - app: API routes registered
+[2026-04-04 16:35:10,811] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development

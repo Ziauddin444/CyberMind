@@ -1,0 +1,136 @@
+CYBERMIND QUICK CHEAT SHEET
+Date: 2026-04-05
+
+This is the fast version. Use this when you do not want the long guide.
+
+====================================================================
+1) WHAT TO USE
+====================================================================
+
+Primary backend:
+- /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask
+
+Frontend:
+- /Users/ziauddin/Documents/GitHub/CyberMind/frontend
+
+Legacy backend:
+- /Users/ziauddin/Documents/GitHub/CyberMind/backend
+
+For the new Commander-Agent project, use backend_flask.
+
+====================================================================
+2) START BACKEND
+====================================================================
+
+cd /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask
+source venv/bin/activate
+python run.py
+
+What to look for:
+- Health endpoint: http://localhost:5000/api/health
+- If port 5000 is busy, the app auto-uses a free fallback port like 5001, 5002, etc.
+- Read the terminal log to see the exact port.
+
+====================================================================
+3) CHECK IF BACKEND IS WORKING
+====================================================================
+
+Try these in a new terminal:
+
+curl http://localhost:5000/api/health
+curl http://localhost:5000/api/status
+
+If 5000 does not respond, try the fallback ports printed by the server:
+
+curl http://localhost:5001/api/health
+curl http://localhost:5002/api/health
+curl http://localhost:5003/api/health
+
+====================================================================
+4) START FRONTEND
+====================================================================
+
+cd /Users/ziauddin/Documents/GitHub/CyberMind/frontend
+npm install
+npm run dev
+
+Open:
+- http://localhost:5173
+
+====================================================================
+5) MOST USEFUL API TESTS
+====================================================================
+
+Health:
+curl http://localhost:5000/api/health
+
+Status:
+curl http://localhost:5000/api/status
+
+Firewall status:
+curl http://localhost:5000/api/firewall/status
+
+AI traffic translation:
+curl -X POST http://localhost:5000/api/traffic/translate \
+  -H "Content-Type: application/json" \
+  -d '{"telemetry":["deny src=1.2.3.4 dst=10.0.0.2 port=443"],"context":{"site":"hq"}}'
+
+Rogue asset status:
+curl http://localhost:5000/api/assets/status
+
+Phishing statistics:
+curl http://localhost:5000/api/phishing/statistics
+
+Blacklisting test with invalid IP:
+curl -X POST http://localhost:5000/api/blacklist/ip \
+  -H "Authorization: Bearer test-token" \
+  -H "Content-Type: application/json" \
+  -d '{"ip_address":"999.999.999.999","reason":"test"}'
+
+Isolation status:
+curl http://localhost:5000/api/isolation/status
+
+====================================================================
+6) IMPORTANT PERMISSIONS NOTE
+====================================================================
+
+Real blacklist and kill-switch actions use native OS firewalls.
+That means they may require:
+- macOS/Linux: sudo
+- Windows: Administrator
+
+If you do not have permission, the app may return a privilege error.
+That is normal for protected firewall actions.
+
+====================================================================
+7) STOP EVERYTHING
+====================================================================
+
+Stop backend if running in a terminal:
+- Press Ctrl + C
+
+Stop background backend processes:
+
+pkill -f "backend_flask/run.py"
+
+If a port is stuck:
+
+lsof -i :5000
+kill -9 <PID>
+
+Stop frontend:
+- Press Ctrl + C in the frontend terminal
+
+====================================================================
+8) BEGINNER FLOW
+====================================================================
+
+1. Start backend.
+2. Check /api/health.
+3. Start frontend.
+4. Test a safe API like /api/status.
+5. Only then test firewall-related features.
+
+====================================================================
+END
+====================================================================

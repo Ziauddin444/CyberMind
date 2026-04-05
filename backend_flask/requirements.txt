@@ -1,0 +1,49 @@
+# CyberMind Sentinel Backend - Python Dependencies
+# Compatible with Python 3.9+
+
+# Core Framework
+Flask==2.3.3
+Flask-CORS==4.0.0
+python-dotenv==1.0.0
+
+# Security & Authentication  
+PyJWT==2.6.0
+bcrypt==4.0.1
+cryptography==40.0.2
+
+# HTTP & Networking
+requests==2.31.0
+urllib3==2.0.7
+
+# System Interaction & Process Control
+psutil==5.9.6
+
+# Data Processing
+python-dateutil==2.8.2
+pytz==2023.3
+
+# Database (when upgraded from JSON)
+# SQLAlchemy==2.0.21
+# psycopg2-binary==2.9.9  # PostgreSQL
+
+# Logging & Monitoring
+python-json-logger==2.0.7
+
+# Task Scheduling (optional)
+# Celery==5.3.4
+# redis==5.0.1
+
+# Testing & Development
+pytest==7.4.0
+pytest-flask==1.2.0
+pytest-cov==4.1.0
+pytest-mock==3.11.1
+
+# Code Quality
+black==23.9.1
+flake8==6.0.0
+pylint==2.17.5
+mypy==1.5.0
+
+# Development Server
+Werkzeug==3.0.1
