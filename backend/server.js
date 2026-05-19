@@ -15,6 +15,15 @@ app.use(express.json());
 // ─── Database File Path ─────────────────────────────────────────────────────
 
 const USERS_FILE = path.join(__dirname, 'users.json');
+const DEVICES_FILE = path.join(__dirname, 'devices.json');
+const LOGS_FILE = path.join(__dirname, 'logs.json');
+
+const ROLE_LEVELS = {
+  'viewer': 1,
+  'analyst': 2,
+  'admin': 3,
+  'super-admin': 4,
+};
 
 // ─── Load Users from File ───────────────────────────────────────────────────
 
@@ -42,10 +51,65 @@ function getNextUserId(users) {
   return users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1;
 }
 
+function loadCollection(filePath, fallbackData) {
+  try {
+    if (fs.existsSync(filePath)) {
+      const raw = fs.readFileSync(filePath, 'utf8');
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (err) {
+    console.error(`Error loading ${path.basename(filePath)}:`, err.message);
+  }
+  return fallbackData;
+}
+
+function saveCollection(filePath, data) {
+  try {
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
+  } catch (err) {
+    console.error(`Error saving ${path.basename(filePath)}:`, err.message);
+  }
+}
+
+function resolveUserRole(user) {
+  if (user && typeof user.role === 'string' && ROLE_LEVELS[user.role]) {
+    return user.role;
+  }
+
+  if (user && user.username === 'admin') {
+    return 'super-admin';
+  }
+
+  if (user && user.isAdmin) {
+    return 'admin';
+  }
+
+  return 'viewer';
+}
+
+function isRoleAllowed(currentRole, minimumRole) {
+  const current = ROLE_LEVELS[currentRole] || ROLE_LEVELS.viewer;
+  const minimum = ROLE_LEVELS[minimumRole] || ROLE_LEVELS.viewer;
+  return current >= minimum;
+}
+
 // ─── In-Memory Data ─────────────────────────────────────────────────────────
 
 // Auth
 let USERS = loadUsers();
+let usersMigrated = false;
+USERS = USERS.map((user) => {
+  const role = resolveUserRole(user);
+  const isAdmin = role === 'admin' || role === 'super-admin';
+  if (user.role !== role || user.isAdmin !== isAdmin) {
+    usersMigrated = true;
+  }
+  return { ...user, role, isAdmin };
+});
+if (usersMigrated) {
+  saveUsers(USERS);
+}
 const sessions = new Map();
 
 // Failed login attempts tracking (for rate limiting)
@@ -61,22 +125,28 @@ const emailVerificationTokens = new Map(); // key: token, value: { email, expire
 const userSessions = new Map();
 
 // Devices
-let devices = [
+const DEFAULT_DEVICES = [
   { id: 1, name: 'MacBook-Air', type: 'laptop', ip: '192.168.1.10', status: 'online', lastThreat: 'None', safety: 96, addedAt: '2025-01-15' },
   { id: 2, name: 'Windows-Server', type: 'server', ip: '192.168.1.20', status: 'online', lastThreat: 'Brute force attempt', safety: 71, addedAt: '2025-01-10' },
   { id: 3, name: 'POS-Terminal-1', type: 'iot', ip: '192.168.1.30', status: 'offline', lastThreat: 'None', safety: 100, addedAt: '2025-02-01' },
 ];
-let nextDeviceId = 4;
+let devices = loadCollection(DEVICES_FILE, DEFAULT_DEVICES);
+let nextDeviceId = devices.length > 0 ? Math.max(...devices.map(d => d.id)) + 1 : 1;
 
 // Logs
-let logs = [
+const DEFAULT_LOGS = [
   { id: 1, time: '12:41', device: 'MacBook-Air', event: 'Failed login', summary: 'Brute-force attempt from Russia', action: 'Blocked', severity: 'high' },
   { id: 2, time: '12:39', device: 'Windows-Server', event: 'File created', summary: 'Suspicious .exe file downloaded', action: 'Quarantined', severity: 'critical' },
   { id: 3, time: '12:33', device: 'POS-Terminal-1', event: 'USB inserted', summary: 'Unknown USB device connected', action: 'Monitored', severity: 'medium' },
   { id: 4, time: '12:20', device: 'MacBook-Air', event: 'App installed', summary: 'New application installed: Slack', action: 'Allowed', severity: 'low' },
   { id: 5, time: '11:55', device: 'Windows-Server', event: 'Port scan', summary: 'External port scan detected from 45.33.32.156', action: 'Blocked', severity: 'high' },
 ];
-let nextLogId = 6;
+let logs = loadCollection(LOGS_FILE, DEFAULT_LOGS);
+let nextLogId = logs.length > 0 ? Math.max(...logs.map(l => l.id)) + 1 : 1;
+
+// Ensure baseline persistence files exist.
+if (!fs.existsSync(DEVICES_FILE)) saveCollection(DEVICES_FILE, devices);
+if (!fs.existsSync(LOGS_FILE)) saveCollection(LOGS_FILE, logs);
 
 // Honeypot
 let honeypotData = {
@@ -177,6 +247,65 @@ const PHISHING_PATTERNS = [
   'free-prize', 'claim-bonus', 'urgent-action', 'suspended-account',
   'microsoft-alert', 'apple-id-lock', 'netflix-payment', 'amazon-security',
 ];
+
+// ─── IP Blocklist (Demo Attack Detection) ───────────────────────────────────
+
+const BLOCKLIST_FILE = path.join(__dirname, 'blocklist.json');
+
+function loadBlocklist() {
+  try {
+    if (fs.existsSync(BLOCKLIST_FILE)) {
+      return JSON.parse(fs.readFileSync(BLOCKLIST_FILE, 'utf8'));
+    }
+  } catch (err) {
+    console.error('Error loading blocklist:', err.message);
+  }
+  return [];
+}
+
+function saveBlocklist(list) {
+  try {
+    fs.writeFileSync(BLOCKLIST_FILE, JSON.stringify(list, null, 2), 'utf8');
+  } catch (err) {
+    console.error('Error saving blocklist:', err.message);
+  }
+}
+
+let ipBlocklist = loadBlocklist();
+let nextBlockId = ipBlocklist.length > 0 ? Math.max(...ipBlocklist.map(b => b.id)) + 1 : 1;
+
+// Attack type classifier — maps keywords to human-readable threat types
+const ATTACK_SIGNATURES = {
+  brute_force:    ['brute', 'login', 'ssh', 'password', 'credential', 'auth'],
+  port_scan:      ['scan', 'nmap', 'probe', 'port', 'sweep', 'enumerate'],
+  sql_injection:  ['sql', 'inject', "' or", 'union select', 'drop table', '--'],
+  xss:            ['<script', 'onerror=', 'alert(', 'javascript:', 'onload='],
+  ddos:           ['ddos', 'flood', 'dos', 'amplification', 'overload'],
+  malware:        ['malware', 'ransomware', 'trojan', 'payload', 'exploit', 'shell'],
+  recon:          ['recon', 'whoami', 'ifconfig', 'uname', 'curl', 'wget'],
+};
+
+function classifyAttack(payload = '', threatType = '') {
+  const text = (payload + ' ' + threatType).toLowerCase();
+  for (const [type, keywords] of Object.entries(ATTACK_SIGNATURES)) {
+    if (keywords.some(k => text.includes(k))) return type;
+  }
+  return 'suspicious_activity';
+}
+
+function getSeverity(attackType) {
+  const map = {
+    brute_force: 'high',
+    port_scan: 'medium',
+    sql_injection: 'critical',
+    xss: 'medium',
+    ddos: 'critical',
+    malware: 'critical',
+    recon: 'low',
+    suspicious_activity: 'medium',
+  };
+  return map[attackType] || 'medium';
+}
 
 // ─── Helper Functions ───────────────────────────────────────────────────────
 
@@ -315,19 +444,36 @@ function authMiddleware(req, res, next) {
   if (!token || !sessions.has(token)) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
-  req.user = sessions.get(token);
+  const sessionUser = sessions.get(token);
+  const dbUser = USERS.find(u => u.id === sessionUser.id);
+  const role = resolveUserRole(dbUser || sessionUser);
+  sessionUser.role = role;
+  sessionUser.isAdmin = role === 'admin' || role === 'super-admin';
+  req.user = sessionUser;
   next();
+}
+
+function requireRole(minimumRole) {
+  return (req, res, next) => {
+    authMiddleware(req, res, () => {
+      const role = req.user?.role || 'viewer';
+      if (!isRoleAllowed(role, minimumRole)) {
+        return res.status(403).json({
+          error: `Insufficient role. Required: ${minimumRole}, current: ${role}`,
+        });
+      }
+      next();
+    });
+  };
 }
 
 // Admin middleware
 function adminMiddleware(req, res, next) {
-  authMiddleware(req, res, () => {
-    const user = USERS.find(u => u.id === req.user.id);
-    if (!user || !user.isAdmin) {
-      return res.status(403).json({ error: 'Admin access required' });
-    }
-    next();
-  });
+  return requireRole('admin')(req, res, next);
+}
+
+function superAdminMiddleware(req, res, next) {
+  return requireRole('super-admin')(req, res, next);
 }
 
 // ─── Auth Routes ────────────────────────────────────────────────────────────
@@ -376,6 +522,7 @@ app.post('/api/auth/register', async (req, res) => {
       resetToken: null,
       resetExpires: null,
       emailVerified: false,
+      role: 'viewer',
       isAdmin: false,
       lastLogin: null,
       loginCount: 0
@@ -422,6 +569,7 @@ app.post('/api/auth/verify-email', (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
   const { username, password } = req.body;
   const ip = req.ip || 'unknown';
+  const allowUnverifiedLogin = process.env.ALLOW_UNVERIFIED_LOGIN === 'true';
   
   if (!username || !password) {
     return res.status(400).json({ error: 'Username and password required' });
@@ -441,10 +589,14 @@ app.post('/api/auth/login', async (req, res) => {
   }
 
   // Check email verified
-  if (!user.emailVerified) {
+  if (!user.emailVerified && !allowUnverifiedLogin) {
     recordFailedLogin(username);
     logLoginActivity(username, false, ip, 'Email not verified');
     return res.status(403).json({ error: 'Email not verified. Check your email for verification code.' });
+  }
+
+  if (!user.emailVerified && allowUnverifiedLogin) {
+    logLoginActivity(username, true, ip, 'Login allowed with ALLOW_UNVERIFIED_LOGIN=true');
   }
 
   try {
@@ -464,8 +616,16 @@ app.post('/api/auth/login', async (req, res) => {
     user.loginCount = (user.loginCount || 0) + 1;
     saveUsers(USERS);
 
+    const role = resolveUserRole(user);
     const token = crypto.randomBytes(32).toString('hex');
-    sessions.set(token, { id: user.id, username: user.username, name: user.name, company: user.company, isAdmin: user.isAdmin });
+    sessions.set(token, {
+      id: user.id,
+      username: user.username,
+      name: user.name,
+      company: user.company,
+      role,
+      isAdmin: role === 'admin' || role === 'super-admin',
+    });
 
     // Create session tracking
     const userAgent = req.headers['user-agent'] || '';
@@ -475,7 +635,14 @@ app.post('/api/auth/login', async (req, res) => {
 
     res.json({
       token,
-      user: { id: user.id, username: user.username, name: user.name, company: user.company, isAdmin: user.isAdmin },
+      user: {
+        id: user.id,
+        username: user.username,
+        name: user.name,
+        company: user.company,
+        role,
+        isAdmin: role === 'admin' || role === 'super-admin',
+      },
     });
   } catch (err) {
     recordFailedLogin(username);
@@ -488,7 +655,12 @@ app.get('/api/auth/verify', (req, res) => {
   if (!token || !sessions.has(token)) {
     return res.status(401).json({ valid: false });
   }
-  res.json({ valid: true, user: sessions.get(token) });
+  const sessionUser = sessions.get(token);
+  const dbUser = USERS.find(u => u.id === sessionUser.id);
+  const role = resolveUserRole(dbUser || sessionUser);
+  sessionUser.role = role;
+  sessionUser.isAdmin = role === 'admin' || role === 'super-admin';
+  res.json({ valid: true, user: sessionUser });
 });
 
 app.post('/api/auth/logout', (req, res) => {
@@ -636,7 +808,9 @@ app.get('/api/auth/profile', authMiddleware, (req, res) => {
     email: user.email,
     name: user.name,
     company: user.company,
-    createdAt: user.createdAt
+    createdAt: user.createdAt,
+    role: resolveUserRole(user),
+    isAdmin: isRoleAllowed(resolveUserRole(user), 'admin'),
   });
 });
 
@@ -715,6 +889,7 @@ app.get('/api/admin/users', adminMiddleware, (req, res) => {
     company: u.company,
     createdAt: u.createdAt,
     emailVerified: u.emailVerified,
+    role: resolveUserRole(u),
     isAdmin: u.isAdmin,
     lastLogin: u.lastLogin,
     loginCount: u.loginCount
@@ -735,6 +910,7 @@ app.get('/api/admin/users/:id', adminMiddleware, (req, res) => {
     company: user.company,
     createdAt: user.createdAt,
     emailVerified: user.emailVerified,
+    role: resolveUserRole(user),
     isAdmin: user.isAdmin,
     lastLogin: user.lastLogin,
     loginCount: user.loginCount
@@ -759,10 +935,11 @@ app.delete('/api/admin/users/:id', adminMiddleware, (req, res) => {
 });
 
 // Make user admin (admin only)
-app.put('/api/admin/users/:id/make-admin', adminMiddleware, (req, res) => {
+app.put('/api/admin/users/:id/make-admin', superAdminMiddleware, (req, res) => {
   const user = USERS.find(u => u.id === parseInt(req.params.id));
   if (!user) return res.status(404).json({ error: 'User not found' });
 
+  user.role = 'admin';
   user.isAdmin = true;
   saveUsers(USERS);
 
@@ -770,7 +947,7 @@ app.put('/api/admin/users/:id/make-admin', adminMiddleware, (req, res) => {
 });
 
 // Remove admin (admin only)
-app.put('/api/admin/users/:id/remove-admin', adminMiddleware, (req, res) => {
+app.put('/api/admin/users/:id/remove-admin', superAdminMiddleware, (req, res) => {
   const adminUser = USERS.find(u => u.id === req.user.id);
   const user = USERS.find(u => u.id === parseInt(req.params.id));
 
@@ -779,10 +956,32 @@ app.put('/api/admin/users/:id/remove-admin', adminMiddleware, (req, res) => {
     return res.status(400).json({ error: 'Cannot remove admin from yourself' });
   }
 
+  user.role = 'viewer';
   user.isAdmin = false;
   saveUsers(USERS);
 
   res.json({ success: true, message: 'Admin privileges removed' });
+});
+
+app.put('/api/admin/users/:id/role', superAdminMiddleware, (req, res) => {
+  const { role } = req.body;
+  if (!ROLE_LEVELS[role]) {
+    return res.status(400).json({ error: 'Invalid role. Use viewer, analyst, admin, or super-admin' });
+  }
+
+  const user = USERS.find(u => u.id === parseInt(req.params.id));
+  if (!user) return res.status(404).json({ error: 'User not found' });
+
+  const currentUserId = req.user.id;
+  if (user.id === currentUserId && role !== 'super-admin') {
+    return res.status(400).json({ error: 'Cannot downgrade your own super-admin role' });
+  }
+
+  user.role = role;
+  user.isAdmin = role === 'admin' || role === 'super-admin';
+  saveUsers(USERS);
+
+  res.json({ success: true, message: `Role updated to ${role}` });
 });
 
 // Get login activity (admin only)
@@ -855,7 +1054,7 @@ app.get('/api/devices/:id', (req, res) => {
   res.json(device);
 });
 
-app.post('/api/devices', (req, res) => {
+app.post('/api/devices', requireRole('analyst'), (req, res) => {
   const { name, type, ip } = req.body;
   const newDevice = {
     id: nextDeviceId++,
@@ -868,10 +1067,11 @@ app.post('/api/devices', (req, res) => {
     addedAt: new Date().toISOString().split('T')[0],
   };
   devices.unshift(newDevice);
+  saveCollection(DEVICES_FILE, devices);
   res.status(201).json(newDevice);
 });
 
-app.put('/api/devices/:id', (req, res) => {
+app.put('/api/devices/:id', requireRole('analyst'), (req, res) => {
   const device = devices.find(d => d.id === parseInt(req.params.id));
   if (!device) return res.status(404).json({ error: 'Device not found' });
 
@@ -881,22 +1081,25 @@ app.put('/api/devices/:id', (req, res) => {
   if (ip !== undefined) device.ip = ip;
   if (status !== undefined) device.status = status;
 
+  saveCollection(DEVICES_FILE, devices);
   res.json(device);
 });
 
-app.patch('/api/devices/:id/toggle', (req, res) => {
+app.patch('/api/devices/:id/toggle', requireRole('analyst'), (req, res) => {
   const device = devices.find(d => d.id === parseInt(req.params.id));
   if (!device) return res.status(404).json({ error: 'Device not found' });
 
   device.status = device.status === 'online' ? 'offline' : 'online';
+  saveCollection(DEVICES_FILE, devices);
   res.json(device);
 });
 
-app.delete('/api/devices/:id', (req, res) => {
+app.delete('/api/devices/:id', requireRole('analyst'), (req, res) => {
   const index = devices.findIndex(d => d.id === parseInt(req.params.id));
   if (index === -1) return res.status(404).json({ error: 'Device not found' });
 
   const removed = devices.splice(index, 1)[0];
+  saveCollection(DEVICES_FILE, devices);
   res.json({ success: true, removed });
 });
 
@@ -906,7 +1109,7 @@ app.get('/api/logs', (_req, res) => {
   res.json(logs);
 });
 
-app.post('/api/logs', (req, res) => {
+app.post('/api/logs', requireRole('analyst'), (req, res) => {
   const { time, device, event, summary, action, severity } = req.body;
   const newLog = {
     id: nextLogId++,
@@ -918,13 +1121,15 @@ app.post('/api/logs', (req, res) => {
     severity: severity || 'low',
   };
   logs.unshift(newLog);
+  saveCollection(LOGS_FILE, logs);
   res.status(201).json(newLog);
 });
 
-app.delete('/api/logs/:id', (req, res) => {
+app.delete('/api/logs/:id', requireRole('analyst'), (req, res) => {
   const index = logs.findIndex(l => l.id === parseInt(req.params.id));
   if (index === -1) return res.status(404).json({ error: 'Log not found' });
   logs.splice(index, 1);
+  saveCollection(LOGS_FILE, logs);
   res.json({ success: true });
 });
 
@@ -999,7 +1204,7 @@ app.get('/api/threats/:id', (req, res) => {
 
 // ─── Kill Switch ────────────────────────────────────────────────────────────
 
-app.post('/api/killswitch', (req, res) => {
+app.post('/api/killswitch', requireRole('admin'), (req, res) => {
   const deviceId = req.body.deviceId || 2;
   const device = devices.find(d => d.id === deviceId);
 
@@ -1025,7 +1230,7 @@ app.post('/api/killswitch', (req, res) => {
 
 // ─── Remediation Playbooks ──────────────────────────────────────────────────
 
-app.post('/api/remediation', (req, res) => {
+app.post('/api/remediation', requireRole('analyst'), (req, res) => {
   const { playbook } = req.body;
   const results = {
     1: { action: 'block_ip', message: 'IP 185.53.177.54 successfully blocked', success: true },
@@ -1064,7 +1269,7 @@ app.get('/api/settings', (_req, res) => {
   res.json(settings);
 });
 
-app.put('/api/settings', (req, res) => {
+app.put('/api/settings', requireRole('admin'), (req, res) => {
   const allowed = [
     'companyName', 'autoBlockThreats', 'notificationsEnabled',
     'emailAlertsEnabled', 'alertEmail', 'alertOnHigh', 'alertOnMedium',
@@ -1078,7 +1283,7 @@ app.put('/api/settings', (req, res) => {
 
 // ─── Network Scan ───────────────────────────────────────────────────────────
 
-app.post('/api/scan', (_req, res) => {
+app.post('/api/scan', requireRole('analyst'), (_req, res) => {
   const scanResults = devices.map(device => ({
     deviceId: device.id,
     deviceName: device.name,
@@ -1125,7 +1330,7 @@ app.get('/api/alerts/config', (_req, res) => {
   });
 });
 
-app.put('/api/alerts/config', (req, res) => {
+app.put('/api/alerts/config', requireRole('admin'), (req, res) => {
   const { emailAlertsEnabled, alertEmail, alertOnHigh, alertOnMedium, alertOnLow } = req.body;
   if (emailAlertsEnabled !== undefined) settings.emailAlertsEnabled = emailAlertsEnabled;
   if (alertEmail !== undefined) settings.alertEmail = alertEmail;
@@ -1154,6 +1359,115 @@ app.get('/api/live-feed', (_req, res) => {
     { type: 'info', text: 'SSL certificate renewal verified' },
   ];
   res.json(liveMessages[Math.floor(Math.random() * liveMessages.length)]);
+});
+
+// ─── Attack Detection & IP Blocklist (Demo Endpoints) ───────────────────────
+
+// POST /api/detect-attack — receives attack payloads (from demo script or real traffic)
+// No auth required so the professor's demo works even without login
+app.post('/api/detect-attack', (req, res) => {
+  const {
+    payload = '',
+    threat_type: rawType = '',
+    source_port = 0,
+    target_port = 80,
+    message = '',
+  } = req.body || {};
+
+  // Determine real source IP (supports X-Forwarded-For from proxy / curl)
+  const forwarded = req.headers['x-forwarded-for'] || '';
+  const sourceIp = forwarded.split(',')[0].trim() || req.socket.remoteAddress || req.ip || '127.0.0.1';
+
+  // Classify the attack
+  const attackType   = classifyAttack(payload + ' ' + message, rawType);
+  const severity     = getSeverity(attackType);
+  const detectedAt   = new Date().toISOString();
+  const timeStr      = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+
+  // Human-readable label map
+  const typeLabels = {
+    brute_force:        'Brute Force Attack',
+    port_scan:          'Port Scan',
+    sql_injection:      'SQL Injection Attempt',
+    xss:                'Cross-Site Scripting (XSS)',
+    ddos:               'DDoS / Flood Attack',
+    malware:            'Malware / Exploit Payload',
+    recon:              'Reconnaissance Activity',
+    suspicious_activity:'Suspicious Activity',
+  };
+  const label = typeLabels[attackType] || 'Unknown Attack';
+
+  // Check if IP already blocked
+  const alreadyBlocked = ipBlocklist.some(b => b.ip === sourceIp && b.status === 'blocked');
+
+  // Create blocklist record
+  const blockRecord = {
+    id: nextBlockId++,
+    ip: sourceIp,
+    attackType,
+    label,
+    severity,
+    payload: payload.slice(0, 200),
+    message: message.slice(0, 200),
+    sourcePort: source_port,
+    targetPort: target_port,
+    status: 'blocked',
+    detectedAt,
+    timeStr,
+    alreadyBlocked,
+  };
+
+  if (!alreadyBlocked) {
+    ipBlocklist.unshift(blockRecord);
+    // Keep last 500 records
+    if (ipBlocklist.length > 500) ipBlocklist = ipBlocklist.slice(0, 500);
+    saveBlocklist(ipBlocklist);
+  }
+
+  // Also push to the main security logs so dashboard shows it
+  logs.unshift({
+    id: nextLogId++,
+    time: timeStr,
+    device: 'CyberMind-Sentinel',
+    event: label,
+    summary: `Attack detected from ${sourceIp} — ${severity.toUpperCase()} severity. IP ${alreadyBlocked ? 'was already blocked' : 'auto-blocked'}.`,
+    action: 'Blocked',
+    severity,
+  });
+  saveCollection(LOGS_FILE, logs);
+
+  // Update system status
+  systemStatus.threatsActive = Math.min(systemStatus.threatsActive + (alreadyBlocked ? 0 : 1), 99);
+  systemStatus.safetyScore   = Math.max(systemStatus.safetyScore - (alreadyBlocked ? 0 : 0.5), 60);
+  systemStatus.lastThreatDetected = 'just now';
+
+  console.log(`[DETECT] ${severity.toUpperCase()} ${label} from ${sourceIp} — ${alreadyBlocked ? 'already blocked' : 'BLOCKED'}`);
+
+  res.json({
+    success: true,
+    message: alreadyBlocked ? `IP ${sourceIp} was already in blocklist` : `Attack detected & IP ${sourceIp} auto-blocked`,
+    detection: blockRecord,
+    total_blocked: ipBlocklist.length,
+  });
+});
+
+// GET /api/blocklist — retrieve current IP blocklist with stats
+app.get('/api/blocklist', (req, res) => {
+  const total = ipBlocklist.length;
+  const bySeverity = { critical: 0, high: 0, medium: 0, low: 0 };
+  const byType = {};
+
+  ipBlocklist.forEach(b => {
+    if (bySeverity[b.severity] !== undefined) bySeverity[b.severity]++;
+    byType[b.attackType] = (byType[b.attackType] || 0) + 1;
+  });
+
+  res.json({
+    total,
+    bySeverity,
+    byType,
+    records: ipBlocklist.slice(0, 100), // last 100
+  });
 });
 
 // ─── Start Server ───────────────────────────────────────────────────────────

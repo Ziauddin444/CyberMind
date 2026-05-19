@@ -3,8 +3,76 @@
 import * as api from './api.js';
 
 let currentScreen = 'dashboard';
-let editingDeviceId = null;
-let deletingDeviceId = null;
+let editingDevice = null;
+let deletingDevice = null;
+let lastLiveFeedText = '';
+const seenBlockedRecordIds = new Set();
+const seenNotificationEventKeys = new Set();
+const seenLiveEventKeys = new Set();
+let mockAttackCursor = 0;
+let blockedIpsRefreshStarted = false;
+
+
+const MOCK_ATTACK_SCENARIOS = [
+  { attack: 'SYN flood attempt', ip: '45.83.122.41', type: 'warning' },
+  { attack: 'UDP amplification probe', ip: '103.92.24.11', type: 'warning' },
+  { attack: 'ICMP sweep reconnaissance', ip: '185.220.101.7', type: 'info' },
+  { attack: 'Nmap stealth scan', ip: '91.134.77.192', type: 'warning' },
+  { attack: 'Masscan high-rate sweep', ip: '146.70.18.63', type: 'warning' },
+  { attack: 'SSH brute-force sequence', ip: '139.59.112.33', type: 'warning' },
+  { attack: 'RDP credential stuffing', ip: '198.44.136.12', type: 'warning' },
+  { attack: 'SMB null-session enumeration', ip: '172.105.58.20', type: 'info' },
+  { attack: 'DNS tunneling signature', ip: '154.53.37.89', type: 'warning' },
+  { attack: 'SQL injection payload burst', ip: '217.138.221.15', type: 'warning' },
+  { attack: 'XSS reflected payload test', ip: '84.17.39.227', type: 'info' },
+  { attack: 'Directory traversal exploit attempt', ip: '212.102.54.101', type: 'warning' },
+  { attack: 'Command injection probe', ip: '95.214.53.18', type: 'warning' },
+  { attack: 'Local file inclusion pattern', ip: '37.120.145.220', type: 'info' },
+  { attack: 'Web shell upload attempt', ip: '46.165.245.71', type: 'warning' },
+  { attack: 'C2 beacon callback blocked', ip: '45.67.231.10', type: 'warning' },
+  { attack: 'Reverse shell handshake denied', ip: '66.115.189.211', type: 'warning' },
+  { attack: 'PowerShell encoded command detected', ip: '89.44.9.176', type: 'warning' },
+  { attack: 'Mimikatz credential dump pattern', ip: '107.189.29.8', type: 'warning' },
+  { attack: 'Kerberoasting enumeration traffic', ip: '104.244.72.221', type: 'info' },
+  { attack: 'ARP spoofing frame anomaly', ip: '51.15.129.52', type: 'warning' },
+  { attack: 'Rogue DHCP offer rejected', ip: '176.10.99.200', type: 'warning' },
+  { attack: 'FTP anonymous write attempt', ip: '80.67.172.162', type: 'info' },
+  { attack: 'Telnet brute-force on legacy host', ip: '5.199.130.188', type: 'warning' },
+  { attack: 'LDAP enumeration burst', ip: '138.197.204.45', type: 'info' },
+  { attack: 'SNMP community string guessing', ip: '77.247.181.165', type: 'warning' },
+  { attack: 'Token replay signature blocked', ip: '23.146.248.90', type: 'warning' },
+  { attack: 'Malware staging URL callback', ip: '185.220.102.244', type: 'warning' },
+  { attack: 'Data exfiltration over HTTPS pattern', ip: '143.244.35.61', type: 'warning' },
+  { attack: 'Privilege escalation exploit chain', ip: '31.7.58.114', type: 'warning' },
+];
+
+function getSavedTheme() {
+  return localStorage.getItem('cybermind_theme') || 'light';
+}
+
+function applyTheme(theme) {
+  const nextTheme = theme === 'dark' ? 'dark' : 'light';
+  document.body.classList.toggle('light-theme', nextTheme === 'light');
+  document.body.classList.toggle('dark-theme', nextTheme === 'dark');
+  localStorage.setItem('cybermind_theme', nextTheme);
+
+  const icon = document.getElementById('theme-toggle-icon');
+  const button = document.getElementById('theme-toggle-btn');
+  if (icon) {
+    icon.className = nextTheme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+  }
+  if (button) {
+    const label = nextTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
+    button.setAttribute('aria-label', label);
+    button.title = label;
+  }
+}
+
+
+
+function toggleTheme() {
+  applyTheme(getSavedTheme() === 'light' ? 'dark' : 'light');
+}
 
 // ─── Toast ──────────────────────────────────────────────────────────────────
 
@@ -19,12 +87,58 @@ function showToast(message) {
   setTimeout(() => { toast.style.opacity = 0; setTimeout(() => toast.classList.add('hidden'), 300); }, 2800);
 }
 
+function notifyOnce(eventKey, message) {
+  if (!eventKey) {
+    showToast(message);
+    return;
+  }
+
+  if (seenNotificationEventKeys.has(eventKey)) return;
+  seenNotificationEventKeys.add(eventKey);
+  showToast(message);
+}
+
+function toOwnerFriendlyText(text, type = 'info') {
+  if (!text) return '';
+
+  const normalized = String(text).trim();
+  const lowered = normalized.toLowerCase();
+
+  if (lowered.includes('port scan detected')) {
+    return 'Someone from outside scanned your network. We blocked them.';
+  }
+  if (lowered.includes('outbound connection to suspicious domain blocked')) {
+    return 'A device tried to connect to an unsafe website. We blocked that connection.';
+  }
+  if (lowered.includes('firewall rules updated automatically')) {
+    return 'Your security protections were updated automatically.';
+  }
+  if (lowered.includes('ssl certificate renewal verified')) {
+    return 'Your secure website connection settings were checked and are valid.';
+  }
+  if (lowered.includes('new login from trusted device')) {
+    return 'A known device signed in successfully.';
+  }
+  if (lowered.includes('scheduled backup completed successfully')) {
+    return 'Your scheduled backup finished successfully.';
+  }
+  if (lowered.includes('blocked suspicious ip')) {
+    return normalized.replace('Blocked suspicious IP', 'We blocked a risky connection from');
+  }
+  if (lowered.includes('block attempt failed')) {
+    return normalized.replace('Block attempt failed', 'We tried to block a risky connection, but it failed for');
+  }
+
+  return type === 'warning' ? `Security warning: ${normalized}` : normalized;
+}
+
 // ─── Auth Flow ──────────────────────────────────────────────────────────────
 
 async function checkAuth() {
   try {
     const result = await api.verifyAuth();
     if (result.valid) {
+      api.setUserContext(result.user);
       showApp(result.user);
       return true;
     }
@@ -43,15 +157,14 @@ function showApp(user) {
   document.getElementById('app-container').classList.remove('hidden');
 
   if (user) {
-    const nameEl = document.getElementById('user-display-name');
-    const companyEl = document.getElementById('user-company');
     const avatarEl = document.getElementById('user-avatar');
-    if (nameEl) nameEl.textContent = user.name;
-    if (companyEl) companyEl.textContent = user.company;
     if (avatarEl) avatarEl.textContent = user.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-    
-    // Show admin link if user is admin
-    if (user.isAdmin) {
+
+    const role = user.role || (user.isAdmin ? 'admin' : 'viewer');
+    const canAccessAdmin = role === 'admin' || role === 'super-admin';
+
+    // Show admin link if user has admin-level role
+    if (canAccessAdmin) {
       document.getElementById('admin-nav-link')?.classList.remove('hidden');
     } else {
       document.getElementById('admin-nav-link')?.classList.add('hidden');
@@ -80,12 +193,18 @@ async function handleLogin(e) {
 
   try {
     const result = await api.login(username, password);
-    api.setToken(result.token);
+    api.setToken(result.token, result.user);
     errorEl.classList.add('hidden');
     showApp(result.user);
   } catch (err) {
     errorEl.classList.remove('hidden');
-    errorText.textContent = 'Invalid username or password';
+    if (String(err.message || '').includes('403')) {
+      errorText.textContent = 'Access denied for your role';
+    } else if (String(err.message || '').includes('429')) {
+      errorText.textContent = 'Too many failed attempts. Try again later.';
+    } else {
+      errorText.textContent = 'Invalid username or password';
+    }
   } finally {
     btn.disabled = false;
     btn.innerHTML = '<i class="fa-solid fa-right-to-bracket mr-2"></i>SIGN IN';
@@ -153,11 +272,11 @@ async function handleSignup(e) {
     const result = await api.register(username, email, password, confirmPassword, name, company);
     errorEl.classList.add('hidden');
     showToast('Account created! Verify your email to login...');
-    
+
     // Store email token for verification
     sessionStorage.setItem('emailToken', result.emailToken);
     sessionStorage.setItem('userEmail', email);
-    
+
     // Switch to email verification form
     setTimeout(() => {
       clearAuthForms();
@@ -165,15 +284,15 @@ async function handleSignup(e) {
     }, 1000);
   } catch (err) {
     errorEl.classList.remove('hidden');
-    errorText.textContent = err.message.includes('Username already') 
+    errorText.textContent = err.message.includes('Username already')
       ? 'Username already exists'
       : err.message.includes('Email already')
-      ? 'Email already registered'
-      : err.message.includes('Passwords do not match')
-      ? 'Passwords do not match'
-      : err.message.includes('at least 6')
-      ? 'Password must be at least 6 characters'
-      : 'Registration failed. Please try again.';
+        ? 'Email already registered'
+        : err.message.includes('Passwords do not match')
+          ? 'Passwords do not match'
+          : err.message.includes('at least 6')
+            ? 'Password must be at least 6 characters'
+            : 'Registration failed. Please try again.';
   } finally {
     btn.disabled = false;
     btn.innerHTML = '<i class="fa-solid fa-check mr-2"></i>CREATE ACCOUNT';
@@ -204,7 +323,7 @@ async function handleEmailVerification(e) {
   const code = document.getElementById('email-verification-code').value.trim();
   const errorEl = document.getElementById('email-verification-error');
   const btn = document.getElementById('email-verification-btn-submit');
-  
+
   if (!code) {
     errorEl.classList.remove('hidden');
     document.getElementById('email-verification-error-text').textContent = 'Please enter verification code';
@@ -218,7 +337,7 @@ async function handleEmailVerification(e) {
     await api.verifyEmail(code);
     errorEl.classList.add('hidden');
     showToast('Email verified! You can now login.');
-    
+
     // Clear and return to login
     setTimeout(() => {
       clearAuthForms();
@@ -228,10 +347,10 @@ async function handleEmailVerification(e) {
     }, 1500);
   } catch (err) {
     errorEl.classList.remove('hidden');
-    document.getElementById('email-verification-error-text').textContent = 
+    document.getElementById('email-verification-error-text').textContent =
       err.message.includes('expired') ? 'Code expired. Request a new one.' :
-      err.message.includes('Invalid') ? 'Invalid verification code' :
-      'Verification failed. Please try again.';
+        err.message.includes('Invalid') ? 'Invalid verification code' :
+          'Verification failed. Please try again.';
   } finally {
     btn.disabled = false;
     btn.innerHTML = '<i class="fa-solid fa-check mr-2"></i>VERIFY EMAIL';
@@ -259,15 +378,15 @@ async function handleForgotPassword(e) {
     errorEl.classList.add('hidden');
     successEl.classList.remove('hidden');
     document.getElementById('forgot-password-success-text').textContent = `Reset code: ${result.resetCode} (valid for 15 min)`;
-    
+
     // Store email and reset code for next step
     sessionStorage.setItem('resetEmail', email);
     sessionStorage.setItem('resetCode', result.resetCode);
-    
+
     setTimeout(() => switchAuthFlow('reset'), 2000);
   } catch (err) {
     errorEl.classList.remove('hidden');
-    document.getElementById('forgot-password-error-text').textContent = 
+    document.getElementById('forgot-password-error-text').textContent =
       err.message.includes('not found') ? 'Email not found' : 'Failed to send reset code. Please try again.';
   } finally {
     btn.disabled = false;
@@ -297,7 +416,7 @@ async function handleResetPassword(e) {
     await api.resetPassword(email, resetCode, newPassword, confirmPassword);
     errorEl.classList.add('hidden');
     showToast('Password reset successfully! Returning to login...');
-    
+
     // Clear forms and return to login
     setTimeout(() => {
       clearAuthForms();
@@ -307,12 +426,12 @@ async function handleResetPassword(e) {
     }, 1500);
   } catch (err) {
     errorEl.classList.remove('hidden');
-    document.getElementById('reset-password-error-text').textContent = 
+    document.getElementById('reset-password-error-text').textContent =
       err.message.includes('expired') ? 'Reset code expired. Request a new one.' :
-      err.message.includes('Invalid') ? 'Invalid reset code' :
-      err.message.includes('do not match') ? 'Passwords do not match' :
-      err.message.includes('at least 6') ? 'Password must be at least 6 characters' :
-      'Password reset failed. Please try again.';
+        err.message.includes('Invalid') ? 'Invalid reset code' :
+          err.message.includes('do not match') ? 'Passwords do not match' :
+            err.message.includes('at least 6') ? 'Password must be at least 6 characters' :
+              'Password reset failed. Please try again.';
   } finally {
     btn.disabled = false;
     btn.innerHTML = '<i class="fa-solid fa-check mr-2"></i>RESET PASSWORD';
@@ -354,7 +473,7 @@ async function handleUpdateProfile() {
     showToast('Profile updated successfully');
   } catch (err) {
     errorEl.classList.remove('hidden');
-    document.getElementById('profile-update-error-text').textContent = 
+    document.getElementById('profile-update-error-text').textContent =
       err.message.includes('already') ? 'Email already in use' : 'Failed to update profile';
   }
 }
@@ -376,21 +495,21 @@ async function handleChangePassword() {
     await api.changePassword(currentPassword, newPassword, confirmPassword);
     errorEl.classList.add('hidden');
     successEl.classList.remove('hidden');
-    
+
     // Clear the form
     document.getElementById('change-password-current').value = '';
     document.getElementById('change-password-new').value = '';
     document.getElementById('change-password-confirm').value = '';
-    
+
     setTimeout(() => successEl.classList.add('hidden'), 3000);
     showToast('Password changed successfully');
   } catch (err) {
     errorEl.classList.remove('hidden');
-    document.getElementById('password-change-error-text').textContent = 
+    document.getElementById('password-change-error-text').textContent =
       err.message.includes('incorrect') ? 'Current password is incorrect' :
-      err.message.includes('do not match') ? 'New passwords do not match' :
-      err.message.includes('at least 6') ? 'Password must be at least 6 characters' :
-      'Failed to change password';
+        err.message.includes('do not match') ? 'New passwords do not match' :
+          err.message.includes('at least 6') ? 'Password must be at least 6 characters' :
+            'Failed to change password';
   }
 }
 
@@ -405,23 +524,21 @@ async function loadAdminUsers() {
     users.forEach(user => {
       const row = document.createElement('tr');
       const createdDate = new Date(user.createdAt).toLocaleDateString();
-      
+
       row.innerHTML = `
         <td class="px-6 py-4 text-zinc-300">${user.username}</td>
         <td class="px-6 py-4 text-zinc-400 text-sm">${user.email}</td>
         <td class="px-6 py-4 text-zinc-300">${user.name || '-'}</td>
         <td class="px-6 py-4">
-          <span class="inline-block px-3 py-1 rounded-full text-xs font-medium ${
-            user.isAdmin ? 'bg-yellow-400/10 text-yellow-400' : 'bg-zinc-800 text-zinc-400'
-          }">
+          <span class="inline-block px-3 py-1 rounded-full text-xs font-medium ${user.isAdmin ? 'bg-yellow-400/10 text-yellow-400' : 'bg-zinc-800 text-zinc-400'
+        }">
             ${user.isAdmin ? 'Admin' : 'User'}
           </span>
         </td>
         <td class="px-6 py-4 text-zinc-400">${user.loginCount || 0}</td>
         <td class="px-6 py-4">
-          <span class="inline-block px-3 py-1 rounded-full text-xs font-medium ${
-            user.emailVerified ? 'bg-emerald-400/10 text-emerald-400' : 'bg-red-400/10 text-red-400'
-          }">
+          <span class="inline-block px-3 py-1 rounded-full text-xs font-medium ${user.emailVerified ? 'bg-emerald-400/10 text-emerald-400' : 'bg-red-400/10 text-red-400'
+        }">
             ${user.emailVerified ? '✓' : '✗'}
           </span>
         </td>
@@ -445,7 +562,7 @@ async function loadAdminUsers() {
           </div>
         </td>
       `;
-      
+
       tbody.appendChild(row);
     });
   } catch (err) {
@@ -468,11 +585,11 @@ async function loadAdminActivity() {
       const date = new Date(entry.timestamp);
       const dateStr = date.toLocaleDateString();
       const timeStr = date.toLocaleTimeString();
-      
+
       const item = document.createElement('div');
-      item.className = 'bg-zinc-800 rounded-lg p-4 border-l-4 ' + 
+      item.className = 'bg-zinc-800 rounded-lg p-4 border-l-4 ' +
         (entry.success ? 'border-emerald-400' : 'border-red-400');
-      
+
       item.innerHTML = `
         <div class="flex justify-between items-start">
           <div>
@@ -491,7 +608,7 @@ async function loadAdminActivity() {
           </div>
         </div>
       `;
-      
+
       container.appendChild(item);
     });
   } catch (err) {
@@ -505,21 +622,21 @@ function switchAdminTab(tab) {
     btn.classList.remove('border-yellow-400', 'text-white');
     btn.classList.add('border-transparent', 'text-zinc-400');
   });
-  
+
   const activeTab = document.querySelector(`.admin-tab[data-admin-tab="${tab}"]`);
   if (activeTab) {
     activeTab.classList.add('border-yellow-400', 'text-white');
     activeTab.classList.remove('border-transparent', 'text-zinc-400');
   }
-  
+
   // Show/hide content
   document.querySelectorAll('.admin-tab-content').forEach(content => {
     content.classList.add('hidden');
   });
-  
+
   const contentEl = document.getElementById(`admin-${tab}-tab`);
   if (contentEl) contentEl.classList.remove('hidden');
-  
+
   // Load data
   if (tab === 'users') loadAdminUsers();
   else if (tab === 'activity') loadAdminActivity();
@@ -529,7 +646,7 @@ function switchAdminTab(tab) {
 
 function navigateTo(screen) {
   currentScreen = screen;
-  const screens = ['dashboard-screen', 'logs-screen', 'honeypot-screen', 'threats-screen', 'settings-screen', 'admin-screen'];
+  const screens = ['dashboard-screen', 'logs-screen', 'honeypot-screen', 'threats-screen', 'settings-screen', 'admin-screen', 'analyze-screen'];
   screens.forEach(id => document.getElementById(id)?.classList.add('hidden'));
 
   document.querySelectorAll('.nav-link').forEach(link => {
@@ -547,12 +664,329 @@ function navigateTo(screen) {
     case 'threats': document.getElementById('threats-screen').classList.remove('hidden'); loadThreats(); break;
     case 'settings': document.getElementById('settings-screen').classList.remove('hidden'); loadSettings(); break;
     case 'admin': document.getElementById('admin-screen').classList.remove('hidden'); switchAdminTab('users'); break;
+    case 'analyze': document.getElementById('analyze-screen').classList.remove('hidden'); initAnalyzeScreen(); break;
     case 'phish': navigateTo('dashboard'); setTimeout(() => switchTab(1), 100); break;
   }
 }
 
+// ─── Analyze Screen ────────────────────────────────────────────────────────────────────
+// Layer 1 of the 3-layer architecture.
+// Sends user input to Flask /api/analyze via fetch (no page reload).
+// ──────────────────────────────────────────────────────────────────────────────
+
+let _analyzeScreenReady = false; // wire events only once
+
+function initAnalyzeScreen() {
+  if (_analyzeScreenReady) return;
+  _analyzeScreenReady = true;
+
+  // File picker label
+  document.getElementById('analyze-file-input').addEventListener('change', function () {
+    const label = document.getElementById('analyze-file-label');
+    label.textContent = this.files[0]?.name || 'Choose file…';
+  });
+
+  // Form submit
+  document.getElementById('analyze-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    await runAnalysis();
+  });
+
+  // Wire the Scan panel (Start Scan button + slider)
+  initScanPanel();
+}
+
+// Severity colour map
+const _SEV_STYLE = {
+  critical: { header: 'bg-red-950/80 border-red-600', icon: 'bg-red-500/20 text-red-400', badge: 'bg-red-500 text-white' },
+  high: { header: 'bg-orange-950/80 border-orange-500', icon: 'bg-orange-500/20 text-orange-400', badge: 'bg-orange-500 text-white' },
+  medium: { header: 'bg-yellow-950/60 border-yellow-600', icon: 'bg-yellow-500/20 text-yellow-400', badge: 'bg-yellow-500 text-black' },
+  low: { header: 'bg-zinc-900/80 border-zinc-600', icon: 'bg-zinc-700/50 text-zinc-300', badge: 'bg-zinc-600 text-white' },
+};
+
+async function runAnalysis() {
+  const textInput = document.getElementById('analyze-text-input').value.trim();
+  const ipInput = document.getElementById('analyze-ip-input').value.trim();
+  const fileInput = document.getElementById('analyze-file-input');
+  const resultCard = document.getElementById('analyze-result-card');
+  const errorDiv = document.getElementById('analyze-error');
+  const btn = document.getElementById('analyze-submit-btn');
+  const btnIcon = document.getElementById('analyze-btn-icon');
+  const btnLabel = document.getElementById('analyze-btn-label');
+
+  // Reset state
+  resultCard.classList.add('hidden');
+  errorDiv.classList.add('hidden');
+
+  // Require at least text or a file
+  if (!textInput && !fileInput.files[0]) {
+    document.getElementById('analyze-error-text').textContent =
+      'Please enter a log line or upload a file before analyzing.';
+    errorDiv.classList.remove('hidden');
+    return;
+  }
+
+  // Loading state
+  btn.disabled = true;
+  btnIcon.className = 'fa-solid fa-spinner fa-spin';
+  btnLabel.textContent = 'Analyzing…';
+
+  try {
+    let result;
+
+    if (fileInput.files[0]) {
+      // ─ File upload path (multipart) ─────────────────────────────────────
+      const { analyzeFile } = await import('./api.js');
+      result = await analyzeFile(fileInput.files[0], ipInput);
+    } else {
+      // ─ JSON text path ────────────────────────────────────────────────
+      const { analyzeInput } = await import('./api.js');
+      result = await analyzeInput({ text: textInput, source_ip: ipInput });
+    }
+
+    renderAnalysisResult(result);
+
+  } catch (err) {
+    document.getElementById('analyze-error-text').textContent =
+      err.message || 'Analysis failed. Make sure the Flask backend is running on port 5000.';
+    errorDiv.classList.remove('hidden');
+  } finally {
+    btn.disabled = false;
+    btnIcon.className = 'fa-solid fa-magnifying-glass';
+    btnLabel.textContent = 'Analyze with CyberMind IDS';
+  }
+}
+
+function renderAnalysisResult(result) {
+  const card = document.getElementById('analyze-result-card');
+  const sev = (result.severity || 'low').toLowerCase();
+  const style = _SEV_STYLE[sev] || _SEV_STYLE.low;
+
+  // ─ Header colours ────────────────────────────────────────────────────────
+  const header = document.getElementById('analyze-result-header');
+  header.className = `flex items-center gap-4 rounded-t-2xl border border-b-0 px-6 py-4 ${style.header}`;
+
+  const iconWrap = document.getElementById('analyze-result-icon');
+  iconWrap.className = `w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${style.icon}`;
+
+  // ─ Badges ──────────────────────────────────────────────────────────────────
+  const sevBadge = document.getElementById('analyze-result-severity-badge');
+  sevBadge.textContent = sev.toUpperCase();
+  sevBadge.className = `px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${style.badge}`;
+
+  document.getElementById('analyze-result-type-badge').textContent =
+    (result.threat_type || 'unknown').replace(/_/g, ' ').toUpperCase();
+
+  const confidence = Math.round((result.confidence || 0) * 100);
+  document.getElementById('analyze-result-confidence').textContent = `${confidence}% confidence`;
+
+  document.getElementById('analyze-result-label').textContent =
+    result.label || (result.threat_detected ? 'Threat Detected' : 'No Threat Found');
+
+  // ─ Summary ───────────────────────────────────────────────────────────────────
+  document.getElementById('analyze-result-summary').textContent = result.summary || '';
+
+  // ─ Signature matches ──────────────────────────────────────────────────────────
+  const matchSection = document.getElementById('analyze-matches-section');
+  const matchList = document.getElementById('analyze-matches-list');
+  const matches = result.matches || [];
+  matchList.innerHTML = '';
+
+  if (matches.length > 0) {
+    matchSection.classList.remove('hidden');
+    matches.slice(0, 8).forEach((m) => {
+      const ms = _SEV_STYLE[(m.severity || 'low').toLowerCase()] || _SEV_STYLE.low;
+      const chip = document.createElement('div');
+      chip.className = 'flex items-center gap-2 text-xs py-1.5 px-3 rounded-lg bg-zinc-800/60 border border-zinc-700';
+      chip.innerHTML = `
+        <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase ${ms.badge}">${(m.severity || '?').toUpperCase()}</span>
+        <span class="font-semibold text-zinc-200">${m.label || m.attack_type || ''}</span>
+        <span class="text-zinc-500 ml-auto font-mono">${Math.round((m.confidence || 0) * 100)}%</span>
+      `;
+      matchList.appendChild(chip);
+    });
+  } else {
+    matchSection.classList.add('hidden');
+  }
+
+  // ─ Recommendations ───────────────────────────────────────────────────────────
+  const recList = document.getElementById('analyze-recommendations-list');
+  recList.innerHTML = '';
+  (result.recommendations || []).forEach((rec) => {
+    const li = document.createElement('li');
+    li.className = 'flex items-start gap-2';
+    li.innerHTML = `<i class="fa-solid fa-circle-right text-yellow-400 mt-0.5 flex-shrink-0 text-xs"></i><span>${rec}</span>`;
+    recList.appendChild(li);
+  });
+
+  // ─ Meta ────────────────────────────────────────────────────────────────────────
+  document.getElementById('analyze-result-model').textContent = result.model || '—';
+  document.getElementById('analyze-result-fp').textContent = result.fingerprint || '—';
+  document.getElementById('analyze-result-ts').textContent = result.timestamp
+    ? new Date(result.timestamp).toLocaleTimeString() : '—';
+
+  // ─ Reveal card ───────────────────────────────────────────────────────────────────
+  card.classList.remove('hidden');
+  card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
 function toggleMobileMenu() {
   document.getElementById('mobile-menu').classList.toggle('hidden');
+}
+
+// ─── Network Scan Handler ────────────────────────────────────────────────────
+
+let _scanPanelReady = false;
+let _currentScanPollTimer = null;
+
+function initScanPanel() {
+  if (_scanPanelReady) return;
+  _scanPanelReady = true;
+  const slider = document.getElementById('scan-packet-count');
+  const label  = document.getElementById('scan-packet-count-label');
+  if (slider && label) slider.addEventListener('input', () => { label.textContent = slider.value; });
+  const btn = document.getElementById('scan-start-btn');
+  if (btn) btn.addEventListener('click', runScan);
+}
+
+const _SCAN_PHASE_LABELS = {
+  starting:    'Initialising scanner...',
+  capturing:   'Capturing packets with Scapy...',
+  classifying: 'Running Random Forest classifier...',
+  done:        'Analysis complete',
+  error:       'Error',
+};
+
+function _scanLog(msg) {
+  const term = document.getElementById('scan-terminal');
+  if (!term) return;
+  const line = document.createElement('div');
+  line.textContent = `> ${msg}`;
+  term.appendChild(line);
+  term.scrollTop = term.scrollHeight;
+}
+
+function _setScanProgress(pct, phase) {
+  const bar   = document.getElementById('scan-progress-bar');
+  const label = document.getElementById('scan-phase-label');
+  const pctEl = document.getElementById('scan-progress-pct');
+  if (bar)   bar.style.width = `${pct}%`;
+  if (label) label.textContent = _SCAN_PHASE_LABELS[phase] || phase;
+  if (pctEl) pctEl.textContent = `${pct}%`;
+}
+
+async function runScan() {
+  const slider      = document.getElementById('scan-packet-count');
+  const packetCount = slider ? parseInt(slider.value) : 100;
+  const btn         = document.getElementById('scan-start-btn');
+  const btnIcon     = document.getElementById('scan-btn-icon');
+  const btnLabel    = document.getElementById('scan-btn-label');
+  const progPanel   = document.getElementById('scan-progress-panel');
+  const resultCard  = document.getElementById('scan-result-card');
+  const errDiv      = document.getElementById('scan-error');
+  const term        = document.getElementById('scan-terminal');
+
+  // Reset UI
+  if (resultCard) resultCard.classList.add('hidden');
+  if (errDiv)     errDiv.classList.add('hidden');
+  if (term)       term.innerHTML = '<div class="text-yellow-400">$ cybermind-ids --scan --model random_forest</div>';
+  _setScanProgress(0, 'starting');
+  if (progPanel)  progPanel.classList.remove('hidden');
+  if (btn) btn.disabled = true;
+  if (btnIcon) btnIcon.className = 'fa-solid fa-spinner fa-spin text-lg';
+  if (btnLabel) btnLabel.textContent = 'SCANNING...';
+  if (_currentScanPollTimer) clearInterval(_currentScanPollTimer);
+
+  try {
+    // Fire the scan — returns job_id immediately (no wait)
+    const { startScan, getScanStatus } = await import('./api.js');
+    _scanLog(`Starting scan: ${packetCount} packets`);
+    const { job_id } = await startScan(packetCount);
+    _scanLog(`Job ${job_id.slice(0, 8)}... launched`);
+    _scanLog('Scapy listener active...');
+
+    // Poll every 1 second — screen stays responsive via async/await
+    await new Promise((resolve, reject) => {
+      _currentScanPollTimer = setInterval(async () => {
+        try {
+          const s = await getScanStatus(job_id);
+          _setScanProgress(s.progress || 0, s.phase);
+          if (s.phase === 'classifying') _scanLog('Packets captured — running RF model...');
+          if (s.status === 'done') {
+            clearInterval(_currentScanPollTimer);
+            _scanLog(`Label: ${s.result.label}  |  Confidence: ${Math.round(s.result.confidence * 100)}%`);
+            renderScanResult(s.result);
+            resolve();
+          } else if (s.status === 'error') {
+            clearInterval(_currentScanPollTimer);
+            reject(new Error(s.error || 'Scan failed'));
+          }
+        } catch (e) { clearInterval(_currentScanPollTimer); reject(e); }
+      }, 1000);
+    });
+
+  } catch (err) {
+    _scanLog(`ERROR: ${err.message}`);
+    const errText = document.getElementById('scan-error-text');
+    if (errText) errText.textContent = err.message || 'Scan failed. Is Flask running on port 5000?';
+    if (errDiv) errDiv.classList.remove('hidden');
+  } finally {
+    if (btn) btn.disabled = false;
+    if (btnIcon) btnIcon.className = 'fa-solid fa-satellite-dish text-lg';
+    if (btnLabel) btnLabel.textContent = 'START SCAN';
+  }
+}
+
+const _SCAN_SEV = {
+  critical: { header: 'bg-red-950/80 border-red-600',     icon: 'bg-red-500/20',     badge: 'bg-red-500 text-white' },
+  medium:   { header: 'bg-orange-950/60 border-orange-500', icon: 'bg-orange-500/20', badge: 'bg-orange-400 text-black' },
+  low:      { header: 'bg-zinc-900/80 border-zinc-600',   icon: 'bg-emerald-500/20', badge: 'bg-emerald-500 text-black' },
+};
+const _BAR_CLR = { safe:'bg-emerald-500', brute_force:'bg-red-500', port_scan:'bg-orange-400', ddos:'bg-rose-500', sql_injection:'bg-purple-500', malware_c2:'bg-yellow-500' };
+
+function renderScanResult(result) {
+  const card    = document.getElementById('scan-result-card');
+  const sev     = result.severity || 'low';
+  const style   = _SCAN_SEV[sev] || _SCAN_SEV.low;
+  const confPct = Math.round((result.confidence || 0) * 100);
+
+  const header = document.getElementById('scan-result-header');
+  if (header) header.className = `flex items-center gap-5 px-6 py-5 border-b ${style.header}`;
+
+  const icon = document.getElementById('scan-result-icon');
+  if (icon) { icon.className = `w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 text-2xl ${style.icon}`; icon.textContent = result.threat_detected ? '🚨' : '✅'; }
+
+  const vt = document.getElementById('scan-verdict-text');
+  if (vt) vt.textContent = result.verdict || result.label_pretty || result.label;
+
+  const sb = document.getElementById('scan-result-severity');
+  if (sb) { sb.textContent = sev.toUpperCase(); sb.className = `px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${style.badge}`; }
+
+  const cl = document.getElementById('scan-result-confidence-label');
+  if (cl) cl.textContent = `${confPct}% confidence`;
+
+  const ml = document.getElementById('scan-result-mode-label');
+  if (ml) ml.textContent = result.capture_mode === 'live' ? '📡 live capture' : '🔬 simulated';
+
+  const bc = document.getElementById('scan-big-conf');
+  if (bc) bc.textContent = `${confPct}%`;
+
+  const barsEl = document.getElementById('scan-breakdown-bars');
+  if (barsEl && result.breakdown) {
+    barsEl.innerHTML = '';
+    Object.entries(result.breakdown).sort(([, a], [, b]) => b - a).forEach(([lbl, pct]) => {
+      const clr = _BAR_CLR[lbl] || 'bg-zinc-500';
+      const row = document.createElement('div');
+      row.innerHTML = `<div class="flex items-center justify-between text-xs mb-1"><span class="text-zinc-300 font-medium">${lbl.replace(/_/g,' ')}</span><span class="text-zinc-500 font-mono">${pct.toFixed(1)}%</span></div><div class="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden"><div class="${clr} h-full rounded-full" style="width:${pct}%"></div></div>`;
+      barsEl.appendChild(row);
+    });
+  }
+
+  const mc = document.getElementById('scan-meta-count'); if (mc) mc.textContent = result.packet_count;
+  const mm = document.getElementById('scan-meta-mode');  if (mm) mm.textContent = result.capture_mode || '--';
+  const mt = document.getElementById('scan-meta-ts');    if (mt) mt.textContent = result.timestamp ? new Date(result.timestamp).toLocaleTimeString() : '--';
+
+  if (card) { card.className = `rounded-2xl border overflow-hidden ${style.header}`; card.classList.remove('hidden'); card.scrollIntoView({ behavior:'smooth', block:'nearest' }); }
 }
 
 // ─── Tab Switching ──────────────────────────────────────────────────────────
@@ -571,10 +1005,89 @@ function switchTab(tabIndex) {
 
 async function loadDashboard() {
   try {
-    const [status, devices] = await Promise.all([api.getStatus(), api.getDevices()]);
+    const [status, devices, blacklistResp] = await Promise.all([
+      api.getStatus(),
+      api.getDevices(),
+      api.getBlacklistStatus().catch(() => null),
+    ]);
     renderStatus(status, devices);
     renderFleet(devices);
+    const records = blacklistResp?.data?.blocked_records || [];
+    renderBlockedIpList(records);
+    syncBlockedEventsToLiveLog(records, false);
+
+    // Start real-time polling for blocked IPs (runs once)
+    if (!blockedIpsRefreshStarted) {
+      blockedIpsRefreshStarted = true;
+      startBlockedIpsRefresh();
+    }
   } catch (err) { console.error('Dashboard load error:', err); }
+}
+
+function formatBlockTime(isoTimestamp) {
+  if (!isoTimestamp) return '--';
+  const dt = new Date(isoTimestamp);
+  if (Number.isNaN(dt.getTime())) return '--';
+  return dt.toLocaleString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    month: 'short',
+    day: '2-digit',
+  });
+}
+
+function renderBlockedIpList(records) {
+  const listEl = document.getElementById('blocked-ip-list');
+  const countEl = document.getElementById('blocked-ip-count');
+  if (!listEl || !countEl) return;
+
+  const safeRecords = Array.isArray(records) ? records : [];
+  countEl.textContent = String(safeRecords.filter((r) => r.status === 'blocked').length);
+
+  listEl.innerHTML = '';
+  if (!safeRecords.length) {
+    listEl.innerHTML = '<div class="text-zinc-500">No blocked suspicious IP yet.</div>';
+    return;
+  }
+
+  safeRecords.slice(0, 6).forEach((record) => {
+    const row = document.createElement('div');
+    const statusClass = record.status === 'blocked' ? 'text-red-300' : 'text-amber-300';
+    row.className = 'rounded-xl border border-zinc-800 bg-zinc-900/70 p-2.5';
+    row.innerHTML = `
+      <div class="flex items-center justify-between gap-2">
+        <span class="font-mono ${statusClass}">${record.ip_address || 'unknown'}</span>
+        <span class="text-[10px] uppercase tracking-wide ${statusClass}">${record.status || 'unknown'}</span>
+      </div>
+      <div class="text-zinc-500 mt-1">${formatBlockTime(record.blocked_at)}</div>
+      <div class="text-zinc-400 mt-1">${record.reason || 'Threat intel match'}</div>
+    `;
+    listEl.append(row);
+  });
+}
+
+function syncBlockedEventsToLiveLog(records, notify = true, force = false) {
+  const safeRecords = Array.isArray(records) ? records : [];
+  const ordered = [...safeRecords].reverse();
+
+  ordered.forEach((record) => {
+    const recordId = String(record.record_id || `${record.ip_address || 'ip'}-${record.blocked_at || 'time'}`);
+    if (seenBlockedRecordIds.has(recordId)) return;
+
+    seenBlockedRecordIds.add(recordId);
+    const isBlocked = record.status === 'blocked';
+    appendLiveLogEntry({
+      type: isBlocked ? 'warning' : 'info',
+      timestamp: record.blocked_at,
+      eventKey: `blocked:${recordId}`,
+      text: `${isBlocked ? 'Blocked suspicious IP' : 'Block attempt failed'} ${record.ip_address || 'unknown'} at ${formatBlockTime(record.blocked_at)}.${record.reason ? ` Reason: ${record.reason}.` : ''}`,
+    }, { force });
+
+    if (notify && isBlocked) {
+      notifyOnce(`blocked-toast:${recordId}`, `CyberMind blocked risky activity from ${record.ip_address || 'an unknown source'}`);
+    }
+  });
 }
 
 function renderStatus(status, devices) {
@@ -587,6 +1100,7 @@ function renderStatus(status, devices) {
   set('fleet-badge', `${devices.length} DEVICES`);
   set('devices-online-count', devices.filter(d => d.status === 'online').length);
   set('devices-total-count', devices.length);
+  set('wifi-ip-display', status.mac_ip || '--');
 
   const bar = document.getElementById('ai-confidence-bar');
   if (bar) bar.style.width = `${status.aiConfidence}%`;
@@ -600,16 +1114,17 @@ function renderFleet(devices) {
   const typeIcons = { laptop: 'fa-laptop', server: 'fa-server', mobile: 'fa-mobile-screen', iot: 'fa-microchip' };
 
   devices.forEach(device => {
+    const source = device.source || 'node';
     const sc = device.status === 'online' ? 'emerald' : 'zinc';
     const icon = typeIcons[device.type] || 'fa-laptop';
     const div = document.createElement('div');
     div.className = `bg-zinc-900 border border-${sc}-400/30 rounded-3xl px-6 py-6 card-hover cursor-pointer relative group`;
     div.innerHTML = `
       <div class="absolute top-3 right-3 flex gap-2 btn-delete">
-        <button class="edit-device w-7 h-7 bg-zinc-800 hover:bg-amber-400/20 text-zinc-400 hover:text-amber-400 rounded-lg flex items-center justify-center text-xs transition-colors" data-device-id="${device.id}">
+        <button class="edit-device w-7 h-7 bg-zinc-800 hover:bg-amber-400/20 text-zinc-400 hover:text-amber-400 rounded-lg flex items-center justify-center text-xs transition-colors" data-device-id="${device.id}" data-device-source="${source}">
           <i class="fa-solid fa-pen"></i>
         </button>
-        <button class="delete-device w-7 h-7 bg-zinc-800 hover:bg-red-400/20 text-zinc-400 hover:text-red-400 rounded-lg flex items-center justify-center text-xs transition-colors" data-device-id="${device.id}" data-device-name="${device.name}">
+        <button class="delete-device w-7 h-7 bg-zinc-800 hover:bg-red-400/20 text-zinc-400 hover:text-red-400 rounded-lg flex items-center justify-center text-xs transition-colors" data-device-id="${device.id}" data-device-source="${source}" data-device-name="${device.name}">
           <i class="fa-solid fa-trash"></i>
         </button>
       </div>
@@ -627,7 +1142,7 @@ function renderFleet(devices) {
           </div>
         </div>
         <div class="text-right mt-8">
-          <span class="toggle-device inline-block text-[10px] px-4 py-1 rounded-3xl bg-${sc}-400/10 text-${sc}-300 cursor-pointer" data-device-id="${device.id}">
+          <span class="toggle-device inline-block text-[10px] px-4 py-1 rounded-3xl bg-${sc}-400/10 text-${sc}-300 cursor-pointer" data-device-id="${device.id}" data-device-source="${source}" data-device-status="${device.status}">
             ${device.status.toUpperCase()}
           </span>
           <div class="mt-6 text-xs text-zinc-400">LAST THREAT</div>
@@ -669,22 +1184,42 @@ async function submitAddDevice() {
 
 async function showEditDeviceModal(id) {
   try {
-    const device = await api.getDevice(id);
-    editingDeviceId = id;
-    document.getElementById('edit-device-name').value = device.name;
+    let device;
+    let source = 'node';
+
+    if (typeof id === 'object' && id !== null) {
+      source = id.source || 'node';
+      const deviceId = id.id;
+      if (source === 'flask') {
+        const response = await api.opsGetDevice(deviceId);
+        device = {
+          id: response?.data?.id,
+          name: response?.data?.name,
+          type: response?.data?.device_type || 'laptop',
+          ip: response?.data?.ip_address || '',
+        };
+      } else {
+        device = await api.getDevice(deviceId);
+      }
+    } else {
+      device = await api.getDevice(id);
+    }
+
+    editingDevice = { id: device.id, source };
+    document.getElementById('edit-device-name').value = device.name || '';
     document.getElementById('edit-device-type').value = device.type || 'laptop';
     document.getElementById('edit-device-ip').value = device.ip || '';
     document.getElementById('edit-device-modal').classList.remove('hidden');
-  } catch (err) { showToast('Failed to load device'); }
+  } catch (err) { showToast(`Failed to load device: ${err.message}`); }
 }
 
 function closeEditDeviceModal() {
   document.getElementById('edit-device-modal').classList.add('hidden');
-  editingDeviceId = null;
+  editingDevice = null;
 }
 
 async function submitEditDevice() {
-  if (!editingDeviceId) return;
+  if (!editingDevice) return;
   const name = document.getElementById('edit-device-name').value.trim();
   const type = document.getElementById('edit-device-type').value;
   const ip = document.getElementById('edit-device-ip').value.trim();
@@ -692,40 +1227,58 @@ async function submitEditDevice() {
   if (!name) { showToast('Device name cannot be empty'); return; }
 
   try {
-    await api.updateDevice(editingDeviceId, { name, type, ip });
+    if (editingDevice.source === 'flask') {
+      await api.opsUpdateDevice(editingDevice.id, {
+        name,
+        device_type: type,
+        ip_address: ip,
+      });
+    } else {
+      await api.updateDevice(editingDevice.id, { name, type, ip });
+    }
     showToast('Device updated');
     closeEditDeviceModal();
     loadDashboard();
-  } catch (err) { showToast('Failed to update device'); }
+  } catch (err) { showToast(`Failed to update device: ${err.message}`); }
 }
 
-function showDeleteConfirm(id, name) {
-  deletingDeviceId = id;
+function showDeleteConfirm(id, name, source = 'node') {
+  deletingDevice = { id, source };
   document.getElementById('delete-confirm-text').textContent = `Are you sure you want to remove "${name}" from your fleet?`;
   document.getElementById('delete-confirm-modal').classList.remove('hidden');
 }
 
 function closeDeleteModal() {
   document.getElementById('delete-confirm-modal').classList.add('hidden');
-  deletingDeviceId = null;
+  deletingDevice = null;
 }
 
 async function confirmDeleteDevice() {
-  if (!deletingDeviceId) return;
+  if (!deletingDevice) return;
   try {
-    await api.deleteDevice(deletingDeviceId);
+    if (deletingDevice.source === 'flask') {
+      await api.opsDeleteDevice(deletingDevice.id);
+    } else {
+      await api.deleteDevice(deletingDevice.id);
+    }
     showToast('Device removed from fleet');
     closeDeleteModal();
     loadDashboard();
-  } catch (err) { showToast('Failed to delete device'); }
+  } catch (err) { showToast(`Failed to delete device: ${err.message}`); }
 }
 
-async function handleToggleDevice(id) {
+async function handleToggleDevice(id, source = 'node', currentStatus = 'offline') {
   try {
-    const device = await api.toggleDevice(id);
-    showToast(`${device.name} is now ${device.status}`);
+    if (source === 'flask') {
+      const nextStatus = currentStatus === 'online' ? 'offline' : 'online';
+      await api.opsUpdateDevice(id, { status: nextStatus });
+      showToast(`Device is now ${nextStatus}`);
+    } else {
+      const device = await api.toggleDevice(id);
+      showToast(`${device.name} is now ${device.status}`);
+    }
     loadDashboard();
-  } catch (err) { showToast('Failed to update device'); }
+  } catch (err) { showToast(`Failed to update device: ${err.message}`); }
 }
 
 // ─── Logs ───────────────────────────────────────────────────────────────────
@@ -1102,7 +1655,7 @@ async function loadSettings() {
     setToggle('toggle-alert-high', s.alertOnHigh);
     setToggle('toggle-alert-medium', s.alertOnMedium);
     setToggle('toggle-alert-low', s.alertOnLow);
-    
+
     // Load sessions
     await loadUserSessions();
   } catch (err) { console.error('Settings load error:', err); }
@@ -1120,22 +1673,22 @@ async function loadUserSessions() {
     const sessions = await api.getSessions();
     const container = document.getElementById('sessions-list');
     const logoutOthersBtn = document.getElementById('logout-other-sessions-btn');
-    
+
     container.innerHTML = '';
-    
+
     if (sessions.length === 0) {
       container.innerHTML = '<div class="text-center py-8 text-zinc-400">No active sessions</div>';
       logoutOthersBtn.classList.add('hidden');
       return;
     }
-    
+
     const otherSessions = sessions.filter(s => !s.isCurrent);
     if (otherSessions.length > 0) {
       logoutOthersBtn.classList.remove('hidden');
     } else {
       logoutOthersBtn.classList.add('hidden');
     }
-    
+
     sessions.forEach(session => {
       const loginDate = new Date(session.loginTime);
       const lastActivityDate = new Date(session.lastActivity);
@@ -1150,10 +1703,10 @@ async function loadUserSessions() {
         if (hours < 24) return `${hours} hrs ago`;
         return `${days} days ago`;
       };
-      
+
       const item = document.createElement('div');
       item.className = `bg-zinc-800 rounded-lg p-4 border-l-4 ${session.isCurrent ? 'border-yellow-400' : 'border-zinc-700'}`;
-      
+
       item.innerHTML = `
         <div class="flex justify-between items-start">
           <div class="flex-1">
@@ -1179,7 +1732,7 @@ async function loadUserSessions() {
           ` : ''}
         </div>
       `;
-      
+
       container.appendChild(item);
     });
   } catch (err) {
@@ -1216,36 +1769,125 @@ async function saveSettings() {
 async function refreshLogs() {
   const logContainer = document.getElementById('live-log');
   if (!logContainer) return;
-  logContainer.style.opacity = '0.6';
+
   try {
-    const msg = await api.getLiveFeed();
-    const colorMap = { info: 'text-sky-200', warning: 'text-amber-300', success: 'text-emerald-300' };
-    const entry = document.createElement('div');
-    entry.className = `log-line mt-4 ${colorMap[msg.type] || 'text-white'}`;
-    entry.innerHTML = `→ ${msg.text}`;
-    logContainer.append(entry);
-    if (logContainer.children.length > 6) logContainer.removeChild(logContainer.children[0]);
-    logContainer.style.opacity = '1';
-    showToast('Logs refreshed');
-  } catch (err) { logContainer.style.opacity = '1'; }
+    const [msg, blacklistResp] = await Promise.all([
+      api.getLiveFeed(),
+      api.getBlacklistStatus().catch(() => null),
+    ]);
+
+    if (msg?.text) {
+      appendLiveLogEntry({ ...msg, eventKey: `refresh-live:${msg.text}` }, { force: true });
+    }
+
+    const records = blacklistResp?.data?.blocked_records || [];
+    renderBlockedIpList(records);
+    syncBlockedEventsToLiveLog(records, false, true);
+
+    getNextMockAttackEvents(5).forEach((entry) => appendLiveLogEntry(entry, { force: true }));
+    showToast('Newest simulated attacks loaded');
+  } catch (err) {
+    showToast('Failed to refresh logs');
+  }
+}
+
+function appendLiveLogEntry(msg, options = {}) {
+  const liveLog = document.getElementById('live-log');
+  if (!liveLog || !msg?.text) return;
+
+  const safeText = toOwnerFriendlyText(msg.text, msg.type);
+  const eventKey = msg.eventKey || `${msg.type || 'info'}:${safeText}`;
+  if (!options.force && seenLiveEventKeys.has(eventKey)) return;
+  seenLiveEventKeys.add(eventKey);
+
+  const colorMap = {
+    info: 'text-sky-200',
+    warning: 'text-amber-300',
+    success: 'text-emerald-300',
+    error: 'text-red-300',
+  };
+
+  const entry = document.createElement('div');
+  entry.className = `log-line mt-4 ${colorMap[msg.type] || 'text-white'}`;
+  const prefix = msg.timestamp ? `[${formatBlockTime(msg.timestamp)}] ` : '';
+  entry.innerHTML = `→ ${prefix}${safeText}`;
+  liveLog.append(entry);
+
+  while (liveLog.children.length > 35) {
+    liveLog.removeChild(liveLog.children[0]);
+  }
+
+  liveLog.scrollTop = liveLog.scrollHeight;
+}
+
+function getNextMockAttackEvents(count = 1) {
+  const now = Date.now();
+  const events = [];
+
+  for (let i = 0; i < count; i += 1) {
+    const scenario = MOCK_ATTACK_SCENARIOS[mockAttackCursor % MOCK_ATTACK_SCENARIOS.length];
+    mockAttackCursor += 1;
+    events.push({
+      type: scenario.type,
+      text: scenario.type === 'warning'
+        ? `We blocked unusual activity from ${scenario.ip}. Your systems are safe.`
+        : `We checked unusual activity from ${scenario.ip} and kept your systems safe.`,
+      timestamp: new Date(now - (count - i - 1) * 25000).toISOString(),
+      eventKey: `mock:${scenario.attack}:${scenario.ip}:${mockAttackCursor}`,
+    });
+  }
+
+  return events;
+}
+
+function seedMockAttackHistory() {
+  const liveLog = document.getElementById('live-log');
+  if (!liveLog) return;
+
+  liveLog.innerHTML = '';
+  getNextMockAttackEvents(30).forEach((entry) => appendLiveLogEntry(entry, { force: true }));
 }
 
 function generateFakeLogActivity() {
   setInterval(async () => {
-    if (Math.random() > 0.7 && currentScreen === 'dashboard') {
-      try {
-        const msg = await api.getLiveFeed();
-        const liveLog = document.getElementById('live-log');
-        if (liveLog) {
-          const entry = document.createElement('div');
-          entry.className = 'log-line text-sky-200 mt-4';
-          entry.innerHTML = `→ ${msg.text}`;
-          liveLog.append(entry);
-          if (liveLog.children.length > 6) liveLog.removeChild(liveLog.children[0]);
+    if (currentScreen !== 'dashboard') return;
+    try {
+      const [msg, blacklistResp] = await Promise.all([
+        api.getLiveFeed(),
+        api.getBlacklistStatus().catch(() => null),
+      ]);
+      if (msg?.text && msg.text !== lastLiveFeedText) {
+        lastLiveFeedText = msg.text;
+        appendLiveLogEntry({ ...msg, eventKey: `live:${msg.text}` });
+        if (msg.type === 'warning') {
+          notifyOnce(`warn:${msg.text}`, `Alert: ${msg.text}`);
         }
-      } catch (_) {}
-    }
+      }
+
+      const records = blacklistResp?.data?.blocked_records || [];
+      renderBlockedIpList(records);
+      syncBlockedEventsToLiveLog(records, true);
+
+      getNextMockAttackEvents(1).forEach((entry) => appendLiveLogEntry(entry));
+    } catch (_) { }
   }, 6500);
+}
+
+// ─── Aggressive Blocked IPs Refresh (for real-time demo) ────────────────────
+function startBlockedIpsRefresh() {
+  setInterval(async () => {
+    if (currentScreen !== 'dashboard') return;
+    try {
+      const blacklistResp = await api.getBlacklistStatus().catch(() => null);
+      if (!blacklistResp) return;
+
+      const records = blacklistResp?.data?.blocked_records || [];
+      if (records.length > 0) {
+        renderBlockedIpList(records);
+        syncBlockedEventsToLiveLog(records, true);
+      }
+    } catch (_) { }
+  }, 2000); // Poll every 2 seconds for real-time updates
 }
 
 // ─── Voice Alert ────────────────────────────────────────────────────────────
@@ -1303,21 +1945,21 @@ function wireEvents() {
         const activity = await api.getUserLoginActivity(username);
         const container = document.getElementById('admin-activity-list');
         container.innerHTML = '';
-        
+
         if (activity.length === 0) {
           container.innerHTML = `<div class="text-center py-8 text-zinc-400">No activity found for "${username}"</div>`;
           return;
         }
-        
+
         activity.forEach(entry => {
           const date = new Date(entry.timestamp);
           const dateStr = date.toLocaleDateString();
           const timeStr = date.toLocaleTimeString();
-          
+
           const item = document.createElement('div');
-          item.className = 'bg-zinc-800 rounded-lg p-4 border-l-4 ' + 
+          item.className = 'bg-zinc-800 rounded-lg p-4 border-l-4 ' +
             (entry.success ? 'border-emerald-400' : 'border-red-400');
-          
+
           item.innerHTML = `
             <div class="flex justify-between items-start">
               <div>
@@ -1336,7 +1978,7 @@ function wireEvents() {
               </div>
             </div>
           `;
-          
+
           container.appendChild(item);
         });
       } else {
@@ -1384,6 +2026,7 @@ function wireEvents() {
       case 'deploy-decoy': handleDeployDecoy(); break;
       case 'save-settings': saveSettings(); break;
       case 'toggle-setting': handleToggleSetting(target); break;
+      case 'toggle-theme': toggleTheme(); break;
       case 'view-threat': viewThreatDetail(parseInt(target.dataset.threatId)); break;
       case 'close-threat-detail': loadThreats(); break;
       case 'logout': handleLogout(); break;
@@ -1394,10 +2037,10 @@ function wireEvents() {
   document.addEventListener('click', async (e) => {
     const adminBtn = e.target.closest('[data-admin-action]');
     if (!adminBtn) return;
-    
+
     const action = adminBtn.dataset.adminAction;
     const userId = parseInt(adminBtn.dataset.userId);
-    
+
     try {
       if (action === 'delete-user') {
         if (!confirm('Are you sure you want to delete this user? This cannot be undone.')) return;
@@ -1429,7 +2072,7 @@ function wireEvents() {
       e.stopPropagation();
       const btn = e.target.closest('.logout-session');
       const sessionId = btn.dataset.sessionId;
-      
+
       try {
         await api.logoutSession(sessionId);
         showToast('Session logged out');
@@ -1439,10 +2082,10 @@ function wireEvents() {
       }
       return;
     }
-    
+
     if (e.target.id === 'logout-other-sessions-btn') {
       if (!confirm('This will logout all other sessions. Continue?')) return;
-      
+
       try {
         await api.logoutOtherSessions();
         showToast('All other sessions logged out');
@@ -1457,13 +2100,25 @@ function wireEvents() {
   // Fleet grid delegated events
   document.addEventListener('click', (e) => {
     const toggle = e.target.closest('.toggle-device');
-    if (toggle) { e.stopPropagation(); handleToggleDevice(parseInt(toggle.dataset.deviceId)); return; }
+    if (toggle) {
+      e.stopPropagation();
+      handleToggleDevice(toggle.dataset.deviceId, toggle.dataset.deviceSource || 'node', toggle.dataset.deviceStatus || 'offline');
+      return;
+    }
 
     const editBtn = e.target.closest('.edit-device');
-    if (editBtn) { e.stopPropagation(); showEditDeviceModal(parseInt(editBtn.dataset.deviceId)); return; }
+    if (editBtn) {
+      e.stopPropagation();
+      showEditDeviceModal({ id: editBtn.dataset.deviceId, source: editBtn.dataset.deviceSource || 'node' });
+      return;
+    }
 
     const deleteBtn = e.target.closest('.delete-device');
-    if (deleteBtn) { e.stopPropagation(); showDeleteConfirm(parseInt(deleteBtn.dataset.deviceId), deleteBtn.dataset.deviceName); return; }
+    if (deleteBtn) {
+      e.stopPropagation();
+      showDeleteConfirm(deleteBtn.dataset.deviceId, deleteBtn.dataset.deviceName, deleteBtn.dataset.deviceSource || 'node');
+      return;
+    }
   });
 
   // Kill modal backdrop
@@ -1471,21 +2126,45 @@ function wireEvents() {
   if (killModal) killModal.addEventListener('click', (e) => { if (e.target.id === 'kill-modal') killModal.classList.add('hidden'); });
 
   // Toast dismiss
-  document.getElementById('toast')?.addEventListener('click', function() { this.classList.add('hidden'); });
+  document.getElementById('toast')?.addEventListener('click', function () { this.classList.add('hidden'); });
 
   // Keyboard
   document.addEventListener('keydown', handleKeyboard);
+
+  // Keyboard navigation inside the live log pane.
+  const liveLogPanel = document.getElementById('live-log');
+  if (liveLogPanel) {
+    liveLogPanel.addEventListener('mouseenter', () => liveLogPanel.focus());
+    liveLogPanel.addEventListener('click', () => liveLogPanel.focus());
+
+    liveLogPanel.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        liveLogPanel.scrollTop += 32;
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        liveLogPanel.scrollTop -= 32;
+      }
+    });
+
+    // Keep mouse-wheel scroll trapped inside this panel.
+    liveLogPanel.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      liveLogPanel.scrollTop += e.deltaY;
+    }, { passive: false });
+  }
 }
 
 // ─── Initialization ─────────────────────────────────────────────────────────
 
 async function initialize() {
+  applyTheme(getSavedTheme());
   wireEvents();
   const authed = await checkAuth();
 
   if (authed) {
+    seedMockAttackHistory();
     generateFakeLogActivity();
-    setTimeout(() => showToast('AI found and blocked 1 new threat'), 2100);
   }
 
   console.log('%c✅ CyberMind Sentinel ready.', 'font-family:monospace;color:#facc15;font-size:10px');

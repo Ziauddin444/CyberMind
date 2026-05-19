@@ -1,0 +1,21 @@
+.aider*
+
+# OS / editor noise
+.DS_Store
+
+# Python caches / envs
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.venv/
+venv/
+
+# Logs and runtime artifacts
+*.log
+backend.log
+flask.log
+
+# JS dependencies
+node_modules/

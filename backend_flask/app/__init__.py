@@ -4,6 +4,7 @@ Flask Application Factory
 
 import logging
 import os
+import subprocess
 from flask import Flask, jsonify
 from flask_cors import CORS
 from datetime import datetime
@@ -15,6 +16,29 @@ from app.services.network_honeypot import NetworkHoneypot
 from app.services.phishing_sandbox import PhishingSandbox
 from app.services.ip_blacklist_service import IPBlacklistService
 from app.services.kill_switch import KillSwitch
+from app.services.fleet_monitor import FleetMonitor
+from app.services.remediation_playbook import RemediationPlaybook
+from app.services.device_manager import DeviceManager
+from app.services.honeypot_file_handler import HoneypotFileHandler
+
+
+def get_mac_ip() -> str:
+    """Return the primary Wi-Fi IPv4 address via `ipconfig getifaddr en0`.
+
+    Returns the stripped output string on success, or 'unavailable' if the
+    command fails (non-macOS host, Wi-Fi disconnected, or permission error).
+    """
+    try:
+        result = subprocess.run(
+            ["ipconfig", "getifaddr", "en0"],
+            capture_output=True,
+            text=True,
+            timeout=3,
+        )
+        ip = result.stdout.strip()
+        return ip if ip else "unavailable"
+    except Exception:
+        return "unavailable"
 
 
 def create_app(config_name: str = None):
@@ -117,6 +141,14 @@ def _initialize_services(app):
     app.phishing_sandbox = PhishingSandbox()
     app.ip_blacklist_service = IPBlacklistService(app.firewall_manager)
     app.kill_switch = KillSwitch(app.firewall_manager)
+    app.fleet_monitor = FleetMonitor()
+    app.remediation_playbook = RemediationPlaybook(
+        app.firewall_manager,
+        app.kill_switch,
+        app.ai_translator
+    )
+    app.device_manager = DeviceManager()
+    app.honeypot_file_handler = HoneypotFileHandler()
     
     app.logger.info("All security services initialized successfully")
 
@@ -198,6 +230,7 @@ def _register_health_checks(app):
         return jsonify({
             "status": "online",
             "timestamp": datetime.now().isoformat(),
+            "mac_ip": get_mac_ip(),
             "services": {
                 "firewall": "operational",
                 "ai_traffic_translation": app.ai_translator.get_status(),

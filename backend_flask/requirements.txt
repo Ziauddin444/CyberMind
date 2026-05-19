@@ -47,3 +47,4 @@ mypy==1.5.0
 
 # Development Server
 Werkzeug==3.0.1
+scapy

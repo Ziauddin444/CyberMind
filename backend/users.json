@@ -12,23 +12,9 @@
       "resetExpires": 1774927294406,
       "emailVerified": true,
       "isAdmin": true,
-      "lastLogin": "2026-04-04T05:12:56.763Z",
-      "loginCount": 8
-    },
-    {
-      "id": 2,
-      "username": "demo",
-      "password": "$2b$10$YUPdjdl5q.qJ/H5zv9pPle2gx6vG0nMfUHZGCf6/QLfL6Jb.RgPfW",
-      "email": "demo@cybermind.com",
-      "name": "Demo User",
-      "company": "Acme Bakery",
-      "createdAt": "2025-01-20",
-      "resetToken": null,
-      "resetExpires": null,
-      "emailVerified": true,
-      "isAdmin": false,
-      "lastLogin": null,
-      "loginCount": 0
+      "lastLogin": "2026-05-10T09:52:59.814Z",
+      "loginCount": 35,
+      "role": "super-admin"
     },
     {
       "id": 3,
@@ -43,7 +29,8 @@
       "emailVerified": true,
       "isAdmin": false,
       "lastLogin": null,
-      "loginCount": 0
+      "loginCount": 0,
+      "role": "viewer"
     },
     {
       "id": 4,
@@ -58,7 +45,8 @@
       "emailVerified": true,
       "isAdmin": false,
       "lastLogin": null,
-      "loginCount": 0
+      "loginCount": 0,
+      "role": "viewer"
     },
     {
       "id": 5,
@@ -73,7 +61,8 @@
       "emailVerified": true,
       "isAdmin": false,
       "lastLogin": null,
-      "loginCount": 0
+      "loginCount": 0,
+      "role": "viewer"
     },
     {
       "id": 6,
@@ -86,7 +75,8 @@
       "emailVerified": true,
       "isAdmin": true,
       "lastLogin": "2026-03-30T11:07:40.823Z",
-      "loginCount": 1
+      "loginCount": 1,
+      "role": "admin"
     },
     {
       "id": 7,
@@ -99,7 +89,8 @@
       "emailVerified": false,
       "isAdmin": false,
       "lastLogin": null,
-      "loginCount": 0
+      "loginCount": 0,
+      "role": "viewer"
     },
     {
       "id": 8,
@@ -114,7 +105,8 @@
       "emailVerified": true,
       "isAdmin": false,
       "lastLogin": "2026-03-31T03:06:28.784Z",
-      "loginCount": 1
+      "loginCount": 1,
+      "role": "viewer"
     },
     {
       "id": 9,
@@ -129,7 +121,24 @@
       "emailVerified": false,
       "isAdmin": false,
       "lastLogin": null,
-      "loginCount": 0
+      "loginCount": 0,
+      "role": "viewer"
+    },
+    {
+      "id": 10,
+      "username": "smoke_user_1",
+      "email": "smoke_user_1@example.com",
+      "password": "$2b$10$d7Y.gE5r84l/cTCyolCRMew93jb49Jbt6cQq15HH40KV2bLY5iQba",
+      "name": "Smoke User",
+      "company": "CyberMind",
+      "createdAt": "2026-04-17",
+      "resetToken": null,
+      "resetExpires": null,
+      "emailVerified": false,
+      "isAdmin": false,
+      "lastLogin": "2026-04-17T11:43:24.469Z",
+      "loginCount": 2,
+      "role": "viewer"
     }
   ]
 }

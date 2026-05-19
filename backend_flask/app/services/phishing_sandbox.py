@@ -6,6 +6,7 @@ Analyzes suspicious URLs and emails for phishing threats and malware.
 import logging
 from typing import Dict, List, Optional
 from enum import Enum
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -101,7 +102,7 @@ class PhishingSandbox:
         Scan file attachment for malware.
         
         Args:
-            file_hash: File hash (MD5, SHA256)
+            file_hash: SHA256 hash of file
             filename: Original filename
             
         Returns:
@@ -109,17 +110,122 @@ class PhishingSandbox:
         """
         logger.info(f"Scanning attachment: {filename} ({file_hash})")
         
-        # STUB: Placeholder for VirusTotal/Hybrid Analysis integration
-        return {
-            "filename": filename,
+        # STUB: Placeholder for VirusTotal API integration
+        result = {
             "file_hash": file_hash,
-            "malicious": False,
-            "vendors_detected": 0,
-            "threats": [],
-            "safe": True
+            "filename": filename,
+            "scan_status": "pending_integration",
+            "malware_detected": False,
+            "vendors_report": [],
+            "file_type": filename.split('.')[-1] if '.' in filename else "unknown",
+            "risk_level": "unknown"
+        }
+        
+        self.analyzed_emails.append(result)
+        return result
+
+    def batch_check_urls(self, urls: List[str]) -> Dict:
+        """
+        Check reputation for multiple URLs.
+        
+        Args:
+            urls: List of URLs to check
+            
+        Returns:
+            Dict with batch check results
+        """
+        logger.info(f"Batch checking {len(urls)} URLs")
+        
+        results = []
+        for url in urls:
+            result = self.check_url_reputation(url)
+            results.append(result)
+        
+        malicious_count = sum(1 for r in results if r["reputation"] == URLReputation.MALICIOUS.value)
+        suspicious_count = sum(1 for r in results if r["reputation"] == URLReputation.SUSPICIOUS.value)
+        
+        return {
+            "status": "success",
+            "urls_checked": len(urls),
+            "malicious_count": malicious_count,
+            "suspicious_count": suspicious_count,
+            "results": results,
+            "timestamp": datetime.now().isoformat()
         }
 
-    def check_domain_reputation(self, domain: str) -> Dict:
+    def get_analyzed_emails(self, limit: int = 100) -> Dict:
+        """
+        Get list of analyzed emails.
+        
+        Args:
+            limit: Maximum number of emails to return
+            
+        Returns:
+            Dict with analyzed emails
+        """
+        emails = self.analyzed_emails[-limit:]
+        return {
+            "status": "success",
+            "total_analyzed": len(self.analyzed_emails),
+            "returned": len(emails),
+            "emails": emails,
+            "timestamp": datetime.now().isoformat()
+        }
+
+    def get_analyzed_urls(self, limit: int = 100) -> Dict:
+        """
+        Get list of analyzed URLs.
+        
+        Args:
+            limit: Maximum number of URLs to return
+            
+        Returns:
+            Dict with analyzed URLs
+        """
+        urls = self.analyzed_urls[-limit:]
+        return {
+            "status": "success",
+            "total_analyzed": len(self.analyzed_urls),
+            "returned": len(urls),
+            "urls": urls,
+            "timestamp": datetime.now().isoformat()
+        }
+
+    def get_status(self) -> Dict:
+        """Get Phishing Sandbox status."""
+        return {
+            "status": "online",
+            "emails_analyzed": len(self.analyzed_emails),
+            "urls_analyzed": len(self.analyzed_urls),
+            "timestamp": datetime.now().isoformat()
+        }
+
+    def generate_phishing_report(self) -> Dict:
+        """
+        Generate summary report of phishing detections.
+        
+        Returns:
+            Dict with phishing report
+        """
+        malicious_emails = sum(
+            1 for e in self.analyzed_emails 
+            if e.get("phishing_score", 0) > 0.7
+        )
+        
+        malicious_urls = sum(
+            1 for u in self.analyzed_urls 
+            if u.get("reputation") == URLReputation.MALICIOUS.value
+        )
+        
+        return {
+            "status": "success",
+            "report_date": datetime.now().isoformat(),
+            "total_emails_analyzed": len(self.analyzed_emails),
+            "malicious_emails_detected": malicious_emails,
+            "total_urls_analyzed": len(self.analyzed_urls),
+            "malicious_urls_detected": malicious_urls,
+            "overall_threat_level": "medium" if (malicious_emails + malicious_urls) > 5 else "low"
+        }
         """
         Check domain reputation.
         

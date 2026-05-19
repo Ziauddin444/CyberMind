@@ -13,7 +13,7 @@
     <script type="module" src="/src/js/app.js"></script>
 </head>
 
-<body class="tail-container bg-zinc-950 text-zinc-200">
+<body class="tail-container light-theme bg-slate-50 text-slate-900">
 
     <!-- ═══════════════════════════════════════════════════════════════════ -->
     <!-- LOGIN/SIGNUP SCREEN                                                 -->
@@ -22,13 +22,22 @@
         <div class="login-card">
             <div class="text-center mb-8">
                 <div class="flex items-center justify-center gap-x-3 mb-6 logo-animation">
-                    <div class="w-12 h-12 bg-yellow-400 flex items-center justify-center rounded-2xl shadow-lg">
-                        <i class="fa-solid fa-shield-halved text-zinc-950 text-3xl"></i>
+                    <div class="brand-mark w-12 h-12 flex items-center justify-center rounded-2xl">
+                        <svg class="w-9 h-9" viewBox="0 0 64 64" aria-hidden="true">
+                            <path d="M32 4L52 11V27C52 40.8 43.7 52.7 32 60C20.3 52.7 12 40.8 12 27V11L32 4Z" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"/>
+                            <path d="M22 25C24 20.5 28 18 32 18C36 18 40 20.5 42 25" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                            <path d="M22 34C24 29.5 28 27 32 27C36 27 40 29.5 42 34" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                            <circle cx="26" cy="21" r="2.5" fill="currentColor"/>
+                            <circle cx="38" cy="21" r="2.5" fill="currentColor"/>
+                            <circle cx="23" cy="40" r="2.3" fill="currentColor"/>
+                            <circle cx="41" cy="40" r="2.3" fill="currentColor"/>
+                            <path d="M26 21L23 40M38 21L41 40M32 18V27M32 27V36" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+                        </svg>
                     </div>
                 </div>
                 <div>
-                    <span class="logo-font text-4xl font-semibold tracking-tighter text-white">CyberMind</span>
-                    <span class="logo-font text-4xl font-semibold tracking-tighter text-yellow-400">Sentinel</span>
+                    <span class="brand-font brand-cybermind text-4xl font-extrabold tracking-tight">CyberMind </span>
+                    <span class="brand-font brand-sentinel text-4xl font-extrabold tracking-tight">Sentinel</span>
                 </div>
                 <p class="text-zinc-500 text-sm mt-2">AI-Powered Security Dashboard</p>
             </div>
@@ -223,64 +232,81 @@
         <div class="max-w-screen-xl mx-auto">
 
             <!-- NAVBAR -->
-            <nav class="bg-black border-b border-zinc-800 fixed w-full z-50">
-                <div class="px-8 py-5 flex items-center justify-between">
-                    <div class="flex items-center gap-x-3">
-                        <div class="w-9 h-9 bg-yellow-400 flex items-center justify-center rounded-2xl shadow-inner">
-                            <i class="fa-solid fa-shield-halved text-zinc-950 text-2xl"></i>
+            <nav class="bg-black border-b border-zinc-800 fixed top-0 left-0 right-0 z-50">
+                <div class="max-w-screen-xl mx-auto w-full px-4 md:px-6 lg:px-8 py-4 flex items-center justify-between gap-x-4">
+
+                    <!-- LOGO -->
+                    <div class="flex items-center gap-x-2.5 shrink-0">
+                        <div class="brand-mark brand-mark-sm w-8 h-8 flex items-center justify-center rounded-xl">
+                            <svg class="w-5 h-5" viewBox="0 0 64 64" aria-hidden="true">
+                                <path d="M32 4L52 11V27C52 40.8 43.7 52.7 32 60C20.3 52.7 12 40.8 12 27V11L32 4Z" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"/>
+                                <path d="M22 25C24 20.5 28 18 32 18C36 18 40 20.5 42 25" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                                <path d="M22 34C24 29.5 28 27 32 27C36 27 40 29.5 42 34" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                                <circle cx="26" cy="21" r="2.5" fill="currentColor"/>
+                                <circle cx="38" cy="21" r="2.5" fill="currentColor"/>
+                                <circle cx="23" cy="40" r="2.3" fill="currentColor"/>
+                                <circle cx="41" cy="40" r="2.3" fill="currentColor"/>
+                                <path d="M26 21L23 40M38 21L41 40M32 18V27M32 27V36" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+                            </svg>
                         </div>
-                        <div>
-                            <span class="logo-font text-3xl font-semibold tracking-tighter text-white">CyberMind</span>
-                            <span
-                                class="logo-font text-3xl font-semibold tracking-tighter text-yellow-400">Sentinel</span>
+                        <div class="leading-none">
+                            <span class="brand-font brand-cybermind text-xl font-extrabold tracking-tight">CyberMind </span>
+                            <span class="brand-font brand-sentinel text-xl font-extrabold tracking-tight">Sentinel</span>
                         </div>
                     </div>
 
-                    <div class="hidden md:flex items-center gap-x-8 text-sm font-medium">
-                        <a href="#" data-action="navigate" data-screen="dashboard" data-nav="dashboard"
-                            class="nav-link text-white flex items-center gap-x-1.5">
-                            <i class="fa-solid fa-gauge-high"></i><span>DASHBOARD</span>
-                        </a>
-                        <a href="#" data-action="navigate" data-screen="logs" data-nav="logs"
-                            class="nav-link text-zinc-400 hover:text-white flex items-center gap-x-1.5">
-                            <i class="fa-solid fa-file-lines"></i><span>LOGS</span>
-                        </a>
-                        <a href="#" data-action="navigate" data-screen="honeypot" data-nav="honeypot"
-                            class="nav-link text-zinc-400 hover:text-white flex items-center gap-x-1.5">
-                            <i class="fa-solid fa-bug"></i><span>HONEYPOT</span>
-                        </a>
-                        <a href="#" data-action="navigate" data-screen="threats" data-nav="threats"
-                            class="nav-link text-zinc-400 hover:text-white flex items-center gap-x-1.5">
-                            <i class="fa-solid fa-shield-virus"></i><span>THREATS</span>
-                        </a>
-                        <a href="#" data-action="navigate" data-screen="settings" data-nav="settings"
-                            class="nav-link text-zinc-400 hover:text-white flex items-center gap-x-1.5">
-                            <i class="fa-solid fa-gear"></i><span>SETTINGS</span>
-                        </a>
-                        <a href="#" data-action="navigate" data-screen="admin" data-nav="admin" id="admin-nav-link"
-                            class="nav-link text-zinc-400 hover:text-white flex items-center gap-x-1.5 hidden">
-                            <i class="fa-solid fa-shield-admin"></i><span>ADMIN</span>
-                        </a>
+                    <!-- NAV LINKS (desktop) -->
+                    <div class="hidden md:flex items-center justify-center flex-1 min-w-0">
+                        <div class="flex items-center gap-x-5 lg:gap-x-7 text-xs lg:text-sm font-medium">
+                            <a href="#" data-action="navigate" data-screen="dashboard" data-nav="dashboard"
+                                class="nav-link text-white flex items-center gap-x-1.5 whitespace-nowrap">
+                                <i class="fa-solid fa-gauge-high"></i><span>DASHBOARD</span>
+                            </a>
+                            <a href="#" data-action="navigate" data-screen="logs" data-nav="logs"
+                                class="nav-link text-zinc-400 hover:text-white flex items-center gap-x-1.5 whitespace-nowrap">
+                                <i class="fa-solid fa-file-lines"></i><span>LOGS</span>
+                            </a>
+                            <a href="#" data-action="navigate" data-screen="honeypot" data-nav="honeypot"
+                                class="nav-link text-zinc-400 hover:text-white flex items-center gap-x-1.5 whitespace-nowrap">
+                                <i class="fa-solid fa-bug"></i><span>HONEYPOT</span>
+                            </a>
+                            <a href="#" data-action="navigate" data-screen="threats" data-nav="threats"
+                                class="nav-link text-zinc-400 hover:text-white flex items-center gap-x-1.5 whitespace-nowrap">
+                                <i class="fa-solid fa-shield-virus"></i><span>THREATS</span>
+                            </a>
+                            <a href="#" data-action="navigate" data-screen="analyze" data-nav="analyze"
+                                class="nav-link text-zinc-400 hover:text-white flex items-center gap-x-1.5 whitespace-nowrap">
+                                <i class="fa-solid fa-brain"></i><span>ANALYZE</span>
+                            </a>
+                            <a href="#" data-action="navigate" data-screen="settings" data-nav="settings"
+                                class="nav-link text-zinc-400 hover:text-white flex items-center gap-x-1.5 whitespace-nowrap">
+                                <i class="fa-solid fa-gear"></i><span>SETTINGS</span>
+                            </a>
+                            <a href="#" data-action="navigate" data-screen="admin" data-nav="admin" id="admin-nav-link"
+                                class="nav-link text-zinc-400 hover:text-white flex items-center gap-x-1.5 whitespace-nowrap hidden">
+                                <i class="fa-solid fa-shield-halved"></i><span>ADMIN</span>
+                            </a>
+                        </div>
                     </div>
 
-                    <div class="flex items-center gap-x-6">
-                        <div
-                            class="flex items-center gap-x-2 bg-zinc-900 px-4 py-2 rounded-3xl text-xs font-mono border border-zinc-700">
+                    <!-- RIGHT CONTROLS -->
+                    <div class="flex items-center gap-x-2.5 shrink-0">
+                        <div class="hidden sm:flex items-center gap-x-1.5 bg-zinc-900 px-3 py-1.5 rounded-2xl text-[10px] font-mono border border-zinc-700">
                             <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                            <span class="text-emerald-400">ALL SYSTEMS ONLINE</span>
+                            <span class="text-emerald-400 whitespace-nowrap">ALL SYSTEMS ONLINE</span>
                         </div>
 
-                        <div class="flex items-center gap-x-3">
-                            <div class="text-right">
-                                <div class="text-sm font-medium text-white" id="user-display-name">Admin</div>
-                                <div class="text-[10px] text-zinc-500 -mt-0.5" id="user-company">Acme Bakery</div>
-                            </div>
-                            <div class="w-8 h-8 bg-amber-300 text-zinc-900 rounded-2xl flex items-center justify-center font-bold text-lg shadow-inner"
-                                id="user-avatar">AD</div>
-                        </div>
+                        <button id="theme-toggle-btn" data-action="toggle-theme" type="button"
+                            class="theme-toggle-btn flex items-center justify-center w-8 h-8 rounded-xl border border-zinc-700 bg-zinc-900 text-zinc-300 hover:text-white transition-colors"
+                            aria-label="Toggle dark mode">
+                            <i class="fa-solid fa-moon text-sm" id="theme-toggle-icon"></i>
+                        </button>
+
+                        <div class="w-8 h-8 bg-amber-300 text-zinc-900 rounded-xl flex items-center justify-center font-bold text-sm shadow-inner"
+                            id="user-avatar">AD</div>
 
                         <button data-action="toggle-mobile-menu"
-                            class="md:hidden w-10 h-10 flex items-center justify-center text-2xl">
+                            class="md:hidden w-8 h-8 flex items-center justify-center text-xl">
                             <i class="fa-solid fa-bars"></i>
                         </button>
                     </div>
@@ -288,7 +314,7 @@
 
                 <!-- MOBILE MENU -->
                 <div id="mobile-menu" class="hidden md:hidden bg-zinc-900 border-t border-zinc-800 py-4 px-6">
-                    <div class="flex flex-col gap-y-6 text-sm">
+                    <div class="max-w-screen-xl mx-auto w-full flex flex-col gap-y-5 text-sm">
                         <a href="#" data-action="navigate-mobile" data-screen="dashboard"
                             class="flex items-center gap-x-3 py-2"><i
                                 class="fa-solid fa-gauge-high w-5"></i><span>Dashboard</span></a>
@@ -304,9 +330,9 @@
                         <a href="#" data-action="navigate-mobile" data-screen="settings"
                             class="flex items-center gap-x-3 py-2"><i
                                 class="fa-solid fa-gear w-5"></i><span>Settings</span></a>
-                        <div class="pt-6 border-t border-zinc-700">
+                        <div class="pt-4 border-t border-zinc-700">
                             <button data-action="logout"
-                                class="w-full py-4 bg-red-500 hover:bg-red-600 transition-colors text-white rounded-3xl flex items-center justify-center gap-x-2 font-semibold">
+                                class="w-full py-3 bg-red-500 hover:bg-red-600 transition-colors text-white rounded-2xl flex items-center justify-center gap-x-2 font-semibold text-sm">
                                 <i class="fa-solid fa-right-from-bracket"></i><span>SIGN OUT</span>
                             </button>
                         </div>
@@ -314,14 +340,15 @@
                 </div>
             </nav>
 
-            <div class="h-20"></div>
+            <!-- Spacer matching new nav height (~64px = h-16) -->
+            <div class="h-16"></div>
 
             <!-- ═══════════════════════════════════════════════════════════ -->
             <!-- DASHBOARD SCREEN                                           -->
             <!-- ═══════════════════════════════════════════════════════════ -->
             <div id="dashboard-screen">
-                <div class="hero-bg pt-8 pb-6 px-8 rounded-b-3xl">
-                    <div class="flex flex-col lg:flex-row gap-8">
+                <div class="hero-bg pt-8 pb-8 px-6 lg:px-8 rounded-b-3xl">
+                    <div class="flex flex-col lg:flex-row gap-6">
                         <!-- LEFT COL -->
                         <div class="lg:w-2/3">
                             <div class="flex justify-between items-end mb-6">
@@ -357,9 +384,9 @@
                             </div>
 
                             <!-- STATUS BARS -->
-                            <div class="grid grid-cols-3 gap-4">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
                                 <div data-action="navigate" data-screen="threats"
-                                    class="bg-zinc-900 rounded-3xl p-5 card-hover cursor-pointer border border-rose-400/30">
+                                    class="bg-zinc-900 rounded-3xl p-5 card-hover cursor-pointer border border-rose-400/30 h-full">
                                     <div class="flex justify-between">
                                         <div>
                                             <i class="fa-solid fa-triangle-exclamation text-rose-400 text-2xl"></i>
@@ -385,7 +412,7 @@
                                     </div>
                                 </div>
 
-                                <div class="bg-zinc-900 rounded-3xl p-5 card-hover cursor-pointer">
+                                <div class="bg-zinc-900 rounded-3xl p-5 card-hover cursor-pointer h-full">
                                     <div class="flex justify-between items-start">
                                         <div>
                                             <i class="fa-solid fa-network-wired text-sky-400 text-2xl"></i>
@@ -402,7 +429,7 @@
                                 </div>
 
                                 <div
-                                    class="bg-zinc-900 rounded-3xl p-5 card-hover cursor-pointer border border-yellow-400/30">
+                                    class="bg-zinc-900 rounded-3xl p-5 card-hover cursor-pointer border border-yellow-400/30 h-full">
                                     <div class="flex items-center justify-between">
                                         <div class="text-yellow-300"><i class="fa-solid fa-brain"></i></div>
                                         <div class="text-right">
@@ -420,7 +447,7 @@
                         </div>
 
                         <!-- RIGHT COL - LIVE LOG -->
-                        <div class="lg:w-1/3 bg-black border border-zinc-800 rounded-3xl p-6 flex flex-col">
+                        <div class="lg:w-1/3 bg-black border border-zinc-800 rounded-3xl p-5 flex flex-col">
                             <div class="flex items-center justify-between mb-4">
                                 <div class="uppercase text-xs font-mono tracking-widest flex items-center gap-x-2">
                                     <i class="fa-solid fa-terminal text-yellow-400"></i><span>LIVE TRANSLATION</span>
@@ -431,7 +458,8 @@
                                 </div>
                             </div>
                             <div id="live-log"
-                                class="terminal flex-1 bg-zinc-950 p-4 rounded-2xl text-emerald-300 overflow-hidden text-xs leading-relaxed border border-zinc-800 font-light">
+                                class="terminal h-64 lg:h-[26rem] bg-zinc-950 p-4 rounded-2xl text-emerald-300 overflow-y-auto overflow-x-hidden text-xs leading-relaxed border border-zinc-800 font-light"
+                                tabindex="0" role="log" aria-label="AI log translation live feed">
                                 <div class="log-line mb-3 text-amber-300">[12:41:09] Event ID 4625 - Failed login
                                     attempt from 185.53.177.54</div>
                                 <div class="log-line mb-3 text-white">→ <span class="text-sky-400">AI
@@ -453,12 +481,24 @@
                                 class="mt-6 text-xs flex items-center justify-center gap-x-2 py-3 px-6 bg-zinc-900 hover:bg-zinc-800 transition-colors border border-yellow-400/30 rounded-3xl">
                                 <i class="fa-solid fa-volume-high"></i><span>HEAR AI ALERT</span>
                             </button>
+
+                            <div class="mt-6 bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="uppercase text-[11px] font-mono tracking-widest text-red-300 flex items-center gap-x-2">
+                                        <i class="fa-solid fa-ban"></i><span>BLOCKED SUSPICIOUS IPS</span>
+                                    </div>
+                                    <span id="blocked-ip-count" class="text-[10px] px-2 py-1 rounded-2xl bg-red-500/10 text-red-300">0</span>
+                                </div>
+                                <div id="blocked-ip-list" class="space-y-2 text-xs text-zinc-300">
+                                    <div class="text-zinc-500">No blocked suspicious IP yet.</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- FLEET MONITOR -->
-                <div class="px-8 mt-8">
+                <div class="px-6 lg:px-8 mt-8">
                     <div class="flex items-center justify-between mb-6">
                         <h2 class="font-semibold text-lg flex items-center gap-x-2">
                             <span class="text-white">Your Fleet</span>
@@ -471,11 +511,11 @@
                             <i class="fa-solid fa-plus"></i><span class="font-medium">ADD DEVICE</span>
                         </button>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="fleet-grid"></div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5" id="fleet-grid"></div>
                 </div>
 
                 <!-- QUICK ACTIONS -->
-                <div class="mt-16 px-8">
+                <div class="mt-8 px-6 lg:px-8">
                     <div class="bg-zinc-900 rounded-3xl p-8">
                         <h3 class="text-sm font-medium text-yellow-300 mb-6 flex items-center gap-x-2">
                             <i class="fa-solid fa-bolt"></i><span>ONE-CLICK REMEDIATION</span>
@@ -521,7 +561,7 @@
                 </div>
 
                 <!-- FEATURE TABS -->
-                <div class="mt-20 px-8 pb-20">
+                <div class="mt-8 px-6 lg:px-8 pb-24">
                     <div class="flex border-b border-zinc-700">
                         <button data-action="switch-tab" data-tab="0" id="tab-0"
                             class="tab-button px-8 py-4 border-b-2 border-yellow-400 text-yellow-400 font-medium text-sm">HONEYPOT</button>
@@ -604,6 +644,185 @@
                     </div>
                 </div>
             </div>
+
+            <!-- ═══════════════════════════════════════════════════════════ -->
+            <!-- ANALYZE SCREEN — Layer 1 (Frontend)                        -->
+            <!-- Sends input to Flask /api/analyze → IDS Engine             -->
+            <!-- ═══════════════════════════════════════════════════════════ -->
+            <div id="analyze-screen" class="hidden px-4 sm:px-8 py-10 pb-24 max-w-4xl mx-auto">
+
+                <div class="mb-8">
+                    <h1 class="text-4xl font-semibold logo-font tracking-tight">AI Threat Analyzer</h1>
+                    <p class="text-zinc-400 mt-2 text-sm leading-relaxed">
+                        Paste a log line, CLI command, or upload a file — the IDS engine analyses it
+                        and returns a structured threat assessment.
+                    </p>
+                </div>
+
+                <!-- Architecture badge row -->
+                <div class="flex flex-wrap gap-2 mb-8 text-[10px] font-mono tracking-widest">
+                    <span class="px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">LAYER 1 — Frontend (fetch)</span>
+                    <span class="text-zinc-600 self-center">→</span>
+                    <span class="px-3 py-1 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20">LAYER 2 — Flask /api/analyze</span>
+                    <span class="text-zinc-600 self-center">→</span>
+                    <span class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">LAYER 3 — IDS Engine (Python)</span>
+                </div>
+
+                <!-- Input card -->
+                <div class="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-6 mb-6">
+                    <form id="analyze-form" class="space-y-5">
+                        <div>
+                            <label for="analyze-text-input" class="block text-xs font-semibold text-zinc-400 mb-2 tracking-wider uppercase">Log Line / Alert Text / CLI Command</label>
+                            <textarea id="analyze-text-input" rows="4"
+                                placeholder="e.g.  nmap -sS -p 1-65535 192.168.1.1&#10;      hydra -l admin -P wordlist.txt ssh://10.0.0.1&#10;      ' OR '1'='1' -- (SQL injection)"
+                                class="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-white font-mono placeholder-zinc-600 focus:outline-none focus:border-yellow-400 resize-y transition-colors duration-200"></textarea>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="analyze-ip-input" class="block text-xs font-semibold text-zinc-400 mb-2 tracking-wider uppercase">Source IP <span class="text-zinc-600 normal-case font-normal">(optional)</span></label>
+                                <input id="analyze-ip-input" type="text" placeholder="e.g. 45.83.122.41"
+                                    class="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-white font-mono placeholder-zinc-600 focus:outline-none focus:border-yellow-400 transition-colors"/>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-zinc-400 mb-2 tracking-wider uppercase">Upload Log / PCAP File <span class="text-zinc-600 normal-case font-normal">(optional)</span></label>
+                                <label for="analyze-file-input" class="flex items-center gap-3 w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 cursor-pointer hover:border-zinc-500 transition-colors" style="min-height:46px;">
+                                    <i class="fa-solid fa-file-arrow-up text-zinc-500"></i>
+                                    <span id="analyze-file-label" class="text-sm text-zinc-500 truncate">Choose file…</span>
+                                    <input id="analyze-file-input" type="file" class="hidden" accept=".log,.txt,.pcap,.cap,.csv"/>
+                                </label>
+                            </div>
+                        </div>
+                        <button id="analyze-submit-btn" type="submit"
+                            class="w-full flex items-center justify-center gap-3 px-6 py-3.5 bg-yellow-400 hover:bg-yellow-300 text-black font-bold rounded-xl transition-all duration-200 text-sm tracking-wide disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i id="analyze-btn-icon" class="fa-solid fa-magnifying-glass"></i>
+                            <span id="analyze-btn-label">Analyze with CyberMind IDS</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Result card -->
+                <div id="analyze-result-card" class="hidden">
+                    <div id="analyze-result-header" class="flex items-center gap-4 rounded-t-2xl border border-b-0 px-6 py-4">
+                        <div id="analyze-result-icon" class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-shield-halved text-xl"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span id="analyze-result-severity-badge" class="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">CRITICAL</span>
+                                <span id="analyze-result-type-badge" class="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-zinc-700 text-zinc-200">exploitation</span>
+                                <span id="analyze-result-confidence" class="text-[10px] text-zinc-400 font-mono">97% confidence</span>
+                            </div>
+                            <div id="analyze-result-label" class="text-white font-bold text-lg mt-1 truncate">Threat label</div>
+                        </div>
+                    </div>
+                    <div class="border border-t-0 border-zinc-700 rounded-b-2xl bg-zinc-900/60 px-6 py-5 space-y-5">
+                        <div>
+                            <div class="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold mb-1">Summary</div>
+                            <p id="analyze-result-summary" class="text-zinc-200 text-sm leading-relaxed"></p>
+                        </div>
+                        <div id="analyze-matches-section" class="hidden">
+                            <div class="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold mb-2">Signature Matches</div>
+                            <div id="analyze-matches-list" class="space-y-1.5"></div>
+                        </div>
+                        <div>
+                            <div class="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold mb-2">Recommendations</div>
+                            <ul id="analyze-recommendations-list" class="space-y-1.5 text-sm text-zinc-300"></ul>
+                        </div>
+                        <div class="flex flex-wrap gap-x-6 gap-y-1 text-[10px] font-mono text-zinc-600 pt-2 border-t border-zinc-800">
+                            <span>model: <span id="analyze-result-model" class="text-zinc-400">—</span></span>
+                            <span>fingerprint: <span id="analyze-result-fp" class="text-zinc-400">—</span></span>
+                            <span>timestamp: <span id="analyze-result-ts" class="text-zinc-400">—</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Error state -->
+                <div id="analyze-error" class="hidden mt-4 p-4 bg-red-950/50 border border-red-800 rounded-xl text-red-300 text-sm flex items-center gap-3">
+                    <i class="fa-solid fa-circle-exclamation text-red-400 flex-shrink-0"></i>
+                    <span id="analyze-error-text"></span>
+                </div>
+
+
+                <!-- ═══════════════════════════════════════════════════════ -->
+                <!-- NETWORK SCAN PANEL                                     -->
+                <!-- Click Start Scan → Scapy captures packets →           -->
+                <!-- Random Forest AI classifies → live result displayed   -->
+                <!-- ═══════════════════════════════════════════════════════ -->
+                <div class="mt-10">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-2 h-2 rounded-full bg-yellow-400"></div>
+                        <h2 class="text-lg font-bold tracking-tight">Live Network Scan</h2>
+                        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 tracking-widest">SCAPY + RANDOM FOREST</span>
+                    </div>
+                    <p class="text-zinc-500 text-xs mb-5 ml-5">Captures live packets from your network interface and classifies them with a trained Random Forest model.</p>
+
+                    <!-- Packet count slider + Start button -->
+                    <div class="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-6 mb-5">
+                        <div class="flex items-center justify-between mb-3">
+                            <label for="scan-packet-count" class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Packet Count</label>
+                            <span id="scan-packet-count-label" class="text-yellow-400 font-bold font-mono text-sm">100</span>
+                        </div>
+                        <input id="scan-packet-count" type="range" min="10" max="300" step="10" value="100" class="w-full accent-yellow-400 cursor-pointer mb-5"/>
+                        <button id="scan-start-btn" type="button"
+                            class="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-300 hover:to-orange-300 text-black font-extrabold rounded-xl transition-all duration-200 text-sm tracking-widest shadow-lg shadow-yellow-400/20 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i id="scan-btn-icon" class="fa-solid fa-satellite-dish text-lg"></i>
+                            <span id="scan-btn-label">START SCAN</span>
+                        </button>
+                    </div>
+
+                    <!-- Progress panel -->
+                    <div id="scan-progress-panel" class="hidden bg-zinc-900/60 border border-zinc-800 rounded-2xl p-6 mb-5">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center gap-2">
+                                <div id="scan-phase-dot" class="w-2.5 h-2.5 rounded-full bg-yellow-400 animate-pulse"></div>
+                                <span id="scan-phase-label" class="text-sm font-semibold text-zinc-300">Starting...</span>
+                            </div>
+                            <span id="scan-progress-pct" class="font-mono text-yellow-400 text-sm">0%</span>
+                        </div>
+                        <div class="w-full h-2 bg-zinc-800 rounded-full overflow-hidden mb-4">
+                            <div id="scan-progress-bar" class="h-full bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full transition-all duration-500" style="width:0%"></div>
+                        </div>
+                        <div class="bg-zinc-950 rounded-xl p-4 font-mono text-[11px] text-zinc-400 h-28 overflow-y-auto" id="scan-terminal">
+                            <div class="text-yellow-400">$ cybermind-ids --scan --model random_forest</div>
+                        </div>
+                    </div>
+
+                    <!-- Result card -->
+                    <div id="scan-result-card" class="hidden rounded-2xl border overflow-hidden">
+                        <div id="scan-result-header" class="flex items-center gap-5 px-6 py-5">
+                            <div id="scan-result-icon" class="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 text-2xl">&#x1F6E1;&#xFE0F;</div>
+                            <div class="flex-1">
+                                <div id="scan-verdict-text" class="text-white font-extrabold text-xl leading-snug"></div>
+                                <div class="flex flex-wrap items-center gap-2 mt-1">
+                                    <span id="scan-result-severity" class="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"></span>
+                                    <span class="text-[10px] text-zinc-400 font-mono" id="scan-result-confidence-label"></span>
+                                    <span class="text-[10px] text-zinc-500 font-mono" id="scan-result-mode-label"></span>
+                                </div>
+                            </div>
+                            <div class="flex-shrink-0 text-right">
+                                <div class="text-4xl font-black font-mono" id="scan-big-conf"></div>
+                                <div class="text-[10px] text-zinc-500 uppercase tracking-widest">confidence</div>
+                            </div>
+                        </div>
+                        <div class="border-t border-zinc-800 bg-zinc-900/60 px-6 py-5">
+                            <div class="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold mb-3">Traffic Breakdown</div>
+                            <div id="scan-breakdown-bars" class="space-y-2.5"></div>
+                        </div>
+                        <div class="border-t border-zinc-800 bg-zinc-950/40 px-6 py-3 flex flex-wrap gap-x-6 gap-y-1 text-[10px] font-mono text-zinc-600">
+                            <span>packets: <span id="scan-meta-count" class="text-zinc-400">--</span></span>
+                            <span>mode: <span id="scan-meta-mode" class="text-zinc-400">--</span></span>
+                            <span>timestamp: <span id="scan-meta-ts" class="text-zinc-400">--</span></span>
+                        </div>
+                    </div>
+
+                    <!-- Scan error -->
+                    <div id="scan-error" class="hidden mt-4 p-4 bg-red-950/50 border border-red-800 rounded-xl text-red-300 text-sm flex items-center gap-3">
+                        <i class="fa-solid fa-circle-exclamation text-red-400 flex-shrink-0"></i>
+                        <span id="scan-error-text"></span>
+                    </div>
+                </div><!-- /scan panel -->
+
+            </div><!-- /analyze-screen -->
 
             <!-- ═══════════════════════════════════════════════════════════ -->
             <!-- LOGS SCREEN                                                -->
@@ -1112,6 +1331,9 @@
                     </div>
                     <div data-action="navigate" data-screen="threats" class="flex items-center gap-x-2 cursor-pointer">
                         <i class="fa-solid fa-shield-virus"></i><span class="font-medium">Threats</span>
+                    </div>
+                    <div data-action="navigate" data-screen="analyze" class="flex items-center gap-x-2 cursor-pointer">
+                        <i class="fa-solid fa-brain"></i><span class="font-medium">Analyze</span>
                     </div>
                 </div>
                 <div class="text-[10px] font-mono text-zinc-500 flex items-center gap-x-5">

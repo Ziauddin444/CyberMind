@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CyberMind IDS — Network Intelligence Dashboard</title>
+  <meta name="description" content="CyberMind Intrusion Detection System — Real-time network threat intelligence powered by Random Forest AI and Scapy packet analysis." />
+
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <!-- Chart.js (as requested — loaded from CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Our CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     SIDEBAR
+══════════════════════════════════════════ -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <i class="fa-solid fa-shield-halved brand-icon"></i>
+    <div>
+      <div class="brand-name">CyberMind</div>
+      <div class="brand-sub">IDS v2.0 · RF Model</div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a href="#" class="nav-link active" data-screen="dashboard">
+      <i class="fa-solid fa-gauge-high"></i> Dashboard
+    </a>
+    <a href="#" class="nav-link" data-screen="scan">
+      <i class="fa-solid fa-satellite-dish"></i> Live Scan
+    </a>
+    <a href="#" class="nav-link" data-screen="analyze">
+      <i class="fa-solid fa-brain"></i> Text Analyzer
+    </a>
+    <a href="#" class="nav-link" data-screen="logs">
+      <i class="fa-solid fa-database"></i> Scan Logs
+    </a>
+  </nav>
+
+  <!-- Live refresh indicator -->
+  <div class="refresh-indicator" id="refresh-indicator">
+    <div class="phase-dot pulse-yellow" id="refresh-dot" style="opacity:0"></div>
+    <span id="refresh-label">Auto-refresh: ON</span>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="status-dot"></div>
+    <span>Flask · Scapy · SQLite</span>
+  </div>
+</aside>
+
+<!-- ══════════════════════════════════════════
+     MAIN
+══════════════════════════════════════════ -->
+<main class="main">
+
+  <!-- Top bar -->
+  <header class="topbar">
+    <div>
+      <h1 class="page-title" id="page-title">Dashboard</h1>
+      <p class="page-sub" id="page-sub">Live network threat intelligence — updates every 2 seconds</p>
+    </div>
+    <div class="topbar-right">
+      <div class="badge-pill">
+        <i class="fa-solid fa-circle-dot pulse-green"></i>
+        CyberMind is watching your network
+      </div>
+    </div>
+  </header>
+
+  <!-- ════════════════════════════════════════
+       SCREEN: DASHBOARD
+  ════════════════════════════════════════ -->
+  <section id="screen-dashboard" class="screen active">
+
+    <!-- Live stat counters (updated by /get_latest_traffic) -->
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-icon green"><i class="fa-solid fa-shield-check"></i></div>
+        <div class="stat-body">
+          <div class="stat-value" id="stat-scans">—</div>
+          <div class="stat-label">Total Scans</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        <div class="stat-body">
+          <div class="stat-value" id="stat-threats">—</div>
+          <div class="stat-label">Threats Today</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon yellow"><i class="fa-solid fa-network-wired"></i></div>
+        <div class="stat-body">
+          <div class="stat-value" id="stat-packets">—</div>
+          <div class="stat-label">Packets Tracked</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon blue"><i class="fa-solid fa-robot"></i></div>
+        <div class="stat-body">
+          <div class="stat-value" style="font-size:16px">model.pkl</div>
+          <div class="stat-label">Random Forest AI</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts row -->
+    <div class="two-col">
+
+      <!-- ── Bar chart: traffic label breakdown (live via /get_latest_traffic) -->
+      <div class="card">
+        <div class="card-header">
+          <span>Traffic Classification</span>
+          <span class="tag live-tag"><i class="fa-solid fa-signal"></i> LIVE · 2s refresh</span>
+        </div>
+        <div class="chart-wrap">
+          <!-- Canvas required by Chart.js — as per professor's instructions -->
+          <canvas id="threatChart"></canvas>
+          <div class="chart-empty" id="chart-empty">
+            <i class="fa-solid fa-satellite-dish"></i>
+            <p>CyberMind is waiting for scan data…</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Doughnut chart: threat distribution -->
+      <div class="card">
+        <div class="card-header">
+          <span>Threat Distribution</span>
+          <span class="tag live-tag"><i class="fa-solid fa-signal"></i> LIVE</span>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="donutChart"></canvas>
+          <div class="chart-empty" id="donut-empty">
+            <i class="fa-solid fa-chart-pie"></i>
+            <p>CyberMind is waiting for scan data…</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Recent activity feed (live) -->
+    <div class="card">
+      <div class="card-header">
+        <span>Recent Scan Activity</span>
+        <span class="tag live-tag"><i class="fa-solid fa-signal"></i> LIVE</span>
+      </div>
+      <div id="activity-empty" class="empty-state">
+        <i class="fa-solid fa-clock fa-2x" style="color:var(--zinc-600)"></i>
+        <p>CyberMind is ready — run a scan to see live activity here.</p>
+      </div>
+      <table class="log-table hidden" id="activity-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>CyberMind Result</th>
+            <th>Confidence</th>
+            <th>Packets</th>
+            <th>Mode</th>
+            <th>Threat</th>
+          </tr>
+        </thead>
+        <tbody id="activity-body"></tbody>
+      </table>
+    </div>
+
+  </section>
+
+  <!-- ════════════════════════════════════════
+       SCREEN: LIVE SCAN
+  ════════════════════════════════════════ -->
+  <section id="screen-scan" class="screen">
+
+    <div class="card">
+      <div class="card-header">
+        <span><i class="fa-solid fa-satellite-dish"></i> Live Network Scan</span>
+        <span class="tag">Scapy + model.pkl</span>
+      </div>
+      <p class="hint">
+        CyberMind captures packets directly from your network interface and
+        classifies them using the trained <code>model.pkl</code> Random Forest model.
+        Results are saved to SQLite and reflected in the live dashboard.
+      </p>
+
+      <!-- Packet count slider -->
+      <div class="slider-row">
+        <label for="packet-count">Packet Count</label>
+        <div class="slider-right">
+          <input type="range" id="packet-count" min="10" max="300" step="10" value="100" />
+          <span class="mono yellow" id="packet-count-label">100</span>
+        </div>
+      </div>
+
+      <!-- START SCAN button -->
+      <button id="scan-btn" class="btn-primary" onclick="startScan()">
+        <i id="scan-icon" class="fa-solid fa-satellite-dish"></i>
+        <span id="scan-label">START SCAN</span>
+      </button>
+    </div>
+
+    <!-- Progress panel (active-voice status messages) -->
+    <div class="card hidden" id="progress-card">
+      <div class="progress-header">
+        <div class="flex-row gap-2">
+          <div class="phase-dot pulse-yellow"></div>
+          <span id="phase-label" class="semibold">CyberMind is preparing…</span>
+        </div>
+        <span class="mono yellow" id="progress-pct">0%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+      </div>
+      <!-- Terminal ticker shows live status messages -->
+      <div class="terminal" id="scan-terminal">
+        <span class="yellow">$ cybermind-ids --scan --model model.pkl</span>
+      </div>
+    </div>
+
+    <!-- Scan result card -->
+    <div id="scan-result" class="result-card hidden"></div>
+    <div id="scan-error" class="error-card hidden">
+      <i class="fa-solid fa-circle-exclamation"></i>
+      <span id="scan-error-msg"></span>
+    </div>
+
+  </section>
+
+  <!-- ════════════════════════════════════════
+       SCREEN: TEXT ANALYZER
+  ════════════════════════════════════════ -->
+  <section id="screen-analyze" class="screen">
+
+    <div class="card">
+      <div class="card-header">
+        <span><i class="fa-solid fa-brain"></i> Signature-Based Analyzer</span>
+        <span class="tag">IDS Engine</span>
+      </div>
+      <p class="hint">
+        CyberMind checks your log entry against known attack signatures (SQL injection,
+        brute force, XSS, etc.) — no network capture needed.
+      </p>
+
+      <textarea id="analyze-text" class="textarea"
+        placeholder="Paste a log line or suspicious string, e.g.:&#10;  GET /index.php?id=1 OR 1=1 --&#10;  Failed password for root from 192.168.1.5&#10;  &lt;script&gt;alert(1)&lt;/script&gt;"></textarea>
+
+      <input type="text" id="analyze-ip" class="input" placeholder="Source IP (optional, e.g. 192.168.1.5)" />
+
+      <button class="btn-primary" onclick="runAnalyze()">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        CyberMind — Analyze This
+      </button>
+    </div>
+
+    <div id="analyze-result" class="result-card hidden"></div>
+    <div id="analyze-error" class="error-card hidden">
+      <i class="fa-solid fa-circle-exclamation"></i>
+      <span id="analyze-error-msg"></span>
+    </div>
+
+  </section>
+
+  <!-- ════════════════════════════════════════
+       SCREEN: SCAN LOGS (SQLite)
+  ════════════════════════════════════════ -->
+  <section id="screen-logs" class="screen">
+
+    <div class="card">
+      <div class="card-header">
+        <span><i class="fa-solid fa-database"></i> Scan Log History</span>
+        <span class="tag">SQLite · cybermind_logs.db</span>
+      </div>
+      <p class="hint">
+        Every scan CyberMind runs is saved to a local SQLite database —
+        a single file, no separate server needed (ideal for SMBs).
+      </p>
+      <button class="btn-outline" onclick="loadLogs()">
+        <i class="fa-solid fa-rotate"></i> Refresh Logs
+      </button>
+    </div>
+
+    <div class="card">
+      <div id="logs-empty" class="empty-state">
+        <i class="fa-solid fa-database fa-2x" style="color:var(--zinc-600)"></i>
+        <p>CyberMind has no scan history yet — run a scan first.</p>
+      </div>
+      <table class="log-table hidden" id="logs-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Timestamp</th>
+            <th>CyberMind Label</th>
+            <th>Severity</th>
+            <th>Confidence</th>
+            <th>Packets</th>
+            <th>Mode</th>
+            <th>Threat</th>
+          </tr>
+        </thead>
+        <tbody id="logs-body"></tbody>
+      </table>
+    </div>
+
+  </section>
+
+</main>
+
+<!-- Our JavaScript (static/js/main.js) -->
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

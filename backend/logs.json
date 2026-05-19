@@ -1,0 +1,929 @@
+[
+  {
+    "id": 103,
+    "time": "15:42",
+    "device": "CyberMind-Sentinel",
+    "event": "Malware / Exploit Payload",
+    "summary": "Attack detected from 46.165.245.71 — CRITICAL severity. IP auto-blocked.",
+    "action": "Blocked",
+    "severity": "critical"
+  },
+  {
+    "id": 102,
+    "time": "15:42",
+    "device": "CyberMind-Sentinel",
+    "event": "SQL Injection Attempt",
+    "summary": "Attack detected from 95.214.53.18 — CRITICAL severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "critical"
+  },
+  {
+    "id": 101,
+    "time": "15:42",
+    "device": "CyberMind-Sentinel",
+    "event": "SQL Injection Attempt",
+    "summary": "Attack detected from 212.102.54.101 — CRITICAL severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "critical"
+  },
+  {
+    "id": 100,
+    "time": "15:42",
+    "device": "CyberMind-Sentinel",
+    "event": "Cross-Site Scripting (XSS)",
+    "summary": "Attack detected from 84.17.39.227 — MEDIUM severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "medium"
+  },
+  {
+    "id": 99,
+    "time": "15:42",
+    "device": "CyberMind-Sentinel",
+    "event": "Cross-Site Scripting (XSS)",
+    "summary": "Attack detected from 84.17.39.227 — MEDIUM severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "medium"
+  },
+  {
+    "id": 98,
+    "time": "15:41",
+    "device": "CyberMind-Sentinel",
+    "event": "Port Scan",
+    "summary": "Attack detected from 31.7.58.114 — MEDIUM severity. IP auto-blocked.",
+    "action": "Blocked",
+    "severity": "medium"
+  },
+  {
+    "id": 97,
+    "time": "15:41",
+    "device": "CyberMind-Sentinel",
+    "event": "Malware / Exploit Payload",
+    "summary": "Attack detected from 107.189.29.8 — CRITICAL severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "critical"
+  },
+  {
+    "id": 96,
+    "time": "15:41",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from 89.44.9.176 — HIGH severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 95,
+    "time": "15:41",
+    "device": "CyberMind-Sentinel",
+    "event": "Port Scan",
+    "summary": "Attack detected from 66.115.189.211 — MEDIUM severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "medium"
+  },
+  {
+    "id": 94,
+    "time": "15:41",
+    "device": "CyberMind-Sentinel",
+    "event": "Malware / Exploit Payload",
+    "summary": "Attack detected from 45.67.231.10 — CRITICAL severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "critical"
+  },
+  {
+    "id": 93,
+    "time": "15:41",
+    "device": "CyberMind-Sentinel",
+    "event": "DDoS / Flood Attack",
+    "summary": "Attack detected from 107.189.29.8 — CRITICAL severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "critical"
+  },
+  {
+    "id": 92,
+    "time": "15:41",
+    "device": "CyberMind-Sentinel",
+    "event": "DDoS / Flood Attack",
+    "summary": "Attack detected from 176.10.99.200 — CRITICAL severity. IP auto-blocked.",
+    "action": "Blocked",
+    "severity": "critical"
+  },
+  {
+    "id": 91,
+    "time": "15:41",
+    "device": "CyberMind-Sentinel",
+    "event": "DDoS / Flood Attack",
+    "summary": "Attack detected from 51.15.129.52 — CRITICAL severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "critical"
+  },
+  {
+    "id": 90,
+    "time": "15:41",
+    "device": "CyberMind-Sentinel",
+    "event": "DDoS / Flood Attack",
+    "summary": "Attack detected from 103.92.24.11 — CRITICAL severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "critical"
+  },
+  {
+    "id": 89,
+    "time": "15:41",
+    "device": "CyberMind-Sentinel",
+    "event": "Port Scan",
+    "summary": "Attack detected from 45.83.122.41 — MEDIUM severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "medium"
+  },
+  {
+    "id": 88,
+    "time": "15:41",
+    "device": "CyberMind-Sentinel",
+    "event": "Port Scan",
+    "summary": "Attack detected from 154.53.37.89 — MEDIUM severity. IP auto-blocked.",
+    "action": "Blocked",
+    "severity": "medium"
+  },
+  {
+    "id": 87,
+    "time": "15:41",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from 77.247.181.165 — HIGH severity. IP auto-blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 86,
+    "time": "15:41",
+    "device": "CyberMind-Sentinel",
+    "event": "Port Scan",
+    "summary": "Attack detected from 172.105.58.20 — MEDIUM severity. IP auto-blocked.",
+    "action": "Blocked",
+    "severity": "medium"
+  },
+  {
+    "id": 85,
+    "time": "15:41",
+    "device": "CyberMind-Sentinel",
+    "event": "Port Scan",
+    "summary": "Attack detected from 146.70.18.63 — MEDIUM severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "medium"
+  },
+  {
+    "id": 84,
+    "time": "15:41",
+    "device": "CyberMind-Sentinel",
+    "event": "Port Scan",
+    "summary": "Attack detected from 45.83.122.41 — MEDIUM severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "medium"
+  },
+  {
+    "id": 83,
+    "time": "15:41",
+    "device": "CyberMind-Sentinel",
+    "event": "SQL Injection Attempt",
+    "summary": "Attack detected from 37.120.145.220 — CRITICAL severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "critical"
+  },
+  {
+    "id": 82,
+    "time": "15:41",
+    "device": "CyberMind-Sentinel",
+    "event": "SQL Injection Attempt",
+    "summary": "Attack detected from 95.214.53.18 — CRITICAL severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "critical"
+  },
+  {
+    "id": 81,
+    "time": "15:41",
+    "device": "CyberMind-Sentinel",
+    "event": "SQL Injection Attempt",
+    "summary": "Attack detected from 212.102.54.101 — CRITICAL severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "critical"
+  },
+  {
+    "id": 80,
+    "time": "15:41",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from 84.17.39.227 — HIGH severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 79,
+    "time": "15:41",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from 217.138.221.15 — HIGH severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 78,
+    "time": "15:41",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from 139.59.112.33 — HIGH severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 77,
+    "time": "15:41",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from 80.67.172.162 — HIGH severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 76,
+    "time": "15:41",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from 198.44.136.12 — HIGH severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 75,
+    "time": "15:41",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from 91.134.77.192 — HIGH severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 74,
+    "time": "15:41",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from 185.53.177.54 — HIGH severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 73,
+    "time": "14:16",
+    "device": "CyberMind-Sentinel",
+    "event": "SQL Injection Attempt",
+    "summary": "Attack detected from 37.120.145.220 — CRITICAL severity. IP auto-blocked.",
+    "action": "Blocked",
+    "severity": "critical"
+  },
+  {
+    "id": 72,
+    "time": "14:16",
+    "device": "CyberMind-Sentinel",
+    "event": "SQL Injection Attempt",
+    "summary": "Attack detected from 95.214.53.18 — CRITICAL severity. IP auto-blocked.",
+    "action": "Blocked",
+    "severity": "critical"
+  },
+  {
+    "id": 71,
+    "time": "14:16",
+    "device": "CyberMind-Sentinel",
+    "event": "SQL Injection Attempt",
+    "summary": "Attack detected from 212.102.54.101 — CRITICAL severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "critical"
+  },
+  {
+    "id": 70,
+    "time": "14:16",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from 84.17.39.227 — HIGH severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 69,
+    "time": "14:16",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from 217.138.221.15 — HIGH severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 68,
+    "time": "14:16",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from 139.59.112.33 — HIGH severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 67,
+    "time": "14:16",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from 80.67.172.162 — HIGH severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 66,
+    "time": "14:16",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from 198.44.136.12 — HIGH severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 65,
+    "time": "14:16",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from 91.134.77.192 — HIGH severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 64,
+    "time": "14:16",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from 185.53.177.54 — HIGH severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 63,
+    "time": "16:18",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from 139.59.112.33 — HIGH severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 62,
+    "time": "16:18",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from 80.67.172.162 — HIGH severity. IP auto-blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 61,
+    "time": "16:18",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from 198.44.136.12 — HIGH severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 60,
+    "time": "16:18",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from 91.134.77.192 — HIGH severity. IP auto-blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 59,
+    "time": "16:18",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from 185.53.177.54 — HIGH severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 58,
+    "time": "16:18",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from 139.59.112.33 — HIGH severity. IP auto-blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 57,
+    "time": "16:18",
+    "device": "CyberMind-Sentinel",
+    "event": "Cross-Site Scripting (XSS)",
+    "summary": "Attack detected from 84.17.39.227 — MEDIUM severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "medium"
+  },
+  {
+    "id": 56,
+    "time": "16:18",
+    "device": "CyberMind-Sentinel",
+    "event": "Malware / Exploit Payload",
+    "summary": "Attack detected from 107.189.29.8 — CRITICAL severity. IP auto-blocked.",
+    "action": "Blocked",
+    "severity": "critical"
+  },
+  {
+    "id": 55,
+    "time": "16:18",
+    "device": "CyberMind-Sentinel",
+    "event": "Port Scan",
+    "summary": "Attack detected from 146.70.18.63 — MEDIUM severity. IP auto-blocked.",
+    "action": "Blocked",
+    "severity": "medium"
+  },
+  {
+    "id": 54,
+    "time": "16:18",
+    "device": "CyberMind-Sentinel",
+    "event": "Malware / Exploit Payload",
+    "summary": "Attack detected from 66.115.189.211 — CRITICAL severity. IP auto-blocked.",
+    "action": "Blocked",
+    "severity": "critical"
+  },
+  {
+    "id": 53,
+    "time": "16:18",
+    "device": "CyberMind-Sentinel",
+    "event": "SQL Injection Attempt",
+    "summary": "Attack detected from 212.102.54.101 — CRITICAL severity. IP auto-blocked.",
+    "action": "Blocked",
+    "severity": "critical"
+  },
+  {
+    "id": 52,
+    "time": "16:18",
+    "device": "CyberMind-Sentinel",
+    "event": "DDoS / Flood Attack",
+    "summary": "Attack detected from 51.15.129.52 — CRITICAL severity. IP auto-blocked.",
+    "action": "Blocked",
+    "severity": "critical"
+  },
+  {
+    "id": 51,
+    "time": "16:18",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from 89.44.9.176 — HIGH severity. IP auto-blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 50,
+    "time": "16:18",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from 198.44.136.12 — HIGH severity. IP auto-blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 49,
+    "time": "16:18",
+    "device": "CyberMind-Sentinel",
+    "event": "Cross-Site Scripting (XSS)",
+    "summary": "Attack detected from 84.17.39.227 — MEDIUM severity. IP auto-blocked.",
+    "action": "Blocked",
+    "severity": "medium"
+  },
+  {
+    "id": 48,
+    "time": "16:18",
+    "device": "CyberMind-Sentinel",
+    "event": "Malware / Exploit Payload",
+    "summary": "Attack detected from 45.67.231.10 — CRITICAL severity. IP auto-blocked.",
+    "action": "Blocked",
+    "severity": "critical"
+  },
+  {
+    "id": 47,
+    "time": "16:18",
+    "device": "CyberMind-Sentinel",
+    "event": "Port Scan",
+    "summary": "Attack detected from 103.92.24.11 — MEDIUM severity. IP auto-blocked.",
+    "action": "Blocked",
+    "severity": "medium"
+  },
+  {
+    "id": 46,
+    "time": "16:18",
+    "device": "CyberMind-Sentinel",
+    "event": "Port Scan",
+    "summary": "Attack detected from 45.83.122.41 — MEDIUM severity. IP auto-blocked.",
+    "action": "Blocked",
+    "severity": "medium"
+  },
+  {
+    "id": 45,
+    "time": "16:18",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from 217.138.221.15 — HIGH severity. IP auto-blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 44,
+    "time": "16:18",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from 185.53.177.54 — HIGH severity. IP auto-blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 43,
+    "time": "01:49",
+    "device": "CyberMind-Sentinel",
+    "event": "DDoS / Flood Attack",
+    "summary": "Attack detected from ::1 — CRITICAL severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "critical"
+  },
+  {
+    "id": 42,
+    "time": "01:48",
+    "device": "CyberMind-Sentinel",
+    "event": "Reconnaissance Activity",
+    "summary": "Attack detected from ::1 — LOW severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "low"
+  },
+  {
+    "id": 41,
+    "time": "01:48",
+    "device": "CyberMind-Sentinel",
+    "event": "Malware / Exploit Payload",
+    "summary": "Attack detected from ::1 — CRITICAL severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "critical"
+  },
+  {
+    "id": 40,
+    "time": "01:48",
+    "device": "CyberMind-Sentinel",
+    "event": "Cross-Site Scripting (XSS)",
+    "summary": "Attack detected from ::1 — MEDIUM severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "medium"
+  },
+  {
+    "id": 39,
+    "time": "01:48",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from ::1 — HIGH severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 38,
+    "time": "01:48",
+    "device": "CyberMind-Sentinel",
+    "event": "Port Scan",
+    "summary": "Attack detected from ::1 — MEDIUM severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "medium"
+  },
+  {
+    "id": 37,
+    "time": "01:48",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from ::1 — HIGH severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 36,
+    "time": "01:15",
+    "device": "CyberMind-Sentinel",
+    "event": "DDoS / Flood Attack",
+    "summary": "Attack detected from ::1 — CRITICAL severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "critical"
+  },
+  {
+    "id": 35,
+    "time": "01:15",
+    "device": "CyberMind-Sentinel",
+    "event": "Reconnaissance Activity",
+    "summary": "Attack detected from ::1 — LOW severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "low"
+  },
+  {
+    "id": 34,
+    "time": "01:15",
+    "device": "CyberMind-Sentinel",
+    "event": "Malware / Exploit Payload",
+    "summary": "Attack detected from ::1 — CRITICAL severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "critical"
+  },
+  {
+    "id": 33,
+    "time": "01:15",
+    "device": "CyberMind-Sentinel",
+    "event": "Cross-Site Scripting (XSS)",
+    "summary": "Attack detected from ::1 — MEDIUM severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "medium"
+  },
+  {
+    "id": 32,
+    "time": "01:15",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from ::1 — HIGH severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 31,
+    "time": "01:15",
+    "device": "CyberMind-Sentinel",
+    "event": "Port Scan",
+    "summary": "Attack detected from ::1 — MEDIUM severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "medium"
+  },
+  {
+    "id": 30,
+    "time": "01:15",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from ::1 — HIGH severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 29,
+    "time": "22:10",
+    "device": "CyberMind-Sentinel",
+    "event": "DDoS / Flood Attack",
+    "summary": "Attack detected from ::1 — CRITICAL severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "critical"
+  },
+  {
+    "id": 28,
+    "time": "22:10",
+    "device": "CyberMind-Sentinel",
+    "event": "Reconnaissance Activity",
+    "summary": "Attack detected from ::1 — LOW severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "low"
+  },
+  {
+    "id": 27,
+    "time": "22:10",
+    "device": "CyberMind-Sentinel",
+    "event": "Malware / Exploit Payload",
+    "summary": "Attack detected from ::1 — CRITICAL severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "critical"
+  },
+  {
+    "id": 26,
+    "time": "22:10",
+    "device": "CyberMind-Sentinel",
+    "event": "Cross-Site Scripting (XSS)",
+    "summary": "Attack detected from ::1 — MEDIUM severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "medium"
+  },
+  {
+    "id": 25,
+    "time": "22:10",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from ::1 — HIGH severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 24,
+    "time": "22:10",
+    "device": "CyberMind-Sentinel",
+    "event": "Port Scan",
+    "summary": "Attack detected from ::1 — MEDIUM severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "medium"
+  },
+  {
+    "id": 23,
+    "time": "22:10",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from ::1 — HIGH severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 22,
+    "time": "21:59",
+    "device": "CyberMind-Sentinel",
+    "event": "DDoS / Flood Attack",
+    "summary": "Attack detected from ::1 — CRITICAL severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "critical"
+  },
+  {
+    "id": 21,
+    "time": "21:59",
+    "device": "CyberMind-Sentinel",
+    "event": "Reconnaissance Activity",
+    "summary": "Attack detected from ::1 — LOW severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "low"
+  },
+  {
+    "id": 20,
+    "time": "21:59",
+    "device": "CyberMind-Sentinel",
+    "event": "Malware / Exploit Payload",
+    "summary": "Attack detected from ::1 — CRITICAL severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "critical"
+  },
+  {
+    "id": 19,
+    "time": "21:59",
+    "device": "CyberMind-Sentinel",
+    "event": "Cross-Site Scripting (XSS)",
+    "summary": "Attack detected from ::1 — MEDIUM severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "medium"
+  },
+  {
+    "id": 18,
+    "time": "21:59",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from ::1 — HIGH severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 17,
+    "time": "21:59",
+    "device": "CyberMind-Sentinel",
+    "event": "Port Scan",
+    "summary": "Attack detected from ::1 — MEDIUM severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "medium"
+  },
+  {
+    "id": 16,
+    "time": "21:59",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from ::1 — HIGH severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 15,
+    "time": "21:28",
+    "device": "CyberMind-Sentinel",
+    "event": "Port Scan",
+    "summary": "Attack detected from ::1 — MEDIUM severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "medium"
+  },
+  {
+    "id": 14,
+    "time": "21:28",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from ::1 — HIGH severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 13,
+    "time": "22:19",
+    "device": "CyberMind-Sentinel",
+    "event": "DDoS / Flood Attack",
+    "summary": "Attack detected from ::1 — CRITICAL severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "critical"
+  },
+  {
+    "id": 12,
+    "time": "22:19",
+    "device": "CyberMind-Sentinel",
+    "event": "Reconnaissance Activity",
+    "summary": "Attack detected from ::1 — LOW severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "low"
+  },
+  {
+    "id": 11,
+    "time": "22:19",
+    "device": "CyberMind-Sentinel",
+    "event": "Malware / Exploit Payload",
+    "summary": "Attack detected from ::1 — CRITICAL severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "critical"
+  },
+  {
+    "id": 10,
+    "time": "22:19",
+    "device": "CyberMind-Sentinel",
+    "event": "Cross-Site Scripting (XSS)",
+    "summary": "Attack detected from ::1 — MEDIUM severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "medium"
+  },
+  {
+    "id": 9,
+    "time": "22:19",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from ::1 — HIGH severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 8,
+    "time": "22:19",
+    "device": "CyberMind-Sentinel",
+    "event": "Port Scan",
+    "summary": "Attack detected from ::1 — MEDIUM severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "medium"
+  },
+  {
+    "id": 7,
+    "time": "22:19",
+    "device": "CyberMind-Sentinel",
+    "event": "Brute Force Attack",
+    "summary": "Attack detected from ::1 — HIGH severity. IP was already blocked.",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 6,
+    "time": "22:19",
+    "device": "CyberMind-Sentinel",
+    "event": "Port Scan",
+    "summary": "Attack detected from ::1 — MEDIUM severity. IP auto-blocked.",
+    "action": "Blocked",
+    "severity": "medium"
+  },
+  {
+    "id": 1,
+    "time": "12:41",
+    "device": "MacBook-Air",
+    "event": "Failed login",
+    "summary": "Brute-force attempt from Russia",
+    "action": "Blocked",
+    "severity": "high"
+  },
+  {
+    "id": 2,
+    "time": "12:39",
+    "device": "Windows-Server",
+    "event": "File created",
+    "summary": "Suspicious .exe file downloaded",
+    "action": "Quarantined",
+    "severity": "critical"
+  },
+  {
+    "id": 3,
+    "time": "12:33",
+    "device": "POS-Terminal-1",
+    "event": "USB inserted",
+    "summary": "Unknown USB device connected",
+    "action": "Monitored",
+    "severity": "medium"
+  },
+  {
+    "id": 4,
+    "time": "12:20",
+    "device": "MacBook-Air",
+    "event": "App installed",
+    "summary": "New application installed: Slack",
+    "action": "Allowed",
+    "severity": "low"
+  },
+  {
+    "id": 5,
+    "time": "11:55",
+    "device": "Windows-Server",
+    "event": "Port scan",
+    "summary": "External port scan detected from 45.33.32.156",
+    "action": "Blocked",
+    "severity": "high"
+  }
+]

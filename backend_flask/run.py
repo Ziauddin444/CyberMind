@@ -86,7 +86,7 @@ def main():
         host=host,
         port=port,
         debug=debug,
-        use_reloader=debug
+        use_reloader=False
     )
 
 
