@@ -3,13 +3,52 @@
 ## Overview
 CyberMind Sentinel is a **production-ready cybersecurity operations platform** with automated threat detection and response capabilities. The Flask backend provides a REST API for managing security operations across Windows, Linux, and macOS systems.
 
+## ⚠️ IMPORTANT: Scapy Requires Root/Admin Privileges
+
+**For live packet capture to work**, the Flask server MUST run with elevated privileges:
+
+### macOS / Linux
+```bash
+sudo python3 run.py
+# or with the startup script:
+sudo bash start_all.sh
+```
+
+### Windows
+Run Command Prompt **as Administrator**, then:
+```bash
+python run.py
+```
+
+**Without root/admin privileges:**
+- ✗ Scapy silently falls back to **synthetic simulation**
+- ✗ Your "live scan" demo will NOT capture real network traffic
+- ✓ API still works, but with simulated data only
+
+**For testing/development without privileges:**
+Use the environment variable to explicitly enable synthetic mode:
+```bash
+export RF_CLASSIFIER_USE_SYNTHETIC=1
+python3 run.py
+```
+
+---
+
 ## Quick Start
 
-### 1. Start the Server
+### 1. Start the Server (with root privileges for live capture)
+
+#### Option A: Direct (Live packet capture enabled)
 ```bash
 cd /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask
 source ../.venv/bin/activate
-python3 run.py
+sudo python3 run.py  # ← ROOT REQUIRED
+```
+
+#### Option B: Using startup script (Live packet capture enabled)
+```bash
+cd /Users/ziauddin/Documents/GitHub/CyberMind
+sudo bash start_all.sh  # ← ROOT REQUIRED for packet capture
 ```
 
 Server runs on `http://localhost:5000`
@@ -194,7 +233,8 @@ backend_flask/
 ├── config/
 │   └── config.py                       # Environment configuration
 ├── data/
-│   ├── devices.json                    # Device inventory
+│   ├── devices.json                    # Device inventory (persistent)
+│   ├── blocked_ips.json                # Blocked IP records (persistent)
 │   └── honeypot_captures/              # Captured payloads
 ├── logs/
 │   └── cybermind.log                   # Security audit log
@@ -226,6 +266,7 @@ curl -X POST http://localhost:5000/api/devices/add \
 ## Data Storage
 
 - **Devices**: `data/devices.json` (persistent device inventory)
+- **Blocked IPs**: `data/blocked_ips.json` (firewall blacklist records)
 - **Honeypot Captures**: `data/honeypot_captures/` (attack payloads)
 - **Logs**: `logs/cybermind.log` (security audit trail)
 

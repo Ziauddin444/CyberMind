@@ -27,7 +27,7 @@ class IPBlacklistService:
         self.block_records = []
         self.records_file = os.path.join(
             os.path.dirname(__file__), 
-            '../../logs/blocked_ips.json'
+            '../../data/blocked_ips.json'
         )
         self._load_records_from_disk()
         logger.info("IPBlacklistService initialized")

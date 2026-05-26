@@ -988,3 +988,89 @@ block drop out to 192.168.0.77
 [2026-05-10 19:52:01,629] INFO - app.services.fleet_monitor: FleetMonitor initialized for OS: Darwin
 [2026-05-10 19:52:01,629] INFO - app.services.remediation_playbook: RemediationPlaybook initialized
 [2026-05-10 19:52:01,630] INFO - app: All security services initialized successfully
+[2026-05-23 13:33:54,181] INFO - app: Initializing CyberMind security services...
+[2026-05-23 13:33:54,182] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-05-23 13:33:54,182] INFO - app.services.ai_translator: AITranslator initialized with provider: openai
+[2026-05-23 13:33:54,182] INFO - app.services.rogue_asset_detector: RogueAssetDetector initialized
+[2026-05-23 13:33:54,182] INFO - app.services.network_honeypot: NetworkHoneypot initialized
+[2026-05-23 13:33:54,182] INFO - app.services.phishing_sandbox: PhishingSandbox initialized
+[2026-05-23 13:33:54,182] INFO - app.services.ip_blacklist_service: Loaded 2 records from /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/app/services/../../logs/blocked_ips.json
+[2026-05-23 13:33:54,182] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-05-23 13:33:54,182] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-05-23 13:33:54,182] INFO - app.services.fleet_monitor: FleetMonitor initialized for OS: Darwin
+[2026-05-23 13:33:54,182] INFO - app.services.remediation_playbook: RemediationPlaybook initialized
+[2026-05-23 13:33:54,182] INFO - app: All security services initialized successfully
+[2026-05-23 15:02:06,060] INFO - app: Initializing CyberMind security services...
+[2026-05-23 15:02:06,063] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-05-23 15:02:06,063] INFO - app.services.ai_translator: AITranslator initialized with provider: openai
+[2026-05-23 15:02:06,063] INFO - app.services.rogue_asset_detector: RogueAssetDetector initialized
+[2026-05-23 15:02:06,063] INFO - app.services.network_honeypot: NetworkHoneypot initialized
+[2026-05-23 15:02:06,063] INFO - app.services.phishing_sandbox: PhishingSandbox initialized
+[2026-05-23 15:02:06,063] INFO - app.services.ip_blacklist_service: Loaded 2 records from /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/app/services/../../data/blocked_ips.json
+[2026-05-23 15:02:06,063] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-05-23 15:02:06,063] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-05-23 15:02:06,063] INFO - app.services.fleet_monitor: FleetMonitor initialized for OS: Darwin
+[2026-05-23 15:02:06,063] INFO - app.services.remediation_playbook: RemediationPlaybook initialized
+[2026-05-23 15:02:06,064] INFO - app: All security services initialized successfully
+[2026-05-23 15:02:07,642] INFO - app: API routes registered
+[2026-05-23 15:02:07,643] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-05-23 15:26:15,613] INFO - app: Initializing CyberMind security services...
+[2026-05-23 15:26:15,613] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-05-23 15:26:15,613] INFO - app.services.ai_translator: AITranslator initialized with provider: openai
+[2026-05-23 15:26:15,613] INFO - app.services.rogue_asset_detector: RogueAssetDetector initialized
+[2026-05-23 15:26:15,613] INFO - app.services.network_honeypot: NetworkHoneypot initialized
+[2026-05-23 15:26:15,613] INFO - app.services.phishing_sandbox: PhishingSandbox initialized
+[2026-05-23 15:26:15,613] INFO - app.services.ip_blacklist_service: Loaded 2 records from /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/app/services/../../data/blocked_ips.json
+[2026-05-23 15:26:15,613] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-05-23 15:26:15,613] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-05-23 15:26:15,613] INFO - app.services.fleet_monitor: FleetMonitor initialized for OS: Darwin
+[2026-05-23 15:26:15,613] INFO - app.services.remediation_playbook: RemediationPlaybook initialized
+[2026-05-23 15:26:15,614] INFO - app: All security services initialized successfully
+[2026-05-23 15:26:15,621] INFO - app.api.routes: SQLite scan database initialized → /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/data/cybermind_logs.db
+[2026-05-23 15:26:16,445] INFO - app: API routes registered
+[2026-05-23 15:26:16,446] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-05-23 15:27:14,618] INFO - app: Initializing CyberMind security services...
+[2026-05-23 15:27:14,618] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-05-23 15:27:14,618] INFO - app.services.ai_translator: AITranslator initialized with provider: openai
+[2026-05-23 15:27:14,618] INFO - app.services.rogue_asset_detector: RogueAssetDetector initialized
+[2026-05-23 15:27:14,618] INFO - app.services.network_honeypot: NetworkHoneypot initialized
+[2026-05-23 15:27:14,618] INFO - app.services.phishing_sandbox: PhishingSandbox initialized
+[2026-05-23 15:27:14,618] INFO - app.services.ip_blacklist_service: Loaded 2 records from /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/app/services/../../data/blocked_ips.json
+[2026-05-23 15:27:14,618] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-05-23 15:27:14,618] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-05-23 15:27:14,618] INFO - app.services.fleet_monitor: FleetMonitor initialized for OS: Darwin
+[2026-05-23 15:27:14,618] INFO - app.services.remediation_playbook: RemediationPlaybook initialized
+[2026-05-23 15:27:14,618] INFO - app: All security services initialized successfully
+[2026-05-23 15:27:14,625] INFO - app.api.routes: SQLite scan database initialized → /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/data/cybermind_logs.db
+[2026-05-23 15:27:15,427] INFO - app: API routes registered
+[2026-05-23 15:27:15,427] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-05-24 17:54:58,557] INFO - app: Initializing CyberMind security services...
+[2026-05-24 17:54:58,557] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-05-24 17:54:58,557] INFO - app.services.ai_translator: AITranslator initialized with provider: openai
+[2026-05-24 17:54:58,557] INFO - app.services.network_honeypot: NetworkHoneypot initialized
+[2026-05-24 17:54:58,557] INFO - app.services.ip_blacklist_service: Loaded 2 records from /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/app/services/../../data/blocked_ips.json
+[2026-05-24 17:54:58,557] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-05-24 17:54:58,557] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-05-24 17:54:58,558] INFO - app: All security services initialized successfully
+[2026-05-24 17:55:44,517] INFO - app: Initializing CyberMind security services...
+[2026-05-24 17:55:44,518] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-05-24 17:55:44,518] INFO - app.services.ai_translator: AITranslator initialized with provider: openai
+[2026-05-24 17:55:44,518] INFO - app.services.network_honeypot: NetworkHoneypot initialized
+[2026-05-24 17:55:44,518] INFO - app.services.ip_blacklist_service: Loaded 2 records from /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/app/services/../../data/blocked_ips.json
+[2026-05-24 17:55:44,518] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-05-24 17:55:44,518] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-05-24 17:55:44,518] INFO - app: All security services initialized successfully
+[2026-05-24 17:55:44,564] INFO - app.api.routes: SQLite scan database initialized → /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/data/cybermind_logs.db
+[2026-05-24 17:55:48,566] INFO - app: API routes registered
+[2026-05-24 17:55:48,567] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-05-24 17:56:10,519] INFO - app: Initializing CyberMind security services...
+[2026-05-24 17:56:10,519] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-05-24 17:56:10,519] INFO - app.services.ai_translator: AITranslator initialized with provider: openai
+[2026-05-24 17:56:10,519] INFO - app.services.network_honeypot: NetworkHoneypot initialized
+[2026-05-24 17:56:10,519] INFO - app.services.ip_blacklist_service: Loaded 2 records from /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/app/services/../../data/blocked_ips.json
+[2026-05-24 17:56:10,519] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-05-24 17:56:10,519] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-05-24 17:56:10,519] INFO - app: All security services initialized successfully
+[2026-05-24 17:56:10,526] INFO - app.api.routes: SQLite scan database initialized → /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/data/cybermind_logs.db
+[2026-05-24 17:56:11,449] INFO - app: API routes registered
+[2026-05-24 17:56:11,449] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development

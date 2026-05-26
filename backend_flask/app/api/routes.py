@@ -5,15 +5,92 @@ Network-level active defense endpoints for Commander Agent architecture.
 
 import logging
 import os
+import sqlite3
 import threading
 import uuid
+from contextlib import contextmanager
 from datetime import datetime
 from functools import wraps
+from pathlib import Path
 
 from flask import Blueprint, current_app, jsonify, request
 from app.services import ids_engine  # Layer 3 — AI model
 
 logger = logging.getLogger(__name__)
+
+# ── SQLite scan logging ────────────────────────────────────────────────────────
+_DB_PATH = Path(__file__).parent.parent.parent / "data" / "cybermind_logs.db"
+_DB_LOCK = threading.Lock()
+
+
+def _init_scan_db() -> None:
+    """Initialize SQLite database with scan logging tables."""
+    with sqlite3.connect(_DB_PATH) as con:
+        con.execute("""
+            CREATE TABLE IF NOT EXISTS scan_logs (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp       TEXT    NOT NULL,
+                label           TEXT    NOT NULL,
+                severity        TEXT    NOT NULL,
+                confidence      REAL    NOT NULL,
+                packet_count    INTEGER NOT NULL,
+                capture_mode    TEXT    NOT NULL,
+                threat_detected INTEGER NOT NULL
+            )
+        """)
+        con.execute("""
+            CREATE TABLE IF NOT EXISTS traffic_counts (
+                id        INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp TEXT    NOT NULL,
+                label     TEXT    NOT NULL,
+                count     INTEGER NOT NULL DEFAULT 1
+            )
+        """)
+        con.commit()
+    logger.info("SQLite scan database initialized → %s", _DB_PATH)
+
+
+_init_scan_db()
+
+
+@contextmanager
+def _scan_db():
+    """Thread-safe SQLite connection context manager for scan logging."""
+    con = sqlite3.connect(_DB_PATH, check_same_thread=False)
+    con.row_factory = sqlite3.Row
+    try:
+        yield con
+        con.commit()
+    finally:
+        con.close()
+
+
+def _log_scan_to_db(result: dict) -> None:
+    """Persist a completed scan result to SQLite."""
+    with _DB_LOCK:
+        with _scan_db() as con:
+            con.execute(
+                """INSERT INTO scan_logs
+                   (timestamp, label, severity, confidence, packet_count, capture_mode, threat_detected)
+                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    result.get("timestamp", datetime.utcnow().isoformat() + "Z"),
+                    result.get("label", "unknown"),
+                    result.get("severity", "low"),
+                    float(result.get("confidence", 0)),
+                    int(result.get("packet_count", 0)),
+                    result.get("capture_mode", "live"),
+                    1 if result.get("threat_detected") else 0,
+                ),
+            )
+            # Also record the per-label breakdown as individual traffic_counts rows
+            for lbl, pct in (result.get("breakdown") or {}).items():
+                count = max(1, round(pct * result.get("packet_count", 100) / 100))
+                con.execute(
+                    "INSERT INTO traffic_counts (timestamp, label, count) VALUES (?, ?, ?)",
+                    (datetime.utcnow().isoformat() + "Z", lbl, count),
+                )
+
 
 api_blueprint = Blueprint("api", __name__)
 
@@ -239,77 +316,7 @@ def analyze_traffic_threat():
         return jsonify({"success": False, "message": str(e)}), 500
 
 
-# --- ROGUE ASSET DETECTION ---
 
-
-@api_blueprint.route("/assets/discover", methods=["POST"])
-@require_auth
-def discover_assets():
-    try:
-        data = request.get_json() or {}
-        network_range = data.get("network_range")
-
-        if not network_range:
-            return jsonify({"success": False, "message": "network_range required"}), 400
-
-        result = current_app.rogue_asset_detector.discover_assets(network_range)
-        return jsonify({
-            "success": True,
-            "data": result,
-            "timestamp": datetime.now().isoformat(),
-        }), 200
-    except Exception as e:
-        logger.error(f"Error discovering assets: {str(e)}")
-        return jsonify({"success": False, "message": str(e)}), 500
-
-
-@api_blueprint.route("/assets/baseline", methods=["POST"])
-@require_auth
-def set_asset_baseline():
-    try:
-        data = request.get_json() or {}
-        assets = data.get("assets")
-
-        if assets is None:
-            return jsonify({"success": False, "message": "assets required"}), 400
-
-        result = current_app.rogue_asset_detector.set_baseline_assets(assets)
-        return jsonify({
-            "success": True,
-            "data": result,
-            "timestamp": datetime.now().isoformat(),
-        }), 200
-    except Exception as e:
-        logger.error(f"Error setting asset baseline: {str(e)}")
-        return jsonify({"success": False, "message": str(e)}), 500
-
-
-@api_blueprint.route("/assets/rogue", methods=["GET"])
-def detect_rogue_assets():
-    try:
-        result = current_app.rogue_asset_detector.detect_rogue_assets()
-        return jsonify({
-            "success": True,
-            "data": result,
-            "timestamp": datetime.now().isoformat(),
-        }), 200
-    except Exception as e:
-        logger.error(f"Error detecting rogue assets: {str(e)}")
-        return jsonify({"success": False, "message": str(e)}), 500
-
-
-@api_blueprint.route("/assets/status", methods=["GET"])
-def assets_status():
-    try:
-        status = current_app.rogue_asset_detector.get_status()
-        return jsonify({
-            "success": True,
-            "data": status,
-            "timestamp": datetime.now().isoformat(),
-        }), 200
-    except Exception as e:
-        logger.error(f"Error getting rogue asset status: {str(e)}")
-        return jsonify({"success": False, "message": str(e)}), 500
 
 
 # --- NETWORK HONEYPOT ---
@@ -451,287 +458,6 @@ def demo_attack_simulation():
         return jsonify({"success": False, "message": str(e)}), 500
 
 
-# --- PHISHING SANDBOX ---
-
-
-@api_blueprint.route("/phishing/check_url", methods=["POST"])
-def check_url():
-    try:
-        data = request.get_json() or {}
-        url = data.get("url")
-
-        if not url:
-            return jsonify({"success": False, "message": "url required"}), 400
-
-        result = current_app.phishing_sandbox.check_url_reputation(url)
-        return jsonify({
-            "success": True,
-            "data": result,
-            "timestamp": datetime.now().isoformat(),
-        }), 200
-    except Exception as e:
-        logger.error(f"Error checking URL reputation: {str(e)}")
-        return jsonify({"success": False, "message": str(e)}), 500
-
-
-@api_blueprint.route("/phishing/analyze_email", methods=["POST"])
-def analyze_email():
-    try:
-        data = request.get_json() or {}
-        email_headers = data.get("email_headers")
-        body = data.get("body", "")
-
-        if not email_headers:
-            return jsonify({"success": False, "message": "email_headers required"}), 400
-
-        result = current_app.phishing_sandbox.analyze_email(email_headers, body)
-        return jsonify({
-            "success": True,
-            "data": result,
-            "timestamp": datetime.now().isoformat(),
-        }), 200
-    except Exception as e:
-        logger.error(f"Error analyzing email: {str(e)}")
-        return jsonify({"success": False, "message": str(e)}), 500
-
-
-@api_blueprint.route("/phishing/statistics", methods=["GET"])
-def phishing_statistics():
-    try:
-        stats = current_app.phishing_sandbox.generate_phishing_report()
-        return jsonify({
-            "success": True,
-            "data": stats,
-            "timestamp": datetime.now().isoformat(),
-        }), 200
-    except Exception as e:
-        logger.error(f"Error getting phishing statistics: {str(e)}")
-        return jsonify({"success": False, "message": str(e)}), 500
-
-
-# --- FLEET MONITOR ---
-
-
-@api_blueprint.route("/fleet/status", methods=["GET"])
-def fleet_monitor_status():
-    try:
-        status = current_app.fleet_monitor.get_status()
-        return jsonify({
-            "success": True,
-            "data": status,
-            "timestamp": datetime.now().isoformat(),
-        }), 200
-    except Exception as e:
-        logger.error(f"Error getting fleet monitor status: {str(e)}")
-        return jsonify({"success": False, "message": str(e)}), 500
-
-
-@api_blueprint.route("/fleet/ping", methods=["POST"])
-def ping_asset():
-    try:
-        data = request.get_json() or {}
-        ip_address = data.get("ip_address")
-        count = data.get("count", 3)
-
-        if not ip_address:
-            return jsonify({"success": False, "message": "ip_address required"}), 400
-
-        result = current_app.fleet_monitor.ping_asset(ip_address, count)
-        return jsonify({
-            "success": True,
-            "data": result,
-            "timestamp": datetime.now().isoformat(),
-        }), 200
-    except Exception as e:
-        logger.error(f"Error pinging asset: {str(e)}")
-        return jsonify({"success": False, "message": str(e)}), 500
-
-
-@api_blueprint.route("/fleet/ping_sweep", methods=["POST"])
-@require_auth
-def ping_sweep():
-    try:
-        data = request.get_json() or {}
-        network_range = data.get("network_range")
-
-        if not network_range:
-            return jsonify({"success": False, "message": "network_range required"}), 400
-
-        result = current_app.fleet_monitor.perform_ping_sweep(network_range)
-        return jsonify({
-            "success": result.get("success", False),
-            "data": result,
-            "timestamp": datetime.now().isoformat(),
-        }), 200
-    except Exception as e:
-        logger.error(f"Error performing ping sweep: {str(e)}")
-        return jsonify({"success": False, "message": str(e)}), 500
-
-
-@api_blueprint.route("/fleet/connections", methods=["GET"])
-def network_connections():
-    try:
-        result = current_app.fleet_monitor.get_network_connections()
-        return jsonify({
-            "success": result.get("success", False),
-            "data": result,
-            "timestamp": datetime.now().isoformat(),
-        }), 200
-    except Exception as e:
-        logger.error(f"Error getting network connections: {str(e)}")
-        return jsonify({"success": False, "message": str(e)}), 500
-
-
-@api_blueprint.route("/fleet/register_asset", methods=["POST"])
-@require_auth
-def register_asset():
-    try:
-        data = request.get_json() or {}
-        asset_info = {
-            "name": data.get("name"),
-            "ip_address": data.get("ip_address"),
-            "hostname": data.get("hostname"),
-            "asset_type": data.get("asset_type", "unknown")
-        }
-
-        if not asset_info.get("name") or not asset_info.get("ip_address"):
-            return jsonify({"success": False, "message": "name and ip_address required"}), 400
-
-        result = current_app.fleet_monitor.register_asset(asset_info)
-        return jsonify({
-            "success": result.get("success", False),
-            "data": result,
-            "timestamp": datetime.now().isoformat(),
-        }), 200
-    except Exception as e:
-        logger.error(f"Error registering asset: {str(e)}")
-        return jsonify({"success": False, "message": str(e)}), 500
-
-
-@api_blueprint.route("/fleet/monitor_assets", methods=["POST"])
-@require_auth
-def monitor_assets():
-    try:
-        result = current_app.fleet_monitor.monitor_assets()
-        return jsonify({
-            "success": result.get("success", False),
-            "data": result,
-            "timestamp": datetime.now().isoformat(),
-        }), 200
-    except Exception as e:
-        logger.error(f"Error monitoring assets: {str(e)}")
-        return jsonify({"success": False, "message": str(e)}), 500
-
-
-@api_blueprint.route("/fleet/anomalies", methods=["GET"])
-def detect_anomalies():
-    try:
-        result = current_app.fleet_monitor.detect_anomalies()
-        return jsonify({
-            "success": result.get("success", False),
-            "data": result,
-            "timestamp": datetime.now().isoformat(),
-        }), 200
-    except Exception as e:
-        logger.error(f"Error detecting anomalies: {str(e)}")
-        return jsonify({"success": False, "message": str(e)}), 500
-
-
-# --- REMEDIATION PLAYBOOK ---
-
-
-@api_blueprint.route("/remediation/evaluate_threat", methods=["POST"])
-@require_auth
-@require_role("analyst")
-def evaluate_threat():
-    try:
-        data = request.get_json() or {}
-        
-        if not data.get("threat_type"):
-            return jsonify({"success": False, "message": "threat_type required"}), 400
-
-        result = current_app.remediation_playbook.evaluate_threat(data)
-        return jsonify({
-            "success": True,
-            "data": result,
-            "timestamp": datetime.now().isoformat(),
-        }), 200
-    except Exception as e:
-        logger.error(f"Error evaluating threat: {str(e)}")
-        return jsonify({"success": False, "message": str(e)}), 500
-
-
-@api_blueprint.route("/remediation/status", methods=["GET"])
-def remediation_status():
-    try:
-        status = current_app.remediation_playbook.get_status()
-        return jsonify({
-            "success": True,
-            "data": status,
-            "timestamp": datetime.now().isoformat(),
-        }), 200
-    except Exception as e:
-        logger.error(f"Error getting remediation status: {str(e)}")
-        return jsonify({"success": False, "message": str(e)}), 500
-
-
-@api_blueprint.route("/remediation/incidents", methods=["GET"])
-def get_incidents():
-    try:
-        result = current_app.remediation_playbook.get_active_incidents()
-        return jsonify({
-            "success": result.get("success", False),
-            "data": result,
-            "timestamp": datetime.now().isoformat(),
-        }), 200
-    except Exception as e:
-        logger.error(f"Error getting incidents: {str(e)}")
-        return jsonify({"success": False, "message": str(e)}), 500
-
-
-@api_blueprint.route("/remediation/manual_response", methods=["POST"])
-@require_auth
-@require_role("admin")
-def manual_incident_response():
-    try:
-        data = request.get_json() or {}
-        incident_id = data.get("incident_id")
-        actions = data.get("actions", [])
-
-        if not incident_id:
-            return jsonify({"success": False, "message": "incident_id required"}), 400
-
-        result = current_app.remediation_playbook.manual_incident_response(incident_id, actions)
-        return jsonify({
-            "success": True,
-            "data": result,
-            "timestamp": datetime.now().isoformat(),
-        }), 200
-    except Exception as e:
-        logger.error(f"Error executing manual response: {str(e)}")
-        return jsonify({"success": False, "message": str(e)}), 500
-
-
-@api_blueprint.route("/remediation/close_incident", methods=["POST"])
-@require_auth
-@require_role("admin")
-def close_incident():
-    try:
-        data = request.get_json() or {}
-        incident_index = data.get("incident_index")
-
-        if incident_index is None:
-            return jsonify({"success": False, "message": "incident_index required"}), 400
-
-        result = current_app.remediation_playbook.close_incident(incident_index)
-        return jsonify({
-            "success": result.get("success", False),
-            "data": result,
-            "timestamp": datetime.now().isoformat(),
-        }), 200
-    except Exception as e:
-        logger.error(f"Error closing incident: {str(e)}")
-        return jsonify({"success": False, "message": str(e)}), 500
 
 
 # --- ONE-CLICK EMERGENCY REMEDIATION ---
@@ -817,103 +543,6 @@ def list_devices():
             "timestamp": datetime.now().isoformat(),
         }), 200
     except Exception as e:
-        logger.error(f"Error listing devices: {str(e)}")
-        return jsonify({"success": False, "message": str(e)}), 500
-
-
-@api_blueprint.route("/devices/add", methods=["POST"])
-@require_auth
-@require_role("analyst")
-def add_device():
-    """Add a new device to inventory"""
-    try:
-        data = request.get_json() or {}
-        result = current_app.device_manager.add_device(data)
-        status_code = 201 if result.get("success") else 400
-        return jsonify({
-            "success": result.get("success", False),
-            "data": result.get("device") if result.get("success") else None,
-            "error": result.get("error") if not result.get("success") else None,
-            "timestamp": datetime.now().isoformat(),
-        }), status_code
-    except Exception as e:
-        logger.error(f"Error adding device: {str(e)}")
-        return jsonify({"success": False, "message": str(e)}), 500
-
-
-@api_blueprint.route("/devices/<device_id>", methods=["GET"])
-def get_device(device_id):
-    """Get device details"""
-    try:
-        device = current_app.device_manager.get_device(device_id)
-        if not device:
-            return jsonify({"success": False, "message": "Device not found"}), 404
-
-        return jsonify({
-            "success": True,
-            "data": device,
-            "timestamp": datetime.now().isoformat(),
-        }), 200
-    except Exception as e:
-        logger.error(f"Error getting device: {str(e)}")
-        return jsonify({"success": False, "message": str(e)}), 500
-
-
-@api_blueprint.route("/devices/<device_id>", methods=["PUT"])
-@require_auth
-@require_role("analyst")
-def update_device(device_id):
-    """Update device information"""
-    try:
-        data = request.get_json() or {}
-        result = current_app.device_manager.update_device(device_id, data)
-        status_code = 200 if result.get("success") else 400
-        return jsonify({
-            "success": result.get("success", False),
-            "data": result.get("device") if result.get("success") else None,
-            "error": result.get("error") if not result.get("success") else None,
-            "timestamp": datetime.now().isoformat(),
-        }), status_code
-    except Exception as e:
-        logger.error(f"Error updating device: {str(e)}")
-        return jsonify({"success": False, "message": str(e)}), 500
-
-
-@api_blueprint.route("/devices/<device_id>", methods=["DELETE"])
-@require_auth
-@require_role("admin")
-def delete_device(device_id):
-    """Delete a device from inventory"""
-    try:
-        result = current_app.device_manager.delete_device(device_id)
-        status_code = 200 if result.get("success") else 404
-        return jsonify({
-            "success": result.get("success", False),
-            "message": result.get("message") if result.get("success") else result.get("error"),
-            "timestamp": datetime.now().isoformat(),
-        }), status_code
-    except Exception as e:
-        logger.error(f"Error deleting device: {str(e)}")
-        return jsonify({"success": False, "message": str(e)}), 500
-
-
-@api_blueprint.route("/devices/search", methods=["GET"])
-def search_devices():
-    """Search devices by name or IP"""
-    try:
-        query = request.args.get("q", "")
-        if not query:
-            return jsonify({"success": False, "message": "Query parameter 'q' required"}), 400
-
-        results = current_app.device_manager.search_devices(query)
-        return jsonify({
-            "success": True,
-            "data": results,
-            "count": len(results),
-            "timestamp": datetime.now().isoformat(),
-        }), 200
-    except Exception as e:
-        logger.error(f"Error searching devices: {str(e)}")
         return jsonify({"success": False, "message": str(e)}), 500
 
 
@@ -1183,25 +812,31 @@ def _run_scan_job(job_id: str, packet_count: int) -> None:
             verdict = f"🔍  Suspicious: {label_pretty} — LOW CONFIDENCE"
             severity = "low"
 
+        # Build result payload for logging and job storage
+        result_payload = {
+            "verdict":          verdict,
+            "label":            label,
+            "label_pretty":     label_pretty,
+            "threat_detected":  prediction["threat_detected"],
+            "severity":         severity,
+            "confidence":       confidence,
+            "packet_count":     prediction["packet_count"],
+            "breakdown":        prediction["breakdown"],
+            "per_packet":       prediction["per_packet"],
+            "capture_mode":     scan_result["mode"],
+            "capture_warning":  scan_result.get("error"),
+            "timestamp":        datetime.utcnow().isoformat() + "Z",
+        }
+
+        # Log scan result to SQLite database
+        _log_scan_to_db(result_payload)
+
         with _SCAN_LOCK:
             _SCAN_JOBS[job_id].update({
                 "status":     "done",
                 "phase":      "done",
                 "progress":   100,
-                "result":     {
-                    "verdict":          verdict,
-                    "label":            label,
-                    "label_pretty":     label_pretty,
-                    "threat_detected":  prediction["threat_detected"],
-                    "severity":         severity,
-                    "confidence":       confidence,
-                    "packet_count":     prediction["packet_count"],
-                    "breakdown":        prediction["breakdown"],
-                    "per_packet":       prediction["per_packet"],
-                    "capture_mode":     scan_result["mode"],
-                    "capture_warning":  scan_result.get("error"),
-                    "timestamp":        datetime.utcnow().isoformat() + "Z",
-                },
+                "result":     result_payload,
             })
 
     except Exception as exc:
@@ -1283,3 +918,92 @@ def scan_status(job_id: str):
         return jsonify({"success": False, "message": "Job not found"}), 404
 
     return jsonify(job), 200
+
+
+@api_blueprint.route("/get_latest_traffic", methods=["GET"])
+def get_latest_traffic():
+    """
+    GET /api/get_latest_traffic
+    Returns the last 20 scan log rows and a per-label traffic count summary.
+    Polled by frontend dashboards for live metrics.
+
+    Returns:
+        {
+          traffic_labels: [str],
+          traffic_counts: [int],
+          traffic_count: int (sum),
+          threats_today: int,
+          total_scans: int,
+          recent_logs: [
+            {timestamp, label, severity, confidence, packet_count, capture_mode, threat_detected},
+            ...
+          ]
+        }
+    """
+    with _scan_db() as con:
+        # Latest 20 scans for the activity table
+        rows = con.execute(
+            """SELECT timestamp, label, severity, confidence, packet_count,
+                      capture_mode, threat_detected
+               FROM scan_logs ORDER BY id DESC LIMIT 20"""
+        ).fetchall()
+
+        # Aggregate label counts for the bar chart (last 100 rows)
+        agg = con.execute(
+            """SELECT label, SUM(count) as total
+               FROM traffic_counts
+               GROUP BY label
+               ORDER BY total DESC
+               LIMIT 100"""
+        ).fetchall()
+
+        # Total threats in the last 24 h (for the live counter)
+        threats_today = con.execute(
+            """SELECT COUNT(*) as n FROM scan_logs
+               WHERE threat_detected=1
+                 AND timestamp >= datetime('now','-1 day')"""
+        ).fetchone()["n"]
+
+        total_scans = con.execute("SELECT COUNT(*) as n FROM scan_logs").fetchone()["n"]
+
+    traffic_labels = [r["label"] for r in agg]
+    traffic_counts = [int(r["total"]) for r in agg]
+
+    return jsonify({
+        "traffic_labels":  traffic_labels,
+        "traffic_counts":  traffic_counts,
+        "traffic_count":   sum(traffic_counts),   # scalar for simple chart demos
+        "threats_today":   threats_today,
+        "total_scans":     total_scans,
+        "recent_logs": [
+            {
+                "timestamp":       r["timestamp"],
+                "label":           r["label"],
+                "severity":        r["severity"],
+                "confidence":      round(r["confidence"] * 100),
+                "packet_count":    r["packet_count"],
+                "capture_mode":    r["capture_mode"],
+                "threat_detected": bool(r["threat_detected"]),
+            }
+            for r in rows
+        ],
+    }), 200
+
+
+@api_blueprint.route("/logs", methods=["GET"])
+def get_logs():
+    """
+    GET /api/logs
+    Returns the last 50 scan records from SQLite.
+
+    Returns:
+        [
+          {id, timestamp, label, severity, confidence, packet_count, capture_mode, threat_detected},
+          ...
+        ]
+    """
+    with _scan_db() as con:
+        rows = con.execute(
+            """SELECT * FROM scan_logs ORDER BY id DESC LIMIT 50"""
+        ).fetchall()
+    return jsonify([dict(r) for r in rows]), 200

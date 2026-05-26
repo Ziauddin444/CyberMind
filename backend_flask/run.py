@@ -1,6 +1,13 @@
 """
 CyberMind Sentinel - Main Entry Point
 Run this to start the Flask backend server
+
+⚠️  IMPORTANT: Live packet capture requires root/admin privileges
+    For live network scanning demos, run with:
+      sudo python3 run.py          (macOS/Linux)
+      python run.py (as Administrator)  (Windows)
+    
+    Without root, packet scanner falls back to synthetic simulation.
 """
 
 import os
@@ -25,6 +32,38 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _check_root_privileges() -> bool:
+    """Check if running with root/admin privileges needed for Scapy packet capture."""
+    try:
+        # Unix/Linux/macOS
+        return os.geteuid() == 0  # type: ignore
+    except AttributeError:
+        # Windows
+        import ctypes
+        try:
+            return bool(ctypes.windll.shell.IsUserAnAdmin())  # type: ignore
+        except Exception:
+            return False
+
+
+def _warn_about_packet_capture() -> None:
+    """Warn user if not running with root privileges (packet capture will fail)."""
+    if not _check_root_privileges():
+        print("\n" + "=" * 80)
+        print("⚠️  WARNING: NOT RUNNING WITH ROOT/ADMIN PRIVILEGES")
+        print("=" * 80)
+        print("\nLive packet capture requires elevated privileges.")
+        print("\nWithout root/admin, the Scapy packet scanner will SILENTLY FALL BACK")
+        print("to synthetic simulation. Your 'live scan' demo will NOT capture real traffic.\n")
+        print("TO FIX FOR DEMO DAY:")
+        print("  macOS/Linux:  sudo python3 run.py")
+        print("  Windows:      Run Command Prompt as Administrator, then: python run.py\n")
+        print("=" * 80 + "\n")
+        logger.warning("Running without root/admin — packet capture disabled (using synthetic fallback)")
+    else:
+        logger.info("✓ Running with root/admin privileges — live packet capture ENABLED")
 
 
 def _port_is_available(host: str, port: int) -> bool:
@@ -60,6 +99,9 @@ def _find_available_port(host: str, preferred_port: int, fallback_ports: range) 
 
 def main():
     """Main entry point."""
+    
+    # Check for root privileges (needed for live packet capture)
+    _warn_about_packet_capture()
     
     # Get configuration mode
     config_name = os.environ.get('FLASK_ENV', 'development')

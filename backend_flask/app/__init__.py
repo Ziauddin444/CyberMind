@@ -11,13 +11,9 @@ from datetime import datetime
 
 from app.core.firewall_manager import FirewallManager
 from app.services.ai_translator import AITranslator
-from app.services.rogue_asset_detector import RogueAssetDetector
 from app.services.network_honeypot import NetworkHoneypot
-from app.services.phishing_sandbox import PhishingSandbox
 from app.services.ip_blacklist_service import IPBlacklistService
 from app.services.kill_switch import KillSwitch
-from app.services.fleet_monitor import FleetMonitor
-from app.services.remediation_playbook import RemediationPlaybook
 from app.services.device_manager import DeviceManager
 from app.services.honeypot_file_handler import HoneypotFileHandler
 
@@ -133,20 +129,12 @@ def _initialize_services(app):
     
     app.logger.info("Initializing CyberMind security services...")
     
-    # Initialize all services
+    # Initialize core security services (lightweight 2-tier IDS)
     app.firewall_manager = FirewallManager()
     app.ai_translator = AITranslator()
-    app.rogue_asset_detector = RogueAssetDetector()
     app.network_honeypot = NetworkHoneypot()
-    app.phishing_sandbox = PhishingSandbox()
     app.ip_blacklist_service = IPBlacklistService(app.firewall_manager)
     app.kill_switch = KillSwitch(app.firewall_manager)
-    app.fleet_monitor = FleetMonitor()
-    app.remediation_playbook = RemediationPlaybook(
-        app.firewall_manager,
-        app.kill_switch,
-        app.ai_translator
-    )
     app.device_manager = DeviceManager()
     app.honeypot_file_handler = HoneypotFileHandler()
     
@@ -234,9 +222,7 @@ def _register_health_checks(app):
             "services": {
                 "firewall": "operational",
                 "ai_traffic_translation": app.ai_translator.get_status(),
-                "rogue_asset_detection": app.rogue_asset_detector.get_status(),
                 "honeypot": app.network_honeypot.get_honeypot_stats(),
-                "phishing_sandbox": app.phishing_sandbox.get_phishing_statistics(),
                 "ip_blacklisting": app.ip_blacklist_service.get_status(),
                 "kill_switch": app.kill_switch.get_status()
             }

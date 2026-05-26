@@ -372,7 +372,34 @@ For detailed email setup instructions, see [EMAIL_SETUP.md](backend/EMAIL_SETUP.
 ### CORS Configuration
 The backend allows requests from:
 - `http://localhost:5173` (Vite dev server)
-- `http://localhost:3000` (Alternative frontend port)
+---
+
+## 🚀 Live Packet Capture: Root/Admin Privilege Requirement
+
+> **⚠️ IMPORTANT FOR DEMO DAY**: Live network packet scanning (via Scapy) requires **elevated privileges**.
+
+### What you need to know:
+
+| Scenario | Command | Live Capture | Status |
+|----------|---------|--------------|--------|
+| **Demo with Live Scanning** | `sudo python3 run.py` | ✅ Enabled | **Recommended** |
+| **Dev without sudo** | `python3 run.py` | ❌ Falls back to synthetic | API works, but simulated data |
+| **Explicit synthetic mode** | `RF_CLASSIFIER_USE_SYNTHETIC=1 python3 run.py` | ❌ Simulated | For testing/CI |
+
+**Without root/admin**: Scapy **silently falls back** to synthetic packet simulation. Your "live scan" will NOT capture real traffic.
+
+### Platform-Specific Commands
+
+**macOS / Linux:**
+```bash
+sudo bash start_all.sh        # Start both backends with live capture
+# OR
+cd backend_flask && sudo python3 run.py    # Just Flask with live capture
+```
+
+**Windows:**
+1. Right-click Command Prompt → "Run as Administrator"
+2. Then run: `python run.py`
 
 ---
 

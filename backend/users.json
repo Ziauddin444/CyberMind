@@ -12,8 +12,8 @@
       "resetExpires": 1774927294406,
       "emailVerified": true,
       "isAdmin": true,
-      "lastLogin": "2026-05-10T09:52:59.814Z",
-      "loginCount": 35,
+      "lastLogin": "2026-05-23T05:04:35.823Z",
+      "loginCount": 39,
       "role": "super-admin"
     },
     {
@@ -77,52 +77,6 @@
       "lastLogin": "2026-03-30T11:07:40.823Z",
       "loginCount": 1,
       "role": "admin"
-    },
-    {
-      "id": 7,
-      "username": "mind04",
-      "email": "astronomerzia@gmail.com",
-      "password": "$2b$10$EYLI5rMpsuf/JN1PBUBKeOt8SLr/c.WMmn9zZAqG62M/egAtuGpRa",
-      "name": "Mr khamar",
-      "company": "khamar mind",
-      "createdAt": "2026-03-31",
-      "emailVerified": false,
-      "isAdmin": false,
-      "lastLogin": null,
-      "loginCount": 0,
-      "role": "viewer"
-    },
-    {
-      "id": 8,
-      "username": "newverify",
-      "email": "verify.me@example.com",
-      "password": "$2b$10$A0e0iOI7eJcq3PQGTUSEieT4LOOI1uUvonUHtsciKPy0QAcpJg.Xq",
-      "name": "Verify Test",
-      "company": "Email Testing",
-      "createdAt": "2026-03-31",
-      "resetToken": null,
-      "resetExpires": null,
-      "emailVerified": true,
-      "isAdmin": false,
-      "lastLogin": "2026-03-31T03:06:28.784Z",
-      "loginCount": 1,
-      "role": "viewer"
-    },
-    {
-      "id": 9,
-      "username": "mind444",
-      "email": "astronomerzia22@gmail.com",
-      "password": "$2b$10$wLZo17rub7EM58S3xEnR7Oe7RHjRo3BQao4SEebPJsA9Vst2Pfhte",
-      "name": "khamar",
-      "company": "khamar mind",
-      "createdAt": "2026-03-31",
-      "resetToken": null,
-      "resetExpires": null,
-      "emailVerified": false,
-      "isAdmin": false,
-      "lastLogin": null,
-      "loginCount": 0,
-      "role": "viewer"
     },
     {
       "id": 10,
