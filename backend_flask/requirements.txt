@@ -13,7 +13,7 @@ cryptography==40.0.2
 
 # HTTP & Networking
 requests==2.31.0
-urllib3==2.0.7
+urllib3==2.7.0
 
 # System Interaction & Process Control
 psutil==5.9.6
