@@ -5,6 +5,7 @@ Flask Application Factory
 import logging
 import os
 import subprocess
+import atexit
 from flask import Flask, jsonify
 from flask_cors import CORS
 from datetime import datetime
@@ -132,13 +133,20 @@ def _initialize_services(app):
     # Initialize core security services (lightweight 2-tier IDS)
     app.firewall_manager = FirewallManager()
     app.ai_translator = AITranslator()
-    app.network_honeypot = NetworkHoneypot()
+    app.honeypot_file_handler = HoneypotFileHandler()
+    app.network_honeypot = NetworkHoneypot(file_handler=app.honeypot_file_handler)
     app.ip_blacklist_service = IPBlacklistService(app.firewall_manager)
     app.kill_switch = KillSwitch(app.firewall_manager)
     app.device_manager = DeviceManager()
-    app.honeypot_file_handler = HoneypotFileHandler()
     
     app.logger.info("All security services initialized successfully")
+    
+    # Start honeypot listeners
+    honeypot_result = app.network_honeypot.start_all_listeners()
+    app.logger.info(f"Honeypot startup: {honeypot_result['message']}")
+    
+    # Register honeypot shutdown handler
+    atexit.register(app.network_honeypot.stop_all)
 
 
 def _register_blueprints(app):

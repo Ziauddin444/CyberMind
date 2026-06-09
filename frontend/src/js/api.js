@@ -268,7 +268,42 @@ export const getIncidents = () => opsRequest('/remediation/incidents');
 export const oneClickRemediation = (threatIP, threatType, severity) => opsRequest('/remediation/one-click', { method: 'POST', body: JSON.stringify({ threat_ip: threatIP, threat_type: threatType, severity }) });
 export const manualIncidentResponse = (incidentId, actions) => opsRequest('/remediation/manual_response', { method: 'POST', body: JSON.stringify({ incident_id: incidentId, actions }) });
 export const closeIncident = (incidentIndex) => opsRequest('/remediation/close_incident', { method: 'POST', body: JSON.stringify({ incident_index: incidentIndex }) });
-export const translateTraffic = (traffic) => opsRequest('/traffic/translate', { method: 'POST', body: JSON.stringify({ traffic }) });
+
+/**
+ * Translate a threat alert into plain English via Ollama Mistral
+ */
+export async function translateTraffic(threatData) {
+    return request(OPS_BASE, '/traffic/translate', {
+        method: 'POST',
+        body: JSON.stringify({
+            threat_type: threatData.threat_type || 'unknown',
+            severity: threatData.severity || 'medium',
+            confidence: threatData.confidence || 0.5,
+            source_ip: threatData.source_ip || 'unknown',
+            matched_signature: threatData.matched_signature || 'unknown',
+            mitigation: threatData.mitigation || 'Monitor and investigate'
+        })
+    });
+}
+
+/**
+ * Check if Ollama is running locally
+ */
+export async function checkOllamaStatus() {
+    return request(OPS_BASE, '/ollama/status', {
+        method: 'GET'
+    });
+}
+
+/**
+ * Run a test translation with a sample threat
+ */
+export async function testOllamaTranslation() {
+    return request(OPS_BASE, '/ollama/test', {
+        method: 'POST',
+        body: JSON.stringify({})
+    });
+}
 export const analyzeTraffic = (traffic) => opsRequest('/traffic/analyze', { method: 'POST', body: JSON.stringify({ traffic }) });
 export const discoverAssets = () => opsRequest('/assets/discover', { method: 'POST' });
 export const setBaselineAssets = (assets) => opsRequest('/assets/baseline', { method: 'POST', body: JSON.stringify({ baseline_assets: assets }) });

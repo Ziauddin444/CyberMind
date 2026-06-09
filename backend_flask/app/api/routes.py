@@ -279,23 +279,71 @@ def deactivate_isolation():
 
 @api_blueprint.route("/traffic/translate", methods=["POST"])
 def translate_traffic():
-    try:
-        data = request.get_json() or {}
-        telemetry = data.get("telemetry")
-        context = data.get("context", {})
+    """
+    Translate a raw threat alert into plain English using 
+    Ollama Mistral. Falls back to rule-based if Ollama offline.
+    """
+    data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'error': 'No data provided'}), 400
+    
+    threat_data = {
+        'threat_type': data.get('threat_type', 'unknown'),
+        'severity': data.get('severity', 'medium'),
+        'confidence': data.get('confidence', 0.5),
+        'source_ip': data.get('source_ip', 'unknown'),
+        'matched_signature': data.get('matched_signature', 'unknown'),
+        'mitigation': data.get('mitigation', 'Monitor and investigate')
+    }
+    
+    result = current_app.ai_translator.analyze_threat(threat_data)
+    ollama_status = current_app.ai_translator.check_ollama_status()
+    
+    return jsonify({
+        'success': True,
+        'translation': result,
+        'ollama_active': ollama_status['available'],
+        'timestamp': datetime.utcnow().isoformat()
+    })
 
-        if not telemetry:
-            return jsonify({"success": False, "message": "telemetry required"}), 400
 
-        result = current_app.ai_translator.translate_network_traffic(telemetry, context)
-        return jsonify({
-            "success": True,
-            "data": result,
-            "timestamp": datetime.now().isoformat(),
-        }), 200
-    except Exception as e:
-        logger.error(f"Error translating traffic: {str(e)}")
-        return jsonify({"success": False, "message": str(e)}), 500
+@api_blueprint.route("/ollama/status", methods=["GET"])
+def ollama_status():
+    """Check if Ollama is running and Mistral is available."""
+    status = current_app.ai_translator.check_ollama_status()
+    instructions = current_app.ai_translator.get_ollama_install_instructions()
+    return jsonify({
+        'success': True,
+        'ollama': status,
+        'install_instructions': instructions,
+        'timestamp': datetime.utcnow().isoformat()
+    })
+
+
+@api_blueprint.route("/ollama/test", methods=["POST"])
+def ollama_test():
+    """
+    Test endpoint — send a sample threat and get back 
+    a plain English translation. Used for demo purposes.
+    """
+    sample_threat = {
+        'threat_type': 'port_scan',
+        'severity': 'high',
+        'confidence': 0.92,
+        'source_ip': '192.168.1.100',
+        'matched_signature': 'nmap',
+        'mitigation': 'Block source IP and enable port-scan rate limiting'
+    }
+    result = current_app.ai_translator.analyze_threat(sample_threat)
+    ollama_status = current_app.ai_translator.check_ollama_status()
+    
+    return jsonify({
+        'success': True,
+        'test_input': sample_threat,
+        'translation': result,
+        'ollama_active': ollama_status['available'],
+        'timestamp': datetime.utcnow().isoformat()
+    })
 
 
 @api_blueprint.route("/traffic/analyze", methods=["POST"])

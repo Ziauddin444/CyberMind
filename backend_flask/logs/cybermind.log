@@ -1074,3 +1074,62 @@ block drop out to 192.168.0.77
 [2026-05-24 17:56:10,526] INFO - app.api.routes: SQLite scan database initialized → /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/data/cybermind_logs.db
 [2026-05-24 17:56:11,449] INFO - app: API routes registered
 [2026-05-24 17:56:11,449] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-05-31 01:56:13,737] INFO - app: Initializing CyberMind security services...
+[2026-05-31 01:56:13,737] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-05-31 01:56:13,738] INFO - app.services.ai_translator: AITranslator initialized with provider: openai
+[2026-05-31 01:56:13,738] INFO - app.services.network_honeypot: NetworkHoneypot initialized
+[2026-05-31 01:56:13,738] INFO - app.services.ip_blacklist_service: Loaded 2 records from /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/app/services/../../data/blocked_ips.json
+[2026-05-31 01:56:13,738] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-05-31 01:56:13,738] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-05-31 01:56:13,738] INFO - app: All security services initialized successfully
+[2026-05-31 01:56:13,751] INFO - app.api.routes: SQLite scan database initialized → /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/data/cybermind_logs.db
+[2026-05-31 01:56:18,778] INFO - app: API routes registered
+[2026-05-31 01:56:18,778] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-05-31 02:26:14,400] INFO - app: Initializing CyberMind security services...
+[2026-05-31 02:26:14,401] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-05-31 02:26:14,401] INFO - app.services.ai_translator: AITranslator initialized with provider: openai
+[2026-05-31 02:26:14,401] INFO - app.services.network_honeypot: NetworkHoneypot initialized
+[2026-05-31 02:26:14,401] INFO - app.services.ip_blacklist_service: Loaded 2 records from /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/app/services/../../data/blocked_ips.json
+[2026-05-31 02:26:14,401] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-05-31 02:26:14,401] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-05-31 02:26:14,402] INFO - app: All security services initialized successfully
+[2026-05-31 02:26:14,407] INFO - app.api.routes: SQLite scan database initialized → /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/data/cybermind_logs.db
+[2026-05-31 02:26:15,583] INFO - app: API routes registered
+[2026-05-31 02:26:15,583] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-06-07 19:28:26,668] INFO - app: Initializing CyberMind security services...
+[2026-06-07 19:28:26,668] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-06-07 19:28:26,668] INFO - app.services.ai_translator: AITranslator initialized with provider: openai
+[2026-06-07 19:28:26,668] INFO - app.services.network_honeypot: NetworkHoneypot initialized
+[2026-06-07 19:28:26,668] INFO - app.services.ip_blacklist_service: Loaded 2 records from /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/app/services/../../data/blocked_ips.json
+[2026-06-07 19:28:26,668] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-06-07 19:28:26,668] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-06-07 19:28:26,668] INFO - app: All security services initialized successfully
+[2026-06-07 19:28:26,673] INFO - app.api.routes: SQLite scan database initialized → /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/data/cybermind_logs.db
+[2026-06-07 19:28:29,840] INFO - app: API routes registered
+[2026-06-07 19:28:29,840] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-06-07 20:16:14,952] INFO - app: Initializing CyberMind security services...
+[2026-06-07 20:16:14,953] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-06-07 20:16:14,960] INFO - app.services.ai_translator: ✓ Ollama Mistral model detected and available
+[2026-06-07 20:16:14,960] INFO - app.services.ai_translator: AITranslator initialized — Ollama status: available
+[2026-06-07 20:16:14,960] INFO - app.services.network_honeypot: NetworkHoneypot initialized with 4 decoy ports
+[2026-06-07 20:16:14,960] INFO - app.services.ip_blacklist_service: Loaded 2 records from /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/app/services/../../data/blocked_ips.json
+[2026-06-07 20:16:14,960] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-06-07 20:16:14,960] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-06-07 20:16:14,960] INFO - app: All security services initialized successfully
+[2026-06-07 20:16:14,960] INFO - app.services.network_honeypot: Honeypot listening on port 22 (SSH) with threat_type=brute_force
+[2026-06-07 20:16:14,960] INFO - app.services.network_honeypot: Honeypot socket closed on port 22 (SSH)
+[2026-06-07 20:16:14,961] INFO - app.services.network_honeypot: Honeypot listening on port 23 (Telnet) with threat_type=reconnaissance
+[2026-06-07 20:16:14,961] INFO - app.services.network_honeypot: Honeypot socket closed on port 23 (Telnet)
+[2026-06-07 20:16:14,961] INFO - app.services.network_honeypot: Honeypot listening on port 8080 (HTTP-Admin) with threat_type=reconnaissance
+[2026-06-07 20:16:14,961] INFO - app.services.network_honeypot: Honeypot socket closed on port 8080 (HTTP-Admin)
+[2026-06-07 20:16:14,961] INFO - app.services.network_honeypot: Honeypot listening on port 3389 (RDP) with threat_type=brute_force
+[2026-06-07 20:16:14,961] INFO - app.services.network_honeypot: Honeypot socket closed on port 3389 (RDP)
+[2026-06-07 20:16:14,961] INFO - app.services.network_honeypot: Honeypot active on 4 port(s)
+[2026-06-07 20:16:14,961] INFO - app: Honeypot startup: Honeypot active on 4 port(s)
+[2026-06-07 20:16:14,966] INFO - app.api.routes: SQLite scan database initialized → /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/data/cybermind_logs.db
+[2026-06-07 20:16:16,049] INFO - app: API routes registered
+[2026-06-07 20:16:16,050] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-06-07 20:17:55,534] INFO - app.api.routes: Scan job eefb4a6b-3ba6-48db-a882-da8a278bf251 started (packets=100)
+[2026-06-07 20:17:55,535] WARNING - app.services.packet_scanner: Live capture failed (Scapy not installed) — using simulation
+[2026-06-07 20:17:55,536] INFO - app.services.packet_scanner: Falling back to synthetic packet simulation (100 packets)
+[2026-06-07 20:17:55,557] INFO - app.services.rf_classifier: RF model loaded from /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/data/rf_model.pkl

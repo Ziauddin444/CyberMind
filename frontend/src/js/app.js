@@ -98,6 +98,50 @@ function notifyOnce(eventKey, message) {
   showToast(message);
 }
 
+// ─── Ollama Status Check ────────────────────────────────────────────────────
+
+async function checkAndShowOllamaStatus() {
+    try {
+        const result = await api.checkOllamaStatus();
+        const banner = document.getElementById('ollama-status-banner');
+        if (!banner) return;
+        
+        if (result.ollama && result.ollama.available) {
+            banner.innerHTML = `
+                <div class="flex items-center gap-2 px-4 py-2 
+                     bg-green-500/10 border border-green-500/30 
+                     rounded-lg text-sm">
+                    <span class="w-2 h-2 bg-green-400 rounded-full 
+                          animate-pulse"></span>
+                    <span class="text-green-400 font-medium">
+                        AI Translation Active
+                    </span>
+                    <span class="text-slate-400">
+                        — Ollama Mistral running locally 
+                        (free, private, no internet required)
+                    </span>
+                </div>`;
+        } else {
+            banner.innerHTML = `
+                <div class="flex items-center gap-2 px-4 py-2 
+                     bg-yellow-500/10 border border-yellow-500/30 
+                     rounded-lg text-sm">
+                    <span class="w-2 h-2 bg-yellow-400 rounded-full">
+                    </span>
+                    <span class="text-yellow-400 font-medium">
+                        AI Translation Offline
+                    </span>
+                    <span class="text-slate-400">
+                        — Using rule-based fallback. 
+                        Run: ollama serve
+                    </span>
+                </div>`;
+        }
+    } catch (err) {
+        console.warn('Ollama status check failed:', err);
+    }
+}
+
 function toOwnerFriendlyText(text, type = 'info') {
   if (!text) return '';
 
@@ -172,6 +216,8 @@ function showApp(user) {
   }
 
   loadDashboard();
+  checkAndShowOllamaStatus();
+  setInterval(checkAndShowOllamaStatus, 30000);
 }
 
 async function handleLogin(e) {
