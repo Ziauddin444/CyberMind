@@ -1133,3 +1133,373 @@ block drop out to 192.168.0.77
 [2026-06-07 20:17:55,535] WARNING - app.services.packet_scanner: Live capture failed (Scapy not installed) — using simulation
 [2026-06-07 20:17:55,536] INFO - app.services.packet_scanner: Falling back to synthetic packet simulation (100 packets)
 [2026-06-07 20:17:55,557] INFO - app.services.rf_classifier: RF model loaded from /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/data/rf_model.pkl
+[2026-06-09 13:33:38,165] INFO - app: Initializing CyberMind security services...
+[2026-06-09 13:33:38,165] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-06-09 13:33:38,170] DEBUG - app.services.ai_translator: Ollama not running at http://localhost:11434
+[2026-06-09 13:33:38,170] INFO - app.services.ai_translator: AITranslator initialized — Ollama status: unavailable
+[2026-06-09 13:33:38,171] INFO - app.services.network_honeypot: NetworkHoneypot initialized with 4 decoy ports
+[2026-06-09 13:33:38,171] INFO - app.services.ip_blacklist_service: Loaded 2 records from /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/app/services/../../data/blocked_ips.json
+[2026-06-09 13:33:38,171] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-06-09 13:33:38,171] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-06-09 13:33:38,171] INFO - app: All security services initialized successfully
+[2026-06-09 13:33:38,171] INFO - app.services.network_honeypot: Honeypot listening on port 22 (SSH) with threat_type=brute_force
+[2026-06-09 13:33:38,171] INFO - app.services.network_honeypot: Honeypot socket closed on port 22 (SSH)
+[2026-06-09 13:33:38,171] INFO - app.services.network_honeypot: Honeypot listening on port 23 (Telnet) with threat_type=reconnaissance
+[2026-06-09 13:33:38,171] INFO - app.services.network_honeypot: Honeypot socket closed on port 23 (Telnet)
+[2026-06-09 13:33:38,171] INFO - app.services.network_honeypot: Honeypot listening on port 8080 (HTTP-Admin) with threat_type=reconnaissance
+[2026-06-09 13:33:38,171] INFO - app.services.network_honeypot: Honeypot socket closed on port 8080 (HTTP-Admin)
+[2026-06-09 13:33:38,172] INFO - app.services.network_honeypot: Honeypot listening on port 3389 (RDP) with threat_type=brute_force
+[2026-06-09 13:33:38,172] INFO - app.services.network_honeypot: Honeypot socket closed on port 3389 (RDP)
+[2026-06-09 13:33:38,172] INFO - app.services.network_honeypot: Honeypot active on 4 port(s)
+[2026-06-09 13:33:38,172] INFO - app: Honeypot startup: Honeypot active on 4 port(s)
+[2026-06-09 13:33:38,176] INFO - app.api.routes: SQLite scan database initialized → /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/data/cybermind_logs.db
+[2026-06-09 13:33:40,022] INFO - app: API routes registered
+[2026-06-09 13:33:40,022] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-06-11 18:37:23,265] INFO - app: Initializing CyberMind security services...
+[2026-06-11 18:37:23,266] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-06-11 18:37:23,270] DEBUG - app.services.ai_translator: Ollama not running at http://localhost:11434
+[2026-06-11 18:37:23,270] INFO - app.services.ai_translator: AITranslator initialized — Ollama status: unavailable
+[2026-06-11 18:37:23,271] INFO - app.services.network_honeypot: NetworkHoneypot initialized with 4 decoy ports
+[2026-06-11 18:37:23,271] INFO - app.services.ip_blacklist_service: Loaded 2 records from /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/app/services/../../data/blocked_ips.json
+[2026-06-11 18:37:23,271] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-06-11 18:37:23,271] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-06-11 18:37:23,271] INFO - app: All security services initialized successfully
+[2026-06-11 18:37:23,271] INFO - app.services.network_honeypot: Honeypot listening on port 22 (SSH) with threat_type=brute_force
+[2026-06-11 18:37:23,271] INFO - app.services.network_honeypot: Honeypot socket closed on port 22 (SSH)
+[2026-06-11 18:37:23,271] INFO - app.services.network_honeypot: Honeypot listening on port 23 (Telnet) with threat_type=reconnaissance
+[2026-06-11 18:37:23,271] INFO - app.services.network_honeypot: Honeypot socket closed on port 23 (Telnet)
+[2026-06-11 18:37:23,271] INFO - app.services.network_honeypot: Honeypot listening on port 8080 (HTTP-Admin) with threat_type=reconnaissance
+[2026-06-11 18:37:23,271] INFO - app.services.network_honeypot: Honeypot socket closed on port 8080 (HTTP-Admin)
+[2026-06-11 18:37:23,271] INFO - app.services.network_honeypot: Honeypot listening on port 3389 (RDP) with threat_type=brute_force
+[2026-06-11 18:37:23,271] INFO - app.services.network_honeypot: Honeypot socket closed on port 3389 (RDP)
+[2026-06-11 18:37:23,271] INFO - app.services.network_honeypot: Honeypot active on 4 port(s)
+[2026-06-11 18:37:23,272] INFO - app: Honeypot startup: Honeypot active on 4 port(s)
+[2026-06-11 18:37:23,276] INFO - app.api.routes: SQLite scan database initialized → /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/data/cybermind_logs.db
+[2026-06-11 18:37:25,096] INFO - app: API routes registered
+[2026-06-11 18:37:25,096] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-06-11 18:39:18,523] INFO - app: Initializing CyberMind security services...
+[2026-06-11 18:39:18,523] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-06-11 18:39:18,530] DEBUG - app.services.ai_translator: Ollama not running at http://localhost:11434
+[2026-06-11 18:39:18,530] INFO - app.services.ai_translator: AITranslator initialized — Ollama status: unavailable
+[2026-06-11 18:39:18,531] INFO - app.services.network_honeypot: NetworkHoneypot initialized with 4 decoy ports
+[2026-06-11 18:39:18,531] INFO - app.services.ip_blacklist_service: Loaded 2 records from /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/app/services/../../data/blocked_ips.json
+[2026-06-11 18:39:18,531] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-06-11 18:39:18,531] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-06-11 18:39:18,531] INFO - app: All security services initialized successfully
+[2026-06-11 18:39:18,531] INFO - app.services.network_honeypot: Honeypot listening on port 22 (SSH) with threat_type=brute_force
+[2026-06-11 18:39:18,531] INFO - app.services.network_honeypot: Honeypot socket closed on port 22 (SSH)
+[2026-06-11 18:39:18,531] INFO - app.services.network_honeypot: Honeypot listening on port 23 (Telnet) with threat_type=reconnaissance
+[2026-06-11 18:39:18,531] INFO - app.services.network_honeypot: Honeypot socket closed on port 23 (Telnet)
+[2026-06-11 18:39:18,531] INFO - app.services.network_honeypot: Honeypot listening on port 8080 (HTTP-Admin) with threat_type=reconnaissance
+[2026-06-11 18:39:18,531] INFO - app.services.network_honeypot: Honeypot socket closed on port 8080 (HTTP-Admin)
+[2026-06-11 18:39:18,532] INFO - app.services.network_honeypot: Honeypot listening on port 3389 (RDP) with threat_type=brute_force
+[2026-06-11 18:39:18,532] INFO - app.services.network_honeypot: Honeypot socket closed on port 3389 (RDP)
+[2026-06-11 18:39:18,532] INFO - app.services.network_honeypot: Honeypot active on 4 port(s)
+[2026-06-11 18:39:18,532] INFO - app: Honeypot startup: Honeypot active on 4 port(s)
+[2026-06-11 18:39:18,535] INFO - app.api.routes: SQLite scan database initialized → /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/data/cybermind_logs.db
+[2026-06-11 18:39:19,448] INFO - app: API routes registered
+[2026-06-11 18:39:19,448] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-06-11 18:41:34,985] INFO - app.services.ai_translator: Analyzing threat: port_scan
+[2026-06-11 18:41:34,990] INFO - app.services.ai_translator: ✓ Ollama Mistral model detected and available
+[2026-06-11 18:41:48,440] INFO - app.services.ai_translator: ✓ Ollama analysis completed successfully
+[2026-06-11 18:46:40,039] INFO - app.services.network_honeypot: Honeypot listener stopped on port 22
+[2026-06-11 18:46:40,040] INFO - app.services.network_honeypot: Honeypot listener stopped on port 23
+[2026-06-11 18:46:40,040] INFO - app.services.network_honeypot: Honeypot listener stopped on port 8080
+[2026-06-11 18:46:40,040] INFO - app.services.network_honeypot: Honeypot listener stopped on port 3389
+[2026-06-11 18:46:40,040] INFO - app.services.network_honeypot: All honeypot listeners stopped. Total connections: 0
+[2026-06-11 18:46:59,322] INFO - app: Initializing CyberMind security services...
+[2026-06-11 18:46:59,323] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-06-11 18:46:59,330] INFO - app.services.ai_translator: ✓ Ollama Mistral model detected and available
+[2026-06-11 18:46:59,330] INFO - app.services.ai_translator: AITranslator initialized — Ollama status: available
+[2026-06-11 18:46:59,330] INFO - app.services.network_honeypot: NetworkHoneypot initialized with 4 decoy ports
+[2026-06-11 18:46:59,331] INFO - app.services.ip_blacklist_service: Loaded 2 records from /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/app/services/../../data/blocked_ips.json
+[2026-06-11 18:46:59,331] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-06-11 18:46:59,331] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-06-11 18:46:59,331] INFO - app: All security services initialized successfully
+[2026-06-11 18:46:59,331] INFO - app.services.network_honeypot: Honeypot listening on port 22 (SSH) with threat_type=brute_force
+[2026-06-11 18:46:59,331] INFO - app.services.network_honeypot: Honeypot socket closed on port 22 (SSH)
+[2026-06-11 18:46:59,331] INFO - app.services.network_honeypot: Honeypot listening on port 23 (Telnet) with threat_type=reconnaissance
+[2026-06-11 18:46:59,331] INFO - app.services.network_honeypot: Honeypot socket closed on port 23 (Telnet)
+[2026-06-11 18:46:59,331] INFO - app.services.network_honeypot: Honeypot listening on port 8080 (HTTP-Admin) with threat_type=reconnaissance
+[2026-06-11 18:46:59,331] INFO - app.services.network_honeypot: Honeypot socket closed on port 8080 (HTTP-Admin)
+[2026-06-11 18:46:59,331] INFO - app.services.network_honeypot: Honeypot socket closed on port 3389 (RDP)
+[2026-06-11 18:46:59,331] INFO - app.services.network_honeypot: Honeypot listening on port 3389 (RDP) with threat_type=brute_force
+[2026-06-11 18:46:59,331] INFO - app.services.network_honeypot: Honeypot active on 4 port(s)
+[2026-06-11 18:46:59,331] INFO - app: Honeypot startup: Honeypot active on 4 port(s)
+[2026-06-11 18:46:59,335] INFO - app.api.routes: SQLite scan database initialized → /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/data/cybermind_logs.db
+[2026-06-11 18:47:00,219] INFO - app: API routes registered
+[2026-06-11 18:47:00,220] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-06-11 18:56:48,579] INFO - app: Initializing CyberMind security services...
+[2026-06-11 18:56:48,579] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-06-11 18:56:48,584] DEBUG - app.services.ai_translator: Ollama not running at http://localhost:11434
+[2026-06-11 18:56:48,584] INFO - app.services.ai_translator: AITranslator initialized — Ollama status: unavailable
+[2026-06-11 18:56:48,584] INFO - app.services.network_honeypot: NetworkHoneypot initialized with 4 decoy ports
+[2026-06-11 18:56:48,584] INFO - app.services.ip_blacklist_service: Loaded 2 records from /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/app/services/../../data/blocked_ips.json
+[2026-06-11 18:56:48,584] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-06-11 18:56:48,584] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-06-11 18:56:48,584] INFO - app: All security services initialized successfully
+[2026-06-11 18:56:48,584] INFO - app.services.network_honeypot: Honeypot listening on port 22 (SSH) with threat_type=brute_force
+[2026-06-11 18:56:48,584] INFO - app.services.network_honeypot: Honeypot socket closed on port 22 (SSH)
+[2026-06-11 18:56:48,584] INFO - app.services.network_honeypot: Honeypot listening on port 23 (Telnet) with threat_type=reconnaissance
+[2026-06-11 18:56:48,584] INFO - app.services.network_honeypot: Honeypot socket closed on port 23 (Telnet)
+[2026-06-11 18:56:48,585] INFO - app.services.network_honeypot: Honeypot listening on port 8080 (HTTP-Admin) with threat_type=reconnaissance
+[2026-06-11 18:56:48,585] INFO - app.services.network_honeypot: Honeypot socket closed on port 8080 (HTTP-Admin)
+[2026-06-11 18:56:48,585] INFO - app.services.network_honeypot: Honeypot listening on port 3389 (RDP) with threat_type=brute_force
+[2026-06-11 18:56:48,585] INFO - app.services.network_honeypot: Honeypot socket closed on port 3389 (RDP)
+[2026-06-11 18:56:48,585] INFO - app.services.network_honeypot: Honeypot active on 4 port(s)
+[2026-06-11 18:56:48,585] INFO - app: Honeypot startup: Honeypot active on 4 port(s)
+[2026-06-11 18:56:48,587] INFO - app.api.routes: SQLite scan database initialized → /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/data/cybermind_logs.db
+[2026-06-11 18:56:49,481] INFO - app: API routes registered
+[2026-06-11 18:56:49,481] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-06-11 19:32:03,197] INFO - app: Initializing CyberMind security services...
+[2026-06-11 19:32:03,197] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-06-11 19:32:03,203] INFO - app.services.ai_translator: ✓ Ollama Mistral model detected and available
+[2026-06-11 19:32:03,203] INFO - app.services.ai_translator: AITranslator initialized — Ollama status: available
+[2026-06-11 19:32:03,204] INFO - app.services.network_honeypot: NetworkHoneypot initialized with 4 decoy ports
+[2026-06-11 19:32:03,204] INFO - app.services.ip_blacklist_service: Loaded 2 records from /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/app/services/../../data/blocked_ips.json
+[2026-06-11 19:32:03,204] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-06-11 19:32:03,204] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-06-11 19:32:03,204] INFO - app: All security services initialized successfully
+[2026-06-11 19:32:03,204] INFO - app.services.network_honeypot: Honeypot listening on port 22 (SSH) with threat_type=brute_force
+[2026-06-11 19:32:03,204] INFO - app.services.network_honeypot: Honeypot socket closed on port 22 (SSH)
+[2026-06-11 19:32:03,205] INFO - app.services.network_honeypot: Honeypot listening on port 23 (Telnet) with threat_type=reconnaissance
+[2026-06-11 19:32:03,205] INFO - app.services.network_honeypot: Honeypot socket closed on port 23 (Telnet)
+[2026-06-11 19:32:03,205] INFO - app.services.network_honeypot: Honeypot listening on port 8080 (HTTP-Admin) with threat_type=reconnaissance
+[2026-06-11 19:32:03,205] INFO - app.services.network_honeypot: Honeypot socket closed on port 8080 (HTTP-Admin)
+[2026-06-11 19:32:03,205] INFO - app.services.network_honeypot: Honeypot listening on port 3389 (RDP) with threat_type=brute_force
+[2026-06-11 19:32:03,205] INFO - app.services.network_honeypot: Honeypot socket closed on port 3389 (RDP)
+[2026-06-11 19:32:03,205] INFO - app.services.network_honeypot: Honeypot active on 4 port(s)
+[2026-06-11 19:32:03,205] INFO - app: Honeypot startup: Honeypot active on 4 port(s)
+[2026-06-11 19:32:03,209] INFO - app.api.routes: SQLite scan database initialized → /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/data/cybermind_logs.db
+[2026-06-11 19:32:04,185] INFO - app: API routes registered
+[2026-06-11 19:32:04,186] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-06-11 19:33:22,960] INFO - app.services.ai_translator: Analyzing threat: port_scan
+[2026-06-11 19:33:22,964] INFO - app.services.ai_translator: ✓ Ollama Mistral model detected and available
+[2026-06-11 19:33:35,140] INFO - app.services.ai_translator: ✓ Ollama analysis completed successfully
+[2026-06-11 19:37:23,460] INFO - app.services.ai_translator: Analyzing threat: port_scan
+[2026-06-11 19:37:23,467] INFO - app.services.ai_translator: ✓ Ollama Mistral model detected and available
+[2026-06-11 19:37:30,003] INFO - app.services.ai_translator: ✓ Ollama analysis completed successfully
+[2026-06-11 21:37:58,913] INFO - app: Initializing CyberMind security services...
+[2026-06-11 21:37:58,915] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-06-11 21:37:58,919] DEBUG - app.services.ai_translator: Ollama not running at http://localhost:11434
+[2026-06-11 21:37:58,919] INFO - app.services.ai_translator: AITranslator initialized — Ollama status: unavailable
+[2026-06-11 21:37:58,919] INFO - app.services.network_honeypot: NetworkHoneypot initialized with 4 decoy ports
+[2026-06-11 21:37:58,919] INFO - app.services.ip_blacklist_service: Loaded 2 records from /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/app/services/../../data/blocked_ips.json
+[2026-06-11 21:37:58,919] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-06-11 21:37:58,919] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-06-11 21:37:58,919] INFO - app: All security services initialized successfully
+[2026-06-11 21:37:58,920] INFO - app.services.network_honeypot: Honeypot listening on port 22 (SSH) with threat_type=brute_force
+[2026-06-11 21:37:58,920] INFO - app.services.network_honeypot: Honeypot socket closed on port 22 (SSH)
+[2026-06-11 21:37:58,920] INFO - app.services.network_honeypot: Honeypot listening on port 23 (Telnet) with threat_type=reconnaissance
+[2026-06-11 21:37:58,920] INFO - app.services.network_honeypot: Honeypot socket closed on port 23 (Telnet)
+[2026-06-11 21:37:58,920] INFO - app.services.network_honeypot: Honeypot listening on port 8080 (HTTP-Admin) with threat_type=reconnaissance
+[2026-06-11 21:37:58,920] INFO - app.services.network_honeypot: Honeypot socket closed on port 8080 (HTTP-Admin)
+[2026-06-11 21:37:58,920] INFO - app.services.network_honeypot: Honeypot listening on port 3389 (RDP) with threat_type=brute_force
+[2026-06-11 21:37:58,920] INFO - app.services.network_honeypot: Honeypot socket closed on port 3389 (RDP)
+[2026-06-11 21:37:58,920] INFO - app.services.network_honeypot: Honeypot active on 4 port(s)
+[2026-06-11 21:37:58,920] INFO - app: Honeypot startup: Honeypot active on 4 port(s)
+[2026-06-11 21:37:58,925] INFO - app.api.routes: SQLite scan database initialized → /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/data/cybermind_logs.db
+[2026-06-11 21:38:00,009] INFO - app: API routes registered
+[2026-06-11 21:38:00,009] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-06-11 21:44:18,083] INFO - app.services.ai_translator: Analyzing threat: port_scan
+[2026-06-11 21:44:18,086] DEBUG - app.services.ai_translator: Ollama not running at http://localhost:11434
+[2026-06-11 21:44:18,086] DEBUG - app.services.ai_translator: Ollama unavailable, using rule-based fallback
+[2026-06-11 21:44:18,087] INFO - app.services.ai_translator: Using rule-based analysis for port_scan
+[2026-06-11 21:44:18,088] DEBUG - app.services.ai_translator: Ollama status check failed: HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/tags (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x11682a5d0>: Failed to establish a new connection: [Errno 61] Connection refused'))
+[2026-06-11 21:44:20,111] INFO - app.api.routes: /api/analyze called | ip=192.168.1.100 | type=dos | text_len=46
+[2026-06-11 21:44:20,114] INFO - app.services.ids_engine: IDS analysis complete | threat=True | severity=high | confidence=0.88 | matches=2
+[2026-06-11 21:44:21,126] INFO - app.api.routes: Scan job e0699409-2735-4a14-821f-e0bfc3df22f4 started (packets=20)
+[2026-06-11 21:44:21,127] WARNING - app.services.packet_scanner: Live capture failed (Scapy not installed) — using simulation
+[2026-06-11 21:44:21,128] INFO - app.services.packet_scanner: Falling back to synthetic packet simulation (20 packets)
+[2026-06-11 21:44:21,192] INFO - app.services.rf_classifier: RF model loaded from /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/data/rf_model.pkl
+[2026-06-11 21:44:53,842] INFO - app: Initializing CyberMind security services...
+[2026-06-11 21:44:53,842] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-06-11 21:44:53,846] DEBUG - app.services.ai_translator: Ollama not running at http://localhost:11434
+[2026-06-11 21:44:53,846] INFO - app.services.ai_translator: AITranslator initialized — Ollama status: unavailable
+[2026-06-11 21:44:53,846] INFO - app.services.network_honeypot: NetworkHoneypot initialized with 4 decoy ports
+[2026-06-11 21:44:53,846] INFO - app.services.ip_blacklist_service: Loaded 2 records from /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/app/services/../../data/blocked_ips.json
+[2026-06-11 21:44:53,846] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-06-11 21:44:53,846] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-06-11 21:44:53,846] INFO - app: All security services initialized successfully
+[2026-06-11 21:44:53,846] INFO - app.services.network_honeypot: Honeypot listening on port 22 (SSH) with threat_type=brute_force
+[2026-06-11 21:44:53,846] INFO - app.services.network_honeypot: Honeypot socket closed on port 22 (SSH)
+[2026-06-11 21:44:53,846] INFO - app.services.network_honeypot: Honeypot listening on port 23 (Telnet) with threat_type=reconnaissance
+[2026-06-11 21:44:53,846] INFO - app.services.network_honeypot: Honeypot socket closed on port 23 (Telnet)
+[2026-06-11 21:44:53,847] INFO - app.services.network_honeypot: Honeypot listening on port 8080 (HTTP-Admin) with threat_type=reconnaissance
+[2026-06-11 21:44:53,847] INFO - app.services.network_honeypot: Honeypot socket closed on port 8080 (HTTP-Admin)
+[2026-06-11 21:44:53,847] INFO - app.services.network_honeypot: Honeypot listening on port 3389 (RDP) with threat_type=brute_force
+[2026-06-11 21:44:53,847] INFO - app.services.network_honeypot: Honeypot socket closed on port 3389 (RDP)
+[2026-06-11 21:44:53,847] INFO - app.services.network_honeypot: Honeypot active on 4 port(s)
+[2026-06-11 21:44:53,847] INFO - app: Honeypot startup: Honeypot active on 4 port(s)
+[2026-06-11 21:44:53,849] INFO - app.api.routes: SQLite scan database initialized → /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/data/cybermind_logs.db
+[2026-06-11 21:44:54,571] INFO - app: API routes registered
+[2026-06-11 21:44:54,571] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-06-11 21:47:42,888] INFO - app: Initializing CyberMind security services...
+[2026-06-11 21:47:42,889] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-06-11 21:47:42,892] DEBUG - app.services.ai_translator: Ollama not running at http://localhost:11434
+[2026-06-11 21:47:42,893] INFO - app.services.ai_translator: AITranslator initialized — Ollama status: unavailable
+[2026-06-11 21:47:42,893] INFO - app.services.network_honeypot: NetworkHoneypot initialized with 4 decoy ports
+[2026-06-11 21:47:42,893] INFO - app.services.ip_blacklist_service: Loaded 2 records from /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/app/services/../../data/blocked_ips.json
+[2026-06-11 21:47:42,893] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-06-11 21:47:42,893] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-06-11 21:47:42,893] INFO - app: All security services initialized successfully
+[2026-06-11 21:47:42,893] INFO - app.services.network_honeypot: Honeypot listening on port 22 (SSH) with threat_type=brute_force
+[2026-06-11 21:47:42,893] INFO - app.services.network_honeypot: Honeypot socket closed on port 22 (SSH)
+[2026-06-11 21:47:42,893] INFO - app.services.network_honeypot: Honeypot listening on port 23 (Telnet) with threat_type=reconnaissance
+[2026-06-11 21:47:42,893] INFO - app.services.network_honeypot: Honeypot socket closed on port 23 (Telnet)
+[2026-06-11 21:47:42,893] INFO - app.services.network_honeypot: Honeypot listening on port 8080 (HTTP-Admin) with threat_type=reconnaissance
+[2026-06-11 21:47:42,893] INFO - app.services.network_honeypot: Honeypot socket closed on port 8080 (HTTP-Admin)
+[2026-06-11 21:47:42,893] INFO - app.services.network_honeypot: Honeypot listening on port 3389 (RDP) with threat_type=brute_force
+[2026-06-11 21:47:42,893] INFO - app.services.network_honeypot: Honeypot socket closed on port 3389 (RDP)
+[2026-06-11 21:47:42,893] INFO - app.services.network_honeypot: Honeypot active on 4 port(s)
+[2026-06-11 21:47:42,894] INFO - app: Honeypot startup: Honeypot active on 4 port(s)
+[2026-06-11 21:47:42,896] INFO - app.api.routes: SQLite scan database initialized → /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/data/cybermind_logs.db
+[2026-06-11 21:47:43,629] INFO - app: API routes registered
+[2026-06-11 21:47:43,629] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-06-11 21:49:09,138] INFO - app: Initializing CyberMind security services...
+[2026-06-11 21:49:09,139] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-06-11 21:49:09,142] DEBUG - app.services.ai_translator: Ollama not running at http://localhost:11434
+[2026-06-11 21:49:09,142] INFO - app.services.ai_translator: AITranslator initialized — Ollama status: unavailable
+[2026-06-11 21:49:09,142] INFO - app.services.network_honeypot: NetworkHoneypot initialized with 4 decoy ports
+[2026-06-11 21:49:09,143] INFO - app.services.ip_blacklist_service: Loaded 2 records from /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/app/services/../../data/blocked_ips.json
+[2026-06-11 21:49:09,143] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-06-11 21:49:09,143] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-06-11 21:49:09,143] INFO - app: All security services initialized successfully
+[2026-06-11 21:49:09,143] INFO - app.services.network_honeypot: Honeypot listening on port 22 (SSH) with threat_type=brute_force
+[2026-06-11 21:49:09,143] INFO - app.services.network_honeypot: Honeypot socket closed on port 22 (SSH)
+[2026-06-11 21:49:09,143] INFO - app.services.network_honeypot: Honeypot listening on port 23 (Telnet) with threat_type=reconnaissance
+[2026-06-11 21:49:09,143] INFO - app.services.network_honeypot: Honeypot socket closed on port 23 (Telnet)
+[2026-06-11 21:49:09,143] INFO - app.services.network_honeypot: Honeypot listening on port 8080 (HTTP-Admin) with threat_type=reconnaissance
+[2026-06-11 21:49:09,143] INFO - app.services.network_honeypot: Honeypot socket closed on port 8080 (HTTP-Admin)
+[2026-06-11 21:49:09,143] INFO - app.services.network_honeypot: Honeypot listening on port 3389 (RDP) with threat_type=brute_force
+[2026-06-11 21:49:09,143] INFO - app.services.network_honeypot: Honeypot socket closed on port 3389 (RDP)
+[2026-06-11 21:49:09,143] INFO - app.services.network_honeypot: Honeypot active on 4 port(s)
+[2026-06-11 21:49:09,143] INFO - app: Honeypot startup: Honeypot active on 4 port(s)
+[2026-06-11 21:49:09,145] INFO - app.api.routes: SQLite scan database initialized → /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/data/cybermind_logs.db
+[2026-06-11 21:49:09,872] INFO - app: API routes registered
+[2026-06-11 21:49:09,872] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-06-11 21:53:17,131] INFO - app: Initializing CyberMind security services...
+[2026-06-11 21:53:17,131] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-06-11 21:53:17,136] DEBUG - app.services.ai_translator: Ollama not running at http://localhost:11434
+[2026-06-11 21:53:17,136] INFO - app.services.ai_translator: AITranslator initialized — Ollama status: unavailable
+[2026-06-11 21:53:17,136] INFO - app.services.network_honeypot: NetworkHoneypot initialized with 4 decoy ports
+[2026-06-11 21:53:17,136] INFO - app.services.ip_blacklist_service: Loaded 2 records from /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/app/services/../../data/blocked_ips.json
+[2026-06-11 21:53:17,136] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-06-11 21:53:17,136] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-06-11 21:53:17,136] INFO - app: All security services initialized successfully
+[2026-06-11 21:53:17,136] INFO - app.services.network_honeypot: Honeypot listening on port 22 (SSH) with threat_type=brute_force
+[2026-06-11 21:53:17,136] INFO - app.services.network_honeypot: Honeypot socket closed on port 22 (SSH)
+[2026-06-11 21:53:17,136] INFO - app.services.network_honeypot: Honeypot listening on port 23 (Telnet) with threat_type=reconnaissance
+[2026-06-11 21:53:17,136] INFO - app.services.network_honeypot: Honeypot socket closed on port 23 (Telnet)
+[2026-06-11 21:53:17,137] INFO - app.services.network_honeypot: Honeypot listening on port 8080 (HTTP-Admin) with threat_type=reconnaissance
+[2026-06-11 21:53:17,137] INFO - app.services.network_honeypot: Honeypot socket closed on port 8080 (HTTP-Admin)
+[2026-06-11 21:53:17,137] INFO - app.services.network_honeypot: Honeypot listening on port 3389 (RDP) with threat_type=brute_force
+[2026-06-11 21:53:17,137] INFO - app.services.network_honeypot: Honeypot socket closed on port 3389 (RDP)
+[2026-06-11 21:53:17,137] INFO - app.services.network_honeypot: Honeypot active on 4 port(s)
+[2026-06-11 21:53:17,137] INFO - app: Honeypot startup: Honeypot active on 4 port(s)
+[2026-06-11 21:53:17,139] INFO - app.api.routes: SQLite scan database initialized → /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/data/cybermind_logs.db
+[2026-06-11 21:53:17,870] INFO - app: API routes registered
+[2026-06-11 21:53:17,870] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-06-11 23:15:38,426] INFO - app: Initializing CyberMind security services...
+[2026-06-11 23:15:38,426] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-06-11 23:15:38,433] DEBUG - app.services.ai_translator: Ollama not running at http://localhost:11434
+[2026-06-11 23:15:38,433] INFO - app.services.ai_translator: AITranslator initialized — Ollama status: unavailable
+[2026-06-11 23:15:38,433] INFO - app.services.network_honeypot: NetworkHoneypot initialized with 4 decoy ports
+[2026-06-11 23:15:38,433] INFO - app.services.ip_blacklist_service: Loaded 2 records from /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/app/services/../../data/blocked_ips.json
+[2026-06-11 23:15:38,433] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-06-11 23:15:38,433] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-06-11 23:15:38,433] INFO - app: All security services initialized successfully
+[2026-06-11 23:15:38,434] INFO - app.services.network_honeypot: Honeypot listening on port 22 (SSH) with threat_type=brute_force
+[2026-06-11 23:15:38,434] INFO - app.services.network_honeypot: Honeypot socket closed on port 22 (SSH)
+[2026-06-11 23:15:38,434] INFO - app.services.network_honeypot: Honeypot listening on port 23 (Telnet) with threat_type=reconnaissance
+[2026-06-11 23:15:38,434] INFO - app.services.network_honeypot: Honeypot socket closed on port 23 (Telnet)
+[2026-06-11 23:15:38,434] INFO - app.services.network_honeypot: Honeypot listening on port 8080 (HTTP-Admin) with threat_type=reconnaissance
+[2026-06-11 23:15:38,434] INFO - app.services.network_honeypot: Honeypot socket closed on port 8080 (HTTP-Admin)
+[2026-06-11 23:15:38,434] INFO - app.services.network_honeypot: Honeypot listening on port 3389 (RDP) with threat_type=brute_force
+[2026-06-11 23:15:38,434] INFO - app.services.network_honeypot: Honeypot socket closed on port 3389 (RDP)
+[2026-06-11 23:15:38,434] INFO - app.services.network_honeypot: Honeypot active on 4 port(s)
+[2026-06-11 23:15:38,434] INFO - app: Honeypot startup: Honeypot active on 4 port(s)
+[2026-06-11 23:15:38,437] INFO - app.api.routes: SQLite scan database initialized → /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/data/cybermind_logs.db
+[2026-06-11 23:15:39,243] INFO - app: API routes registered
+[2026-06-11 23:15:39,244] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-06-11 23:15:54,781] INFO - app.services.ai_translator: Analyzing threat: port_scan
+[2026-06-11 23:15:54,781] DEBUG - app.services.ai_translator: Ollama unavailable, using rule-based fallback
+[2026-06-11 23:15:54,782] INFO - app.services.ai_translator: Using rule-based analysis for port_scan
+[2026-06-11 23:15:54,786] DEBUG - app.services.ai_translator: Ollama status check failed: HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/tags (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x111674f50>: Failed to establish a new connection: [Errno 61] Connection refused'))
+[2026-06-11 23:15:56,808] INFO - app.api.routes: /api/analyze called | ip=192.168.1.100 | type=dos | text_len=46
+[2026-06-11 23:15:56,812] INFO - app.services.ids_engine: IDS analysis complete | threat=True | severity=high | confidence=0.88 | matches=2
+[2026-06-11 23:15:57,824] INFO - app.api.routes: Scan job 07642b50-949e-41c8-b41c-f8d77a2b03c4 started (packets=20)
+[2026-06-11 23:15:57,825] WARNING - app.services.packet_scanner: Live capture failed (Scapy not installed) — using simulation
+[2026-06-11 23:15:57,826] INFO - app.services.packet_scanner: Falling back to synthetic packet simulation (20 packets)
+[2026-06-11 23:15:57,851] INFO - app.services.rf_classifier: RF model loaded from /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/data/rf_model.pkl
+[2026-06-11 23:16:49,222] INFO - app.services.ai_translator: Analyzing threat: port_scan
+[2026-06-11 23:16:49,229] INFO - app.services.ai_translator: ✓ Ollama Mistral model detected and available
+[2026-06-11 23:17:00,151] INFO - app.services.ai_translator: ✓ Ollama analysis completed successfully
+[2026-06-11 23:17:02,188] INFO - app.api.routes: /api/analyze called | ip=192.168.1.100 | type=dos | text_len=46
+[2026-06-11 23:17:02,188] INFO - app.services.ids_engine: IDS analysis complete | threat=True | severity=high | confidence=0.88 | matches=2
+[2026-06-11 23:17:03,201] INFO - app.api.routes: Scan job 4f329fc2-db8e-4d72-829e-065e1067e5ff started (packets=20)
+[2026-06-11 23:17:03,201] WARNING - app.services.packet_scanner: Live capture failed (Scapy not installed) — using simulation
+[2026-06-11 23:17:03,202] INFO - app.services.packet_scanner: Falling back to synthetic packet simulation (20 packets)
+[2026-06-11 23:17:12,711] INFO - app.api.routes: Scan job 3dd1fd4c-6b18-4e60-a4d0-2346f1684672 started (packets=100)
+[2026-06-11 23:17:12,712] WARNING - app.services.packet_scanner: Live capture failed (Scapy not installed) — using simulation
+[2026-06-11 23:17:12,713] INFO - app.services.packet_scanner: Falling back to synthetic packet simulation (100 packets)
+[2026-06-11 23:18:23,903] INFO - app.services.ai_translator: Analyzing threat: port_scan
+[2026-06-11 23:18:23,909] INFO - app.services.ai_translator: ✓ Ollama Mistral model detected and available
+[2026-06-11 23:18:31,850] INFO - app.services.ai_translator: ✓ Ollama analysis completed successfully
+[2026-06-11 23:18:33,876] INFO - app.api.routes: /api/analyze called | ip=192.168.1.100 | type=dos | text_len=46
+[2026-06-11 23:18:33,876] INFO - app.services.ids_engine: IDS analysis complete | threat=True | severity=high | confidence=0.88 | matches=2
+[2026-06-11 23:18:34,889] INFO - app.api.routes: Scan job fed5cd10-c1d5-46e6-9294-11114d29ebb7 started (packets=20)
+[2026-06-11 23:18:34,890] WARNING - app.services.packet_scanner: Live capture failed (Scapy not installed) — using simulation
+[2026-06-11 23:18:34,890] INFO - app.services.packet_scanner: Falling back to synthetic packet simulation (20 packets)
+[2026-06-11 23:20:23,777] INFO - app.services.ai_translator: Analyzing threat: port_scan
+[2026-06-11 23:20:23,784] INFO - app.services.ai_translator: ✓ Ollama Mistral model detected and available
+[2026-06-11 23:20:29,796] INFO - app.services.ai_translator: ✓ Ollama analysis completed successfully
+[2026-06-11 23:20:31,818] INFO - app.api.routes: /api/analyze called | ip=192.168.1.100 | type=dos | text_len=46
+[2026-06-11 23:20:31,818] INFO - app.services.ids_engine: IDS analysis complete | threat=True | severity=high | confidence=0.88 | matches=2
+[2026-06-11 23:20:32,828] INFO - app.api.routes: Scan job 7fcbb5e9-e2bb-4d63-aad9-8b4b31e82569 started (packets=20)
+[2026-06-11 23:20:32,828] WARNING - app.services.packet_scanner: Live capture failed (Scapy not installed) — using simulation
+[2026-06-11 23:20:32,828] INFO - app.services.packet_scanner: Falling back to synthetic packet simulation (20 packets)
+[2026-06-12 12:26:57,888] INFO - app: Initializing CyberMind security services...
+[2026-06-12 12:26:57,890] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-06-12 12:26:57,894] DEBUG - app.services.ai_translator: Ollama not running at http://localhost:11434
+[2026-06-12 12:26:57,895] INFO - app.services.ai_translator: AITranslator initialized — Ollama status: unavailable
+[2026-06-12 12:26:57,895] INFO - app.services.network_honeypot: NetworkHoneypot initialized with 4 decoy ports
+[2026-06-12 12:26:57,895] INFO - app.services.ip_blacklist_service: Loaded 2 records from /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/app/services/../../data/blocked_ips.json
+[2026-06-12 12:26:57,895] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-06-12 12:26:57,895] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-06-12 12:26:57,895] INFO - app: All security services initialized successfully
+[2026-06-12 12:26:57,895] INFO - app.services.network_honeypot: Honeypot listening on port 22 (SSH) with threat_type=brute_force
+[2026-06-12 12:26:57,895] INFO - app.services.network_honeypot: Honeypot socket closed on port 22 (SSH)
+[2026-06-12 12:26:57,895] INFO - app.services.network_honeypot: Honeypot listening on port 23 (Telnet) with threat_type=reconnaissance
+[2026-06-12 12:26:57,895] INFO - app.services.network_honeypot: Honeypot socket closed on port 23 (Telnet)
+[2026-06-12 12:26:57,895] INFO - app.services.network_honeypot: Honeypot listening on port 8080 (HTTP-Admin) with threat_type=reconnaissance
+[2026-06-12 12:26:57,895] INFO - app.services.network_honeypot: Honeypot socket closed on port 8080 (HTTP-Admin)
+[2026-06-12 12:26:57,896] INFO - app.services.network_honeypot: Honeypot listening on port 3389 (RDP) with threat_type=brute_force
+[2026-06-12 12:26:57,896] INFO - app.services.network_honeypot: Honeypot socket closed on port 3389 (RDP)
+[2026-06-12 12:26:57,896] INFO - app.services.network_honeypot: Honeypot active on 4 port(s)
+[2026-06-12 12:26:57,896] INFO - app: Honeypot startup: Honeypot active on 4 port(s)
+[2026-06-12 12:26:57,901] INFO - app.api.routes: SQLite scan database initialized → /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/data/cybermind_logs.db
+[2026-06-12 12:26:58,969] INFO - app: API routes registered
+[2026-06-12 12:26:58,969] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development
+[2026-06-12 12:32:14,490] INFO - app: Initializing CyberMind security services...
+[2026-06-12 12:32:14,490] INFO - app.core.firewall_manager: FirewallManager initialized for OS: Darwin
+[2026-06-12 12:32:14,493] DEBUG - app.services.ai_translator: Ollama not running at http://localhost:11434
+[2026-06-12 12:32:14,493] INFO - app.services.ai_translator: AITranslator initialized — Ollama status: unavailable
+[2026-06-12 12:32:14,493] INFO - app.services.network_honeypot: NetworkHoneypot initialized with 4 decoy ports
+[2026-06-12 12:32:14,494] INFO - app.services.ip_blacklist_service: Loaded 2 records from /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/app/services/../../data/blocked_ips.json
+[2026-06-12 12:32:14,494] INFO - app.services.ip_blacklist_service: IPBlacklistService initialized
+[2026-06-12 12:32:14,494] INFO - app.services.kill_switch: KillSwitch initialized
+[2026-06-12 12:32:14,494] INFO - app: All security services initialized successfully
+[2026-06-12 12:32:14,494] INFO - app.services.network_honeypot: Honeypot listening on port 22 (SSH) with threat_type=brute_force
+[2026-06-12 12:32:14,494] INFO - app.services.network_honeypot: Honeypot socket closed on port 22 (SSH)
+[2026-06-12 12:32:14,494] INFO - app.services.network_honeypot: Honeypot listening on port 23 (Telnet) with threat_type=reconnaissance
+[2026-06-12 12:32:14,494] INFO - app.services.network_honeypot: Honeypot socket closed on port 23 (Telnet)
+[2026-06-12 12:32:14,494] INFO - app.services.network_honeypot: Honeypot listening on port 8080 (HTTP-Admin) with threat_type=reconnaissance
+[2026-06-12 12:32:14,494] INFO - app.services.network_honeypot: Honeypot socket closed on port 8080 (HTTP-Admin)
+[2026-06-12 12:32:14,494] INFO - app.services.network_honeypot: Honeypot listening on port 3389 (RDP) with threat_type=brute_force
+[2026-06-12 12:32:14,494] INFO - app.services.network_honeypot: Honeypot socket closed on port 3389 (RDP)
+[2026-06-12 12:32:14,494] INFO - app.services.network_honeypot: Honeypot active on 4 port(s)
+[2026-06-12 12:32:14,494] INFO - app: Honeypot startup: Honeypot active on 4 port(s)
+[2026-06-12 12:32:14,496] INFO - app.api.routes: SQLite scan database initialized → /Users/ziauddin/Documents/GitHub/CyberMind/backend_flask/data/cybermind_logs.db
+[2026-06-12 12:32:15,203] INFO - app: API routes registered
+[2026-06-12 12:32:15,203] INFO - app: CyberMind Sentinel Flask App initialized - Mode: development

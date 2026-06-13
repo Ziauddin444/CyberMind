@@ -362,6 +362,25 @@ Respond ONLY with a valid JSON object in this exact format, no other text:
             "timestamp": datetime.utcnow().isoformat() + "Z",
         }
 
+    def get_status(self) -> dict:
+        """
+        Returns current status of the AI translator service.
+        Called by Flask __init__.py on /api/status endpoint.
+        """
+        ollama_status = self.check_ollama_status()
+        return {
+            "service": "ai_translator",
+            "status": "operational",
+            "mode": "ollama_mistral" if ollama_status["available"] else "rule_based_fallback",
+            "ollama_available": ollama_status["available"],
+            "ollama_models": ollama_status.get("models", []),
+            "message": (
+                "Ollama Mistral active — free local LLM translation"
+                if ollama_status["available"]
+                else "Ollama offline — using rule-based fallback"
+            )
+        }
+
     def get_ollama_install_instructions(self) -> str:
         """
         Get platform-specific Ollama installation instructions.
@@ -462,3 +481,7 @@ def get_ai_translator() -> AITranslator:
     if _translator_instance is None:
         _translator_instance = AITranslator()
     return _translator_instance
+
+
+
+
