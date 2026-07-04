@@ -7,14 +7,5 @@
     "blocked_at": "2026-04-22T22:11:48.546422",
     "message": "Failed to block IP on macOS",
     "os": "Darwin"
-  },
-  {
-    "record_id": 1,
-    "ip_address": "192.168.0.77",
-    "reason": "Auto-block from demo attack simulation (reconnaissance, detected threat)",
-    "status": "failed",
-    "blocked_at": "2026-04-22T22:07:34.360633",
-    "message": "Failed to block IP on macOS",
-    "os": "Darwin"
   }
 ]

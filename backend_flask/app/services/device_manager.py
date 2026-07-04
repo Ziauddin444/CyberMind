@@ -1,15 +1,14 @@
-"""
-Device Management Service
-Handles add, delete, modify, and query operations for network devices
-"""
+
 import json
 import logging
+import threading
 from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Optional
 
 logger = logging.getLogger(__name__)
 DEVICES_FILE = Path(__file__).parent.parent.parent / "data" / "devices.json"
+_DEVICE_LOCK = threading.Lock()
 
 
 class DeviceManager:
@@ -30,51 +29,33 @@ class DeviceManager:
                     self.devices = {d['id']: d for d in data.get('devices', [])}
             else:
                 self.devices = {}
+                # If this fails on init, we want to know
                 self._save_devices()
         except Exception as e:
             logger.error(f"Error loading devices: {e}")
             self.devices = {}
 
     def _save_devices(self) -> None:
-        """Save devices to JSON file"""
-        try:
-            data = {
-                "devices": list(self.devices.values()),
-                "metadata": {
-                    "total_devices": len(self.devices),
-                    "last_updated": datetime.utcnow().isoformat() + "Z"
-                }
+        """Save devices to JSON file (thread-safe). No silent failures here."""
+        data = {
+            "devices": list(self.devices.values()),
+            "metadata": {
+                "total_devices": len(self.devices),
+                "last_updated": datetime.utcnow().isoformat() + "Z"
             }
-            self.devices_file.parent.mkdir(parents=True, exist_ok=True)
+        }
+        self.devices_file.parent.mkdir(parents=True, exist_ok=True)
+        with _DEVICE_LOCK:
             with open(self.devices_file, 'w') as f:
                 json.dump(data, f, indent=2)
-        except Exception as e:
-            logger.error(f"Error saving devices: {e}")
 
     def add_device(self, device_info: Dict) -> Dict:
-        """
-        Add a new device to inventory
-        
-        Args:
-            device_info: {
-                "name": str,
-                "ip_address": str,
-                "mac_address": str,
-                "device_type": str (server/workstation/iot/printer/etc),
-                "os": str,
-                "tags": list
-            }
-        
-        Returns:
-            Device object with generated ID
-        """
+        """Add a new device to inventory"""
         try:
-            # Name is required; other fields can be auto-filled for practical onboarding.
             name = (device_info.get('name') or '').strip()
             if not name:
                 return {"success": False, "error": "Missing required field: name"}
 
-            # Generate unique incremental device ID that survives deletions.
             max_id = 0
             for existing_id in self.devices.keys():
                 if isinstance(existing_id, str) and existing_id.startswith('device_'):
@@ -101,8 +82,16 @@ class DeviceManager:
                 "registered_at": datetime.utcnow().isoformat() + "Z"
             }
             
+            # Apply to memory
             self.devices[device_id] = device
-            self._save_devices()
+            
+            # Attempt to save, rollback if it fails
+            try:
+                self._save_devices()
+            except Exception as save_error:
+                del self.devices[device_id]
+                logger.error(f"Disk write failed: {save_error}")
+                return {"success": False, "error": f"Failed to save to disk: {save_error}"}
             
             logger.info(f"Device added: {device_id} - {device['name']}")
             return {"success": True, "device": device}
@@ -111,22 +100,23 @@ class DeviceManager:
             return {"success": False, "error": str(e)}
 
     def delete_device(self, device_id: str) -> Dict:
-        """
-        Delete a device from inventory
-        
-        Args:
-            device_id: ID of device to delete
-        
-        Returns:
-            Success status
-        """
+        """Delete a device from inventory"""
         try:
             if device_id not in self.devices:
                 return {"success": False, "error": f"Device not found: {device_id}"}
             
-            device_name = self.devices[device_id]['name']
+            # Backup before deleting from memory
+            device_backup = self.devices[device_id]
+            device_name = device_backup['name']
             del self.devices[device_id]
-            self._save_devices()
+            
+            # Attempt to save, rollback if it fails
+            try:
+                self._save_devices()
+            except Exception as save_error:
+                self.devices[device_id] = device_backup
+                logger.error(f"Disk write failed: {save_error}")
+                return {"success": False, "error": f"Failed to save to disk: {save_error}"}
             
             logger.info(f"Device deleted: {device_id} - {device_name}")
             return {"success": True, "message": f"Device {device_name} deleted"}
@@ -135,30 +125,29 @@ class DeviceManager:
             return {"success": False, "error": str(e)}
 
     def update_device(self, device_id: str, updates: Dict) -> Dict:
-        """
-        Update device information
-        
-        Args:
-            device_id: ID of device to update
-            updates: Fields to update (name, ip_address, tags, status, etc)
-        
-        Returns:
-            Updated device object
-        """
+        """Update device information"""
         try:
             if device_id not in self.devices:
                 return {"success": False, "error": f"Device not found: {device_id}"}
             
+            # Backup original state for rollback
+            original_state = {k: (v.copy() if isinstance(v, list) else v) for k, v in self.devices[device_id].items()}
             device = self.devices[device_id]
             
-            # Allow updating these fields
             allowed_fields = ['name', 'ip_address', 'mac_address', 'os', 'device_type', 'tags', 'status']
             for field, value in updates.items():
                 if field in allowed_fields:
                     device[field] = value
             
             device['last_seen'] = datetime.utcnow().isoformat() + "Z"
-            self._save_devices()
+            
+            # Attempt to save, rollback if it fails
+            try:
+                self._save_devices()
+            except Exception as save_error:
+                self.devices[device_id] = original_state
+                logger.error(f"Disk write failed: {save_error}")
+                return {"success": False, "error": f"Failed to save to disk: {save_error}"}
             
             logger.info(f"Device updated: {device_id}")
             return {"success": True, "device": device}
@@ -229,3 +218,4 @@ class DeviceManager:
         except Exception as e:
             logger.error(f"Error bulk adding devices: {e}")
             return {"success": False, "error": str(e)}
+

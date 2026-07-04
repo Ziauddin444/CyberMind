@@ -213,7 +213,8 @@ export const updateAlertConfig = (data) => authRequest('/alerts/config', { metho
 // Additional security operations (Flask Backend - Port 5000)
 export const opsGetDevices = () => opsRequest('/devices/list');
 export const opsGetDevice = (id) => opsRequest(`/devices/${id}`);
-export const opsAddDevice = (data) => opsRequest('/devices/add', { method: 'POST', body: JSON.stringify(data) });
+// POST /api/devices — canonical Flask endpoint that persists to devices.json
+export const opsAddDevice = (data) => opsRequest('/devices', { method: 'POST', body: JSON.stringify(data) });
 export const opsUpdateDevice = (id, data) => opsRequest(`/devices/${id}`, { method: 'PUT', body: JSON.stringify(data) });
 export const opsDeleteDevice = (id) => opsRequest(`/devices/${id}`, { method: 'DELETE' });
 export const opsSearchDevices = (query) => opsRequest(`/devices/search?q=${encodeURIComponent(query)}`);
@@ -231,13 +232,13 @@ export const getBlacklistStatus = async () => {
   // Each record has: { id, ip, attackType, label, severity, status, detectedAt, timeStr, ... }
   // app.js reads: blocked_records[].ip_address, .blocked_at, .status, .reason, .record_id
   const normalized = (data.records || []).map((r) => ({
-    record_id:   r.id,
-    ip_address:  r.ip,
-    blocked_at:  r.detectedAt,
-    status:      r.status || 'blocked',
-    reason:      r.label || r.attackType || 'Attack detected',
-    severity:    r.severity,
-    attackType:  r.attackType,
+    record_id: r.id,
+    ip_address: r.ip,
+    blocked_at: r.detectedAt,
+    status: r.status || 'blocked',
+    reason: r.label || r.attackType || 'Attack detected',
+    severity: r.severity,
+    attackType: r.attackType,
   }));
   return { data: { blocked_records: normalized, total: data.total, bySeverity: data.bySeverity } };
 };
@@ -253,12 +254,32 @@ export const registerAsset = (data) => opsRequest('/fleet/register_asset', { met
 export const monitorAssets = () => opsRequest('/fleet/monitor_assets', { method: 'POST' });
 export const detectAnomalies = () => opsRequest('/fleet/anomalies');
 
+// Honeypot capture list (legacy — returns metadata objects with id/source_ip/filename)
 export const getHoneypotFiles = (limit = 100) => opsRequest(`/honeypot/files?limit=${limit}`);
 export const getHoneypotFile = (id) => opsRequest(`/honeypot/files/${id}`);
 export const deleteHoneypotCapture = (id) => opsRequest(`/honeypot/files/${id}`, { method: 'DELETE' });
 export const exportHoneypotCaptures = (format = 'json') => opsRequest(`/honeypot/files/export?format=${format}`);
 export const getHoneypotSummary = () => opsRequest('/honeypot/summary');
 export const cleanupHoneypotCaptures = (days = 30) => opsRequest('/honeypot/cleanup', { method: 'POST', body: JSON.stringify({ days }) });
+
+// Honeypot file CRUD by filename — new endpoints
+export const opsListHoneypotFiles = () => opsRequest('/honeypot/files-list');
+export const opsCreateHoneypotFile = (filename, content) =>
+  opsRequest('/honeypot/files', { method: 'POST', body: JSON.stringify({ filename, content }) });
+export const opsRenameHoneypotFile = (filename, newFilename) =>
+  opsRequest(`/honeypot/files/${encodeURIComponent(filename)}`, {
+    method: 'PUT',
+    body: JSON.stringify({ new_filename: newFilename }),
+  });
+export const opsDeleteHoneypotFileByName = (filename) =>
+  opsRequest(`/honeypot/files/${encodeURIComponent(filename)}`, { method: 'DELETE' });
+
+// One-click remediation — new /api/remediation endpoint (no auth required)
+export const runRemediationAction = (action, ip, threatType = 'unknown', severity = 'high', deviceId = null) =>
+  opsRequest('/remediation', {
+    method: 'POST',
+    body: JSON.stringify({ action, ip, threat_type: threatType, severity, device_id: deviceId }),
+  });
 
 export const analyzeEmail = (data) => opsRequest('/phishing/analyze_email', { method: 'POST', body: JSON.stringify(data) });
 export const getPhishingStatistics = () => opsRequest('/phishing/statistics');
@@ -273,36 +294,36 @@ export const closeIncident = (incidentIndex) => opsRequest('/remediation/close_i
  * Translate a threat alert into plain English via Ollama Mistral
  */
 export async function translateTraffic(threatData) {
-    return request(OPS_BASE, '/traffic/translate', {
-        method: 'POST',
-        body: JSON.stringify({
-            threat_type: threatData.threat_type || 'unknown',
-            severity: threatData.severity || 'medium',
-            confidence: threatData.confidence || 0.5,
-            source_ip: threatData.source_ip || 'unknown',
-            matched_signature: threatData.matched_signature || 'unknown',
-            mitigation: threatData.mitigation || 'Monitor and investigate'
-        })
-    });
+  return request(OPS_BASE, '/traffic/translate', {
+    method: 'POST',
+    body: JSON.stringify({
+      threat_type: threatData.threat_type || 'unknown',
+      severity: threatData.severity || 'medium',
+      confidence: threatData.confidence || 0.5,
+      source_ip: threatData.source_ip || 'unknown',
+      matched_signature: threatData.matched_signature || 'unknown',
+      mitigation: threatData.mitigation || 'Monitor and investigate'
+    })
+  });
 }
 
 /**
  * Check if Ollama is running locally
  */
 export async function checkOllamaStatus() {
-    return request(OPS_BASE, '/ollama/status', {
-        method: 'GET'
-    });
+  return request(OPS_BASE, '/ollama/status', {
+    method: 'GET'
+  });
 }
 
 /**
  * Run a test translation with a sample threat
  */
 export async function testOllamaTranslation() {
-    return request(OPS_BASE, '/ollama/test', {
-        method: 'POST',
-        body: JSON.stringify({})
-    });
+  return request(OPS_BASE, '/ollama/test', {
+    method: 'POST',
+    body: JSON.stringify({})
+  });
 }
 export const analyzeTraffic = (traffic) => opsRequest('/traffic/analyze', { method: 'POST', body: JSON.stringify({ traffic }) });
 export const discoverAssets = () => opsRequest('/assets/discover', { method: 'POST' });
@@ -371,16 +392,6 @@ export async function startScan(packetCount = 100) {
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.message || `Failed to start scan: ${res.status}`);
-  }
-  return res.json();
-}
-
-export async function getScanStatus(jobId) {
-  const url = `${OPS_BASE}/scan/status/${encodeURIComponent(jobId)}`;
-  const res = await fetch(url);
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || `Status check failed: ${res.status}`);
   }
   return res.json();
 }

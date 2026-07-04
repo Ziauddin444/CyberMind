@@ -1,0 +1,5 @@
+Source IP: 127.0.0.1
+Threat Type: brute_force
+Timestamp: 2026-06-20T14:24:54.261775
+============================================================
+{'source_ip': '127.0.0.1', 'source_port': 54787, 'target_port': 22, 'service_name': 'SSH', 'payload': 'Error reading payload: [Errno 54] Connection reset by peer', 'threat_type': 'brute_force', 'severity': 'high', 'timestamp': '2026-06-20T14:24:54.260953', 'banner_sent': 'SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.6\r\n'}\x02\x0f\x08\x00\x02\x00\x00\x00'}

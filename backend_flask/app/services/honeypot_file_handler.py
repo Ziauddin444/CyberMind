@@ -5,12 +5,14 @@ Manages honeypot capture files, exports, and analysis
 import json
 import logging
 import os
+import threading
 from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Optional
 
 logger = logging.getLogger(__name__)
 HONEYPOT_DIR = Path(__file__).parent.parent.parent / "data" / "honeypot_captures"
+_FILE_LOCK = threading.Lock()
 
 
 class HoneypotFileHandler:
@@ -43,6 +45,107 @@ class HoneypotFileHandler:
                 json.dump(self.captures, f, indent=2)
         except Exception as e:
             logger.error(f"Error saving captures: {e}")
+
+    # ------------------------------------------------------------------
+    # Frontend CRUD: add / rename / list files by filename
+    # ------------------------------------------------------------------
+
+    def add_file(self, filename: str, content: str) -> Dict:
+        """
+        Create a new honeypot file with arbitrary content.
+
+        Args:
+            filename: Target filename (basename only; path separators stripped).
+            content:  Text content to write.
+
+        Returns:
+            {"success": True, "file": {filename, size, created_at}} or error dict.
+        """
+        try:
+            # Sanitise: never allow path traversal
+            safe_name = Path(filename).name
+            if not safe_name:
+                return {"success": False, "error": "Invalid filename"}
+
+            filepath = self.honeypot_dir / safe_name
+            with _FILE_LOCK:
+                with open(filepath, 'w') as fh:
+                    fh.write(content)
+
+            info = {
+                "filename": safe_name,
+                "size": len(content),
+                "created_at": datetime.utcnow().isoformat() + "Z",
+            }
+            logger.info(f"Honeypot file created: {safe_name}")
+            return {"success": True, "file": info}
+        except Exception as e:
+            logger.error(f"Error adding honeypot file: {e}")
+            return {"success": False, "error": str(e)}
+
+    def rename_file(self, old_filename: str, new_filename: str) -> Dict:
+        """
+        Rename an existing honeypot file on disk.
+
+        Args:
+            old_filename: Current basename of the file.
+            new_filename: New basename to rename to.
+
+        Returns:
+            {"success": True, "old": ..., "new": ...} or error dict.
+        """
+        try:
+            old_safe = Path(old_filename).name
+            new_safe = Path(new_filename).name
+            if not old_safe or not new_safe:
+                return {"success": False, "error": "Invalid filename"}
+
+            old_path = self.honeypot_dir / old_safe
+            new_path = self.honeypot_dir / new_safe
+
+            if not old_path.exists():
+                return {"success": False, "error": f"File not found: {old_safe}"}
+            if new_path.exists():
+                return {"success": False, "error": f"Destination already exists: {new_safe}"}
+
+            with _FILE_LOCK:
+                old_path.rename(new_path)
+
+            # Update captures metadata if this file is tracked there
+            updated = False
+            for cap in self.captures:
+                if cap.get("filename") == old_safe:
+                    cap["filename"] = new_safe
+                    updated = True
+            if updated:
+                self._save_captures()
+
+            logger.info(f"Honeypot file renamed: {old_safe} → {new_safe}")
+            return {"success": True, "old": old_safe, "new": new_safe}
+        except Exception as e:
+            logger.error(f"Error renaming honeypot file: {e}")
+            return {"success": False, "error": str(e)}
+
+    def list_files(self) -> List[Dict]:
+        """
+        List every file in honeypot_captures/ (excluding captures.json).
+
+        Returns:
+            List of {filename, size, modified_at} dicts.
+        """
+        result = []
+        try:
+            for p in sorted(self.honeypot_dir.iterdir()):
+                if p.is_file() and p.name != "captures.json":
+                    stat = p.stat()
+                    result.append({
+                        "filename": p.name,
+                        "size": stat.st_size,
+                        "modified_at": datetime.utcfromtimestamp(stat.st_mtime).isoformat() + "Z",
+                    })
+        except Exception as e:
+            logger.error(f"Error listing honeypot files: {e}")
+        return result
 
     def save_capture_file(self, source_ip: str, payload: str, threat_type: str = "unknown") -> Dict:
         """

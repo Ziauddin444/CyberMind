@@ -607,9 +607,136 @@ def devices_status():
     except Exception as e:
         logger.error(f"Error getting device status: {str(e)}")
         return jsonify({"success": False, "message": str(e)}), 500
+@api_blueprint.route("/devices/search", methods=["GET"])
+def search_devices():
+    """Search devices by name or IP"""
+    try:
+        query = request.args.get("q", "")
+        if not query:
+            return jsonify({"success": False, "message": "Query parameter 'q' is required"}), 400
+        
+        devices = current_app.device_manager.search_devices(query)
+        return jsonify({
+            "success": True,
+            "data": devices,
+            "count": len(devices),
+            "timestamp": datetime.now().isoformat(),
+        }), 200
+    except Exception as e:
+        logger.error(f"Error searching devices: {str(e)}")
+        return jsonify({"success": False, "message": str(e)}), 500
 
 
-# --- HONEYPOT FILE MANAGEMENT ---
+@api_blueprint.route("/devices/add", methods=["POST"])
+def add_device_legacy():
+    """Legacy POST /api/devices/add — no auth guard for demo usage"""
+    try:
+        data = request.get_json() or {}
+        current_app.device_manager._load_devices()
+        result = current_app.device_manager.add_device(data)
+        if result.get("success"):
+            return jsonify({
+                "success": True,
+                "data": result.get("device"),
+                "message": "Device added successfully",
+                "timestamp": datetime.now().isoformat(),
+            }), 201
+        else:
+            return jsonify({"success": False, "message": result.get("error")}), 400
+    except Exception as e:
+        logger.error(f"Error adding device (legacy): {str(e)}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
+
+@api_blueprint.route("/devices", methods=["POST"])
+def create_device_canonical():
+    """Canonical POST /api/devices — persists a new device to devices.json (no auth guard for demo)"""
+    try:
+        data = request.get_json() or {}
+        current_app.device_manager._load_devices()
+        result = current_app.device_manager.add_device(data)
+        if result.get("success"):
+            return jsonify({
+                "success": True,
+                "data": result.get("device"),
+                "message": "Device added successfully",
+                "timestamp": datetime.now().isoformat(),
+            }), 201
+        else:
+            return jsonify({"success": False, "message": result.get("error"), "error": result.get("error")}), 400
+    except Exception as e:
+        logger.error(f"Error adding device (canonical): {str(e)}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
+
+@api_blueprint.route("/devices/<device_id>", methods=["GET"])
+def get_device(device_id):
+    """Get device by ID"""
+    try:
+        device = current_app.device_manager.get_device(device_id)
+        if device:
+            return jsonify({
+                "success": True,
+                "data": device,
+                "timestamp": datetime.now().isoformat(),
+            }), 200
+        else:
+            return jsonify({"success": False, "message": "Device not found"}), 404
+    except Exception as e:
+        logger.error(f"Error getting device {device_id}: {str(e)}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
+
+@api_blueprint.route("/devices/<device_id>", methods=["PUT"])
+def update_device(device_id):
+    """Update device information — no auth guard for demo"""
+    try:
+        print(f"🔍 UPDATE request for device_id: '{device_id}' (type: {type(device_id)})")  # ADD THIS
+        
+        data = request.get_json() or {}
+        current_app.device_manager._load_devices()
+        result = current_app.device_manager.update_device(device_id, data)
+        print(f"📋 Update result: {result}")  # ADD THIS
+        
+        if result.get("success"):
+            return jsonify({
+                "success": True,
+                "data": result.get("device"),
+                "message": "Device updated successfully",
+                "timestamp": datetime.now().isoformat(),
+            }), 200
+        else:
+            return jsonify({"success": False, "message": result.get("error")}), 404
+    except Exception as e:
+        logger.error(f"Error updating device {device_id}: {str(e)}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@api_blueprint.route("/devices/<device_id>", methods=["DELETE"])
+def delete_device(device_id):
+    """Delete a device — no auth guard for demo"""
+    try:
+        print(f"🔍 DELETE request for device_id: '{device_id}' (type: {type(device_id)})")  # ADD THIS
+        
+        current_app.device_manager._load_devices()
+        
+        # ADD THIS: Log what devices are loaded
+        all_devices = current_app.device_manager.devices  # or whatever the attribute is called
+        print(f"📦 Loaded {len(all_devices)} devices: {[d.get('id') for d in all_devices]}")
+        
+        result = current_app.device_manager.delete_device(device_id)
+        print(f"📋 Delete result: {result}")  # ADD THIS
+        
+        if result.get("success"):
+            return jsonify({
+                "success": True,
+                "message": result.get("message"),
+                "timestamp": datetime.now().isoformat(),
+            }), 200
+        else:
+            return jsonify({"success": False, "message": result.get("error")}), 404
+    except Exception as e:
+        logger.error(f"Error deleting device {device_id}: {str(e)}")
+        return jsonify({"success": False, "message": str(e)}), 500
 
 
 @api_blueprint.route("/honeypot/files", methods=["GET"])
@@ -707,6 +834,222 @@ def cleanup_old_honeypot_captures():
         return jsonify(result), status_code
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
+
+
+# --- HONEYPOT FILE CRUD (by filename) ---
+
+
+@api_blueprint.route("/honeypot/files", methods=["POST"])
+def create_honeypot_file():
+    """
+    POST /api/honeypot/files
+    Create a new honeypot file.
+    Body: { "filename": str, "content": str }
+    """
+    try:
+        data = request.get_json() or {}
+        filename = (data.get("filename") or "").strip()
+        content = data.get("content", "")
+
+        if not filename:
+            return jsonify({"success": False, "error": "filename is required"}), 400
+
+        result = current_app.honeypot_file_handler.add_file(filename, content)
+        status_code = 201 if result.get("success") else 400
+        return jsonify({
+            "success": result.get("success", False),
+            "data": result.get("file"),
+            "error": result.get("error"),
+            "timestamp": datetime.now().isoformat(),
+        }), status_code
+    except Exception as e:
+        logger.error(f"Error creating honeypot file: {str(e)}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@api_blueprint.route("/honeypot/files/<filename>", methods=["PUT"])
+def rename_honeypot_file(filename):
+    """
+    PUT /api/honeypot/files/<filename>
+    Rename a honeypot file on disk.
+    Body: { "new_filename": str }
+    """
+    try:
+        data = request.get_json() or {}
+        new_filename = (data.get("new_filename") or "").strip()
+        if not new_filename:
+            return jsonify({"success": False, "error": "new_filename is required"}), 400
+
+        result = current_app.honeypot_file_handler.rename_file(filename, new_filename)
+        status_code = 200 if result.get("success") else 400
+        return jsonify({
+            "success": result.get("success", False),
+            "data": result,
+            "error": result.get("error"),
+            "timestamp": datetime.now().isoformat(),
+        }), status_code
+    except Exception as e:
+        logger.error(f"Error renaming honeypot file {filename}: {str(e)}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@api_blueprint.route("/honeypot/files/<filename>", methods=["DELETE"])
+def delete_honeypot_file_by_name(filename):
+    """
+    DELETE /api/honeypot/files/<filename>
+    Delete a honeypot file from disk by its filename.
+    """
+    try:
+        from pathlib import Path as _Path
+        safe = _Path(filename).name
+        if not safe:
+            return jsonify({"success": False, "error": "Invalid filename"}), 400
+
+        filepath = current_app.honeypot_file_handler.honeypot_dir / safe
+        if not filepath.exists():
+            return jsonify({"success": False, "error": f"File not found: {safe}"}), 404
+
+        filepath.unlink()
+        # Remove from captures list if tracked
+        updated = [c for c in current_app.honeypot_file_handler.captures if c.get("filename") != safe]
+        current_app.honeypot_file_handler.captures = updated
+        current_app.honeypot_file_handler._save_captures()
+
+        logger.info(f"Honeypot file deleted by name: {safe}")
+        return jsonify({
+            "success": True,
+            "message": f"File {safe} deleted",
+            "timestamp": datetime.now().isoformat(),
+        }), 200
+    except Exception as e:
+        logger.error(f"Error deleting honeypot file {filename}: {str(e)}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@api_blueprint.route("/honeypot/files-list", methods=["GET"])
+def list_honeypot_files_on_disk():
+    """
+    GET /api/honeypot/files-list
+    Returns every file present in honeypot_captures/ (not just metadata captures).
+    """
+    try:
+        files = current_app.honeypot_file_handler.list_files()
+        return jsonify({
+            "success": True,
+            "data": files,
+            "count": len(files),
+            "timestamp": datetime.now().isoformat(),
+        }), 200
+    except Exception as e:
+        logger.error(f"Error listing honeypot files: {str(e)}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+# =============================================================================
+# /api/remediation  —  One-Click Remediation Buttons
+# =============================================================================
+# Accepts { action, ip, device_id, threat_type, severity }.
+# No auth required so the demo works without login.
+# =============================================================================
+
+
+@api_blueprint.route("/remediation", methods=["POST"])
+def run_remediation():
+    """
+    POST /api/remediation
+    Execute one of three remediation actions:
+      action = "block_ip"       — add ip to the firewall blocklist
+      action = "isolate_device" — activate kill-switch / network isolation
+      action = "run_playbook"   — evaluate threat and run remediation playbook
+    """
+    try:
+        data = request.get_json() or {}
+        action = (data.get("action") or "").strip()
+        ip = data.get("ip") or data.get("threat_ip") or "0.0.0.0"
+        device_id = data.get("device_id")
+        threat_type = data.get("threat_type", "manual_remediation")
+        severity = data.get("severity", "high")
+
+        if not action:
+            return jsonify({"success": False, "error": "action is required"}), 400
+
+        result_payload = {
+            "action": action,
+            "ip": ip,
+            "timestamp": datetime.now().isoformat(),
+        }
+
+        if action == "block_ip":
+            reason = f"Manual block via one-click remediation ({threat_type})"
+            block_result = current_app.ip_blacklist_service.blacklist_ip(ip, reason)
+            result_payload.update({
+                "success": block_result.get("success", False),
+                "message": f"IP {ip} blocked" if block_result.get("success") else block_result.get("error", "Block failed"),
+                "data": block_result,
+            })
+
+        elif action == "isolate_device":
+            iso_result = current_app.kill_switch.activate(
+                reason=f"Manual isolation via one-click remediation ({threat_type})",
+                auto=False,
+            )
+            result_payload.update({
+                "success": iso_result.get("success", False),
+                "message": "Network isolated" if iso_result.get("success") else iso_result.get("error", "Isolation failed"),
+                "data": iso_result,
+            })
+
+        elif action == "run_playbook":
+            # Block + optionally isolate + AI analysis
+            actions_taken = {}
+            # Step 1: Block IP
+            try:
+                br = current_app.firewall_manager.block_ip(ip, f"Playbook remediation – {threat_type}")
+                actions_taken["ip_blocked"] = br.get("success", False)
+            except Exception as ex:
+                actions_taken["ip_blocked"] = False
+                logger.warning(f"Playbook: block IP failed: {ex}")
+
+            # Step 2: Isolate if critical
+            if severity.lower() in ("critical", "high"):
+                try:
+                    ir = current_app.kill_switch.activate(
+                        reason=f"Playbook remediation – {threat_type}",
+                        auto=True,
+                    )
+                    actions_taken["network_isolated"] = ir.get("success", False)
+                except Exception as ex:
+                    actions_taken["network_isolated"] = False
+                    logger.warning(f"Playbook: isolation failed: {ex}")
+
+            # Step 3: AI analysis
+            try:
+                analysis = current_app.ai_translator.analyze_threat({
+                    "threat_type": threat_type,
+                    "source_ip": ip,
+                    "severity": severity,
+                })
+                actions_taken["ai_analysis"] = True
+            except Exception:
+                analysis = {}
+                actions_taken["ai_analysis"] = False
+
+            result_payload.update({
+                "success": True,
+                "message": "Playbook executed",
+                "actions_taken": actions_taken,
+                "analysis": analysis,
+            })
+
+        else:
+            return jsonify({"success": False, "error": f"Unknown action: {action}"}), 400
+
+        logger.info(f"Remediation executed: action={action} ip={ip} success={result_payload.get('success')}")
+        return jsonify(result_payload), 200
+
+    except Exception as e:
+        logger.error(f"Error in /api/remediation: {str(e)}")
+        return jsonify({"success": False, "error": str(e)}), 500
 
 
 # =============================================================================

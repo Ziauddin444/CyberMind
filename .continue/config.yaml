@@ -1,0 +1,22 @@
+name: CyberMind Local Stack
+version: 0.0.1
+schema: v1
+
+models:
+  - name: Qwen Coder Chat
+    provider: ollama
+    model: qwen2.5-coder:7b
+    apiBase: http://localhost:11434
+
+tabAutocompleteModel:
+  name: Qwen Coder Autocomplete
+  provider: ollama
+  model: qwen2.5-coder:1.5b
+  apiBase: http://localhost:11434
+
+tabAutocompleteOptions:
+  debounceDelay: 400
+  maxPromptTokens: 1500
+  multilineCompletions: always
+
+allowAnonymousTelemetry: false

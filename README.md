@@ -1,267 +1,144 @@
-# CyberMind Sentinel
+# CyberMind Sentinel: The "Check Engine Light" for SMB Networks
 
-> **Enterprise-Grade Security Platform for SMEs**  
-> A comprehensive security management and device monitoring system designed to protect small and medium-sized enterprises from cyber threats.
+**Capstone 2 Demo Release**
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
-![Status](https://img.shields.io/badge/status-Active-brightgreen)
+CyberMind Sentinel is a lightweight, AI-driven network intrusion detection tool explicitly designed for Small-to-Medium Businesses (SMBs) without a dedicated security operations center (SOC).
 
 ---
 
-## 📋 Table of Contents
+## 🎓 Capstone 2 Scope & Grading Highlights
 
-- [Overview](#overview)
-- [Architecture](#architecture)
-- [Features](#features)
-- [Project Structure](#project-structure)
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Running the Application](#running-the-application)
-- [API Endpoints](#api-endpoints)
-- [Authentication](#authentication)
-- [Email Setup](#email-setup)
-- [Security Features](#security-features)
-- [Contributing](#contributing)
-- [License](#license)
+This project is built around the Capstone 2 scope: **port scan and DoS detection, AI-translated terminal alerting, and a low CPU / low-cost footprint.** Enterprise cloud integration, automated malware removal, and a mobile app are explicitly **out of scope** for this phase, keeping the project focused on a deployable SMB edge solution.
 
----
+### 1. Ingestion Engine & Packet Scanner (Low CPU Footprint)
 
-## 🎯 Overview
+* **Goal:** Detect threats without the computational cost of Deep Packet Inspection (DPI).
+* **Implementation:** The Scapy sniffer (`backend_flask/app/services/packet_scanner.py`) performs **stateless header extraction** — it reads only header-level metadata per packet and drops the payload immediately.
+* **The Math:** A standard packet on a 1500-byte MTU network is reduced to a **150-byte** processing footprint per packet, a **90% reduction** in processing load compared to full payload inspection. At 100,000 packets/sec, this drops throughput requirements from ~143 MB/s to ~14.3 MB/s. `sniff(store=False)` keeps RAM flat regardless of capture duration, since packets are processed and discarded rather than accumulated.
+* **Fault-Tolerant Demo Mode:** If the host lacks `root` privileges (required for raw packet sniffing), the engine falls back to realistic synthetic traffic generation so the system remains demonstrable in any environment.
 
-**CyberMind Sentinel** is an AI-powered autonomous cybersecurity platform delivering real-time threat detection, intelligent log analysis, and automated defense mechanisms. It provides SMEs with tools to:
-- Manage user authentication and authorization securely
-- Monitor and manage connected devices
-- Receive security alerts and notifications
-- Maintain audit logs of security events
-- Detect threats using OS-specific log ingestion and AI
+### 2. Random Forest AI Model (Threat Classification)
+
+* **Goal:** Accurate anomaly detection without the overhead of deep learning models.
+* **Implementation:** The classifier (`backend_flask/app/services/rf_classifier.py`) is trained offline on the industry-standard **NSL-KDD dataset** (~125,973 samples, 41 features) to learn attack patterns.
+* **Live Inference:** At prediction time, the model receives a real-time feature vector derived from `packet_scanner.py`. Categories detected include: Safe, Brute Force, Port Scan, DDoS, SQL Injection, and Malware C2 traffic.
+
+### 3. AI Log Translation (Ollama + Mistral — Zero Cost)
+
+* **Goal:** Make technical alerts understandable to a non-technical SMB owner, with no ongoing API cost.
+* **Implementation:** `ai_translator.py` connects to a **locally running Ollama instance with the Mistral model**. All translation happens on-device — no internet connection or paid API key required.
+* **Fallback:** If Ollama is not running, the system automatically falls back to a rule-based translator so alerting never breaks.
+
+### 4. Honeypot (Real Socket Listeners)
+
+* **Goal:** Capture and log reconnaissance/brute-force attempts against common attacker-targeted ports.
+* **Implementation:** `network_honeypot.py` binds real TCP sockets on ports 22 (SSH), 23 (Telnet), 8080 (HTTP-Admin), and 3389 (RDP), serving decoy banners and logging connection attempts and payloads to disk.
+* **Note:** Ports below 1024 (22, 23) require elevated privileges on macOS/Linux — run with `sudo` for full coverage.
+
+### 5. Frontend & Live Alerting
+
+* **Goal:** Provide an accessible "Check Engine Light" dashboard for non-technical users.
+* **Implementation:** The dashboard (`frontend/`) polls the Flask backend and displays AI-translated, plain-English alerts in a live activity feed.
 
 ---
 
 ## 🏗️ Architecture
 
-The platform uses a modern 3-tier architecture to separate concerns:
+```
+Frontend (Vite)         Port 5173   — Dashboard & live alert feed
+Node.js Auth Backend    Port 3001   — Registration, login, JWT issuance
+Flask Ops Backend       Port 5000   — IDS engine, RF classifier, honeypot,
+                                       packet capture, AI translation, kill switch
+Ollama (local)          Port 11434  — Mistral model for AI log translation
+SQLite                  —           — Scan/threat audit logging
+```
 
-1. **Frontend (Port 5173)**
-   - Built with **Vite**, **Tailwind CSS**, and **Vanilla JS/React**.
-   - Provides an interactive dashboard and real-time security event feed.
-
-2. **Authentication Backend (Port 3001)**
-   - Built with **Node.js** and **Express.js**.
-   - Handles secure registration, JWT token generation, password hashing (bcrypt), and email verification.
-
-3. **Operations & AI Backend (Port 5000)**
-   - Built with **Python** and **Flask/FastAPI**.
-   - Handles active defense mechanisms, live packet captures, threat analysis (via Google Gemini AI), and device honeypots.
+The frontend communicates with **two separate backends**: Node.js handles authentication and user accounts, while Flask handles all security operations (detection, classification, honeypot, blacklist, kill switch).
 
 ---
 
-## ✨ Features
+## 🚀 Running the Project
 
-### 🔍 Real-Time Log Monitoring
-- **Windows**: Event Viewer integration (Security, System, Application logs)
-- **Linux**: Syslog, auth.log, audit logs monitoring
-- **macOS**: System logs and security event monitoring
-- Automatic OS-specific log source detection
-
-### 🤖 AI-Powered Threat Analysis
-- AI for intelligent threat assessment
-- Plain-English threat summaries
-- Automatic severity scoring (Critical → Low)
-- Contextual remediation recommendations
-
-### 🛡️ Active Defense Mechanisms
-- **Kill Switch**: File Integrity Monitoring (FIM) for ransomware detection
-- **Honeypot Manager**: Decoy systems to trap attackers
-- Adaptive protection based on OS
-
-### 🔐 Authentication & User Management
-- **Secure Registration** - Create accounts with email verification
-- **Login System** - Session-based authentication with JWT tokens
-- **Password Recovery** - Secure password reset flow via email
-- **Profile Management** - Update user information and preferences
-
----
-
-## 📁 Project Structure
-
-```
-CyberMind/
-├── backend/                       # Node.js Auth & User Backend (Port 3001)
-│   ├── server.js                  # Express server & API routes
-│   ├── email.js                   # Email service configuration
-│   ├── package.json               # Node.js dependencies
-│   └── users.json                 # User database (created at runtime)
-│
-├── backend_flask/                 # Python Ops & Security Backend (Port 5000)
-│   ├── app/                       # Flask application
-│   ├── run.py                     # Entry point for Flask backend
-│   └── requirements.txt           # Python dependencies
-│
-├── frontend/                      # Vite Frontend (Port 5173)
-│   ├── index.html                 # Frontend entry point
-│   ├── vite.config.js             # Vite configuration
-│   └── package.json               # Frontend dependencies
-│
-├── start_all.sh                   # Script to start all 3 services
-├── stop_servers.sh                # Script to kill all 3 services
-└── README.md                      # This documentation
-```
-
----
-
-## 📦 Prerequisites
-
-Ensure you have the following installed before proceeding:
-
-- **Node.js** (v18.0.0 or higher)
-- **Python** (3.10 or higher)
-- **npm** (Comes with Node.js)
-- **Git**
-
-Check your versions:
-```bash
-node --version
-python3 --version
-```
-
----
-
-## 🚀 Installation
-
-1. **Clone the Repository**
-```bash
-git clone https://github.com/yourusername/CyberMind.git
-cd CyberMind
-```
-
-2. **Install Node Backend Dependencies**
-```bash
-cd backend
-npm install
-cd ..
-```
-
-3. **Install Python Backend Dependencies**
-```bash
-cd backend_flask
-python3 -m venv ../.venv
-source ../.venv/bin/activate
-pip install -r requirements.txt
-cd ..
-```
-
-4. **Install Frontend Dependencies**
-```bash
-cd frontend
-npm install
-cd ..
-```
-
----
-
-## 🎮 Running the Application
-
-### The Easy Way (Automated Script)
-
-To start the entire application stack (Node.js backend, Python backend, and Vite frontend):
+### Quick Start
 
 ```bash
-./start_all.sh
-```
-
-**⚠️ Live Packet Capture:** If you want the Python backend to perform live network packet scanning (via Scapy), it requires elevated privileges. Run the script with `sudo`:
-
-```bash
+# Start all three services (Node.js, Flask, Vite)
 sudo bash start_all.sh
 ```
 
-*(Without sudo, the packet scanner silently falls back to synthetic simulation).*
+> `sudo` is required for live packet capture (Scapy) and for the honeypot to bind ports 22/23. Without `sudo`, the system runs fully functional in synthetic/demo mode.
 
-To stop all servers:
+**Services started:**
+* Frontend: `http://localhost:5173`
+* Auth API (Node.js): `http://localhost:3001/api`
+* Security Ops API (Flask): `http://localhost:5000/api`
+
+**To stop:** `bash stop_servers.sh`, or `Ctrl+C` if running in the foreground.
+
+### Ollama Setup (one-time)
+
 ```bash
-./stop_servers.sh
+brew install ollama          # macOS
+ollama pull mistral
+ollama serve
 ```
 
-### Manual Startup (Development)
+### System Verification
 
-If you prefer to start each component in a separate terminal:
+A full diagnostic script is included to verify every component end-to-end:
 
-**Terminal 1 - Auth Backend (Node.js)**
 ```bash
-cd backend
-npm start
+sudo python3 diagnostic_check.py
 ```
 
-**Terminal 2 - Ops Backend (Python)**
-```bash
-cd backend_flask
-source ../.venv/bin/activate
-python3 run.py
-```
-
-**Terminal 3 - Frontend (Vite)**
-```bash
-cd frontend
-npm run dev
-```
-
-Then open your browser to: **http://localhost:5173**
+This checks Flask health, Ollama/Mistral availability, AI translation, honeypot port binding, the RF classifier, live packet capture, IP blacklist, kill switch, SQLite logging, and JWT authentication — 10 components in total.
 
 ---
 
-## 🔌 API Endpoints
+## 🔌 Key API Endpoints
 
-### Authentication (Node.js - Port 3001)
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/auth/register` | Create new account |
-| POST | `/api/auth/login` | User login |
-| GET | `/api/auth/verify` | Check session validity |
-| POST | `/api/auth/logout` | End session |
-
-### Security Ops (Python - Port 5000)
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/status` | System status & detected OS |
-| GET | `/api/logs` | Fetch security logs |
-| GET | `/api/devices/list` | List all monitored devices |
-| GET | `/api/firewall/status` | Check firewall status |
-| GET | `/api/honeypot/summary` | Honeypot metrics |
+| POST | `/api/scan/start` | Start a background packet capture + classification job |
+| GET | `/api/scan/status/<job_id>` | Poll scan job status/results |
+| POST | `/api/analyze` | Submit raw log text/data for IDS analysis |
+| GET | `/api/honeypot/status` | Honeypot threat summary |
+| POST | `/api/blacklist/ip` | Blacklist an IP (requires auth) |
+| GET | `/api/blacklist/status` | View blacklist records |
+| POST | `/api/kill_switch` | Trigger network isolation |
+| GET | `/api/isolation/status` | Check kill switch / isolation status |
+| GET | `/api/logs` | SQLite audit log history |
+| POST | `/api/ollama/test` | Test AI translation pipeline |
+| GET | `/api/ollama/status` | Check Ollama/Mistral availability |
+| POST | `/api/auth/login` (Node.js, port 3001) | User login, returns JWT |
 
 ---
 
 ## 🛡️ Security Features
 
-- **Password Hashing** - Bcrypt with 10 salt rounds
-- **JWT Tokens** - Stateless authentication
-- **HTTPS Ready** - Supports secure connections
-- **CORS Protection** - Restricted origin access
-- **Input Validation** - Sanitized user inputs
+* **JWT Authentication** — role-based access (viewer → analyst → admin → super-admin)
+* **Password Hashing** — bcrypt, 10 salt rounds
+* **Protected Routes** — blacklist and remediation endpoints require authentication
+* **SQLite Audit Logging** — thread-safe scan/threat history
+* **OS-native Firewall Integration** — cross-platform (macOS/Linux/Windows)
 
 ---
 
-## 🤝 Contributing
+## 🚫 Out of Scope (Capstone 2)
 
-Contributions are welcome! Please follow these steps:
-
-1. **Fork** the repository
-2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
-3. **Commit** changes (`git commit -m 'Add amazing feature'`)
-4. **Push** to branch (`git push origin feature/amazing-feature`)
-5. **Open** a Pull Request
+* Enterprise cloud / SIEM integration
+* Automated malware removal
+* Mobile application
+* Multi-tenant deployment
 
 ---
 
-## 📄 License
+## 📦 Prerequisites
 
-This project is licensed under the **MIT License** - see the LICENSE file for details.
-You are free to use this project for personal, commercial, and open-source purposes.
+* Node.js 18+
+* Python 3.9+
+* Ollama (for local AI translation)
+* macOS/Linux recommended for full Scapy + honeypot functionality (`sudo` required for ports < 1024 and live capture)
 
-<div align="center">
+---
 
-**[⬆ Back to Top](#cybermind-sentinel)**
-
-Made with ❤️ for cybersecurity professionals
-
-</div>

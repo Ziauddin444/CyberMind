@@ -12,8 +12,8 @@
       "resetExpires": 1774927294406,
       "emailVerified": true,
       "isAdmin": true,
-      "lastLogin": "2026-06-12T08:43:03.351Z",
-      "loginCount": 50,
+      "lastLogin": "2026-07-04T16:19:07.522Z",
+      "loginCount": 67,
       "role": "super-admin"
     },
     {
@@ -39,22 +39,6 @@
       "password": "$2b$10$Y3XXfagrekIrsthc1YIcFe3CundGiWH7PPobaf5l.nF6MpGPkVgGC",
       "name": "Test User",
       "company": "Test Company",
-      "createdAt": "2026-03-30",
-      "resetToken": null,
-      "resetExpires": null,
-      "emailVerified": true,
-      "isAdmin": false,
-      "lastLogin": null,
-      "loginCount": 0,
-      "role": "viewer"
-    },
-    {
-      "id": 5,
-      "username": "ziauddin0",
-      "email": "demo90@gmail.com",
-      "password": "$2b$10$jpAaLyXvfwwA647JiRW/o.txo/uHZDswpFRrQlyu2r0cZuVbWpMGm",
-      "name": "Zia Ud Din",
-      "company": "Chameleon touring System",
       "createdAt": "2026-03-30",
       "resetToken": null,
       "resetExpires": null,
@@ -93,6 +77,22 @@
       "lastLogin": "2026-04-17T11:43:24.469Z",
       "loginCount": 2,
       "role": "viewer"
+    },
+    {
+      "id": 11,
+      "username": "khankhan",
+      "email": "khankhan@gmail.com",
+      "password": "$2b$10$PLS/vvIeR/mGKqTTIhNWwe4.zzp6DaTOCxpKfm77MMLpMYh6WMXNW",
+      "name": "demo1",
+      "company": "gateway college",
+      "createdAt": "2026-06-27",
+      "resetToken": null,
+      "resetExpires": null,
+      "emailVerified": false,
+      "role": "viewer",
+      "isAdmin": false,
+      "lastLogin": null,
+      "loginCount": 0
     }
   ]
 }

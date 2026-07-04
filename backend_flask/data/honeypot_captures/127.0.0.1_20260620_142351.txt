@@ -1,0 +1,5 @@
+Source IP: 127.0.0.1
+Threat Type: brute_force
+Timestamp: 2026-06-20T14:23:51.152651
+============================================================
+{'source_ip': '127.0.0.1', 'source_port': 54759, 'target_port': 3389, 'service_name': 'RDP', 'payload': 'Error reading payload: [Errno 54] Connection reset by peer', 'threat_type': 'brute_force', 'severity': 'critical', 'timestamp': '2026-06-20T14:23:51.152281', 'banner_sent': '\x03\x00\x00\x13\x0eÐ\x00\x00\x124\x00\x02\x0f\x08\x00\x02\x00\x00\x00'}/html\r\n\r\n<html><title>Admin Login</title></html>'}

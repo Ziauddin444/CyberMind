@@ -1,7 +1,7 @@
 // ─── CyberMind Sentinel — Main Application ─────────────────────────────────
 
 import * as api from './api.js';
-
+let logsRefreshInterval = null;
 let currentScreen = 'dashboard';
 let editingDevice = null;
 let deletingDevice = null;
@@ -9,42 +9,8 @@ let lastLiveFeedText = '';
 const seenBlockedRecordIds = new Set();
 const seenNotificationEventKeys = new Set();
 const seenLiveEventKeys = new Set();
-let mockAttackCursor = 0;
 let blockedIpsRefreshStarted = false;
 
-
-const MOCK_ATTACK_SCENARIOS = [
-  { attack: 'SYN flood attempt', ip: '45.83.122.41', type: 'warning' },
-  { attack: 'UDP amplification probe', ip: '103.92.24.11', type: 'warning' },
-  { attack: 'ICMP sweep reconnaissance', ip: '185.220.101.7', type: 'info' },
-  { attack: 'Nmap stealth scan', ip: '91.134.77.192', type: 'warning' },
-  { attack: 'Masscan high-rate sweep', ip: '146.70.18.63', type: 'warning' },
-  { attack: 'SSH brute-force sequence', ip: '139.59.112.33', type: 'warning' },
-  { attack: 'RDP credential stuffing', ip: '198.44.136.12', type: 'warning' },
-  { attack: 'SMB null-session enumeration', ip: '172.105.58.20', type: 'info' },
-  { attack: 'DNS tunneling signature', ip: '154.53.37.89', type: 'warning' },
-  { attack: 'SQL injection payload burst', ip: '217.138.221.15', type: 'warning' },
-  { attack: 'XSS reflected payload test', ip: '84.17.39.227', type: 'info' },
-  { attack: 'Directory traversal exploit attempt', ip: '212.102.54.101', type: 'warning' },
-  { attack: 'Command injection probe', ip: '95.214.53.18', type: 'warning' },
-  { attack: 'Local file inclusion pattern', ip: '37.120.145.220', type: 'info' },
-  { attack: 'Web shell upload attempt', ip: '46.165.245.71', type: 'warning' },
-  { attack: 'C2 beacon callback blocked', ip: '45.67.231.10', type: 'warning' },
-  { attack: 'Reverse shell handshake denied', ip: '66.115.189.211', type: 'warning' },
-  { attack: 'PowerShell encoded command detected', ip: '89.44.9.176', type: 'warning' },
-  { attack: 'Mimikatz credential dump pattern', ip: '107.189.29.8', type: 'warning' },
-  { attack: 'Kerberoasting enumeration traffic', ip: '104.244.72.221', type: 'info' },
-  { attack: 'ARP spoofing frame anomaly', ip: '51.15.129.52', type: 'warning' },
-  { attack: 'Rogue DHCP offer rejected', ip: '176.10.99.200', type: 'warning' },
-  { attack: 'FTP anonymous write attempt', ip: '80.67.172.162', type: 'info' },
-  { attack: 'Telnet brute-force on legacy host', ip: '5.199.130.188', type: 'warning' },
-  { attack: 'LDAP enumeration burst', ip: '138.197.204.45', type: 'info' },
-  { attack: 'SNMP community string guessing', ip: '77.247.181.165', type: 'warning' },
-  { attack: 'Token replay signature blocked', ip: '23.146.248.90', type: 'warning' },
-  { attack: 'Malware staging URL callback', ip: '185.220.102.244', type: 'warning' },
-  { attack: 'Data exfiltration over HTTPS pattern', ip: '143.244.35.61', type: 'warning' },
-  { attack: 'Privilege escalation exploit chain', ip: '31.7.58.114', type: 'warning' },
-];
 
 function getSavedTheme() {
   return localStorage.getItem('cybermind_theme') || 'light';
@@ -101,13 +67,13 @@ function notifyOnce(eventKey, message) {
 // ─── Ollama Status Check ────────────────────────────────────────────────────
 
 async function checkAndShowOllamaStatus() {
-    try {
-        const result = await api.checkOllamaStatus();
-        const banner = document.getElementById('ollama-status-banner');
-        if (!banner) return;
-        
-        if (result.ollama && result.ollama.available) {
-            banner.innerHTML = `
+  try {
+    const result = await api.checkOllamaStatus();
+    const banner = document.getElementById('ollama-status-banner');
+    if (!banner) return;
+
+    if (result.ollama && result.ollama.available) {
+      banner.innerHTML = `
                 <div class="flex items-center gap-2 px-4 py-2 
                      bg-green-500/10 border border-green-500/30 
                      rounded-lg text-sm">
@@ -121,8 +87,8 @@ async function checkAndShowOllamaStatus() {
                         (free, private, no internet required)
                     </span>
                 </div>`;
-        } else {
-            banner.innerHTML = `
+    } else {
+      banner.innerHTML = `
                 <div class="flex items-center gap-2 px-4 py-2 
                      bg-yellow-500/10 border border-yellow-500/30 
                      rounded-lg text-sm">
@@ -136,10 +102,10 @@ async function checkAndShowOllamaStatus() {
                         Run: ollama serve
                     </span>
                 </div>`;
-        }
-    } catch (err) {
-        console.warn('Ollama status check failed:', err);
     }
+  } catch (err) {
+    console.warn('Ollama status check failed:', err);
+  }
 }
 
 function toOwnerFriendlyText(text, type = 'info') {
@@ -149,22 +115,22 @@ function toOwnerFriendlyText(text, type = 'info') {
   const lowered = normalized.toLowerCase();
 
   if (lowered.includes('port scan detected')) {
-    return 'Someone from outside scanned your network. We blocked them.';
+    return 'Someone from outside scanned ur network. We blocked them.';
   }
   if (lowered.includes('outbound connection to suspicious domain blocked')) {
     return 'A device tried to connect to an unsafe website. We blocked that connection.';
   }
   if (lowered.includes('firewall rules updated automatically')) {
-    return 'Your security protections were updated automatically.';
+    return 'Ur security protections were updated automatically.';
   }
   if (lowered.includes('ssl certificate renewal verified')) {
-    return 'Your secure website connection settings were checked and are valid.';
+    return 'Ur secure website connection settings were checked and are valid.';
   }
   if (lowered.includes('new login from trusted device')) {
     return 'A known device signed in successfully.';
   }
   if (lowered.includes('scheduled backup completed successfully')) {
-    return 'Your scheduled backup finished successfully.';
+    return 'Ur scheduled backup finished successfully.';
   }
   if (lowered.includes('blocked suspicious ip')) {
     return normalized.replace('Blocked suspicious IP', 'We blocked a risky connection from');
@@ -245,7 +211,7 @@ async function handleLogin(e) {
   } catch (err) {
     errorEl.classList.remove('hidden');
     if (String(err.message || '').includes('403')) {
-      errorText.textContent = 'Access denied for your role';
+      errorText.textContent = 'Access denied for ur role';
     } else if (String(err.message || '').includes('429')) {
       errorText.textContent = 'Too many failed attempts. Try again later.';
     } else {
@@ -317,7 +283,7 @@ async function handleSignup(e) {
   try {
     const result = await api.register(username, email, password, confirmPassword, name, company);
     errorEl.classList.add('hidden');
-    showToast('Account created! Verify your email to login...');
+    showToast('Account created! Verify ur email to login...');
 
     // Store email token for verification
     sessionStorage.setItem('emailToken', result.emailToken);
@@ -412,7 +378,7 @@ async function handleForgotPassword(e) {
 
   if (!email) {
     errorEl.classList.remove('hidden');
-    document.getElementById('forgot-password-error-text').textContent = 'Please enter your email';
+    document.getElementById('forgot-password-error-text').textContent = 'Please enter ur email';
     return;
   }
 
@@ -691,6 +657,9 @@ function switchAdminTab(tab) {
 // ─── Navigation ─────────────────────────────────────────────────────────────
 
 function navigateTo(screen) {
+  if (currentScreen === 'logs' && screen !== 'logs') {
+    stopLogsLiveFeed();
+  }
   currentScreen = screen;
   const screens = ['dashboard-screen', 'logs-screen', 'honeypot-screen', 'threats-screen', 'settings-screen', 'admin-screen', 'analyze-screen'];
   screens.forEach(id => document.getElementById(id)?.classList.add('hidden'));
@@ -705,7 +674,7 @@ function navigateTo(screen) {
 
   switch (screen) {
     case 'dashboard': document.getElementById('dashboard-screen').classList.remove('hidden'); loadDashboard(); break;
-    case 'logs': document.getElementById('logs-screen').classList.remove('hidden'); loadLogs(); break;
+    case 'logs': document.getElementById('logs-screen').classList.remove('hidden'); loadLogs(); startLogsLiveFeed(); break;
     case 'honeypot': document.getElementById('honeypot-screen').classList.remove('hidden'); loadHoneypot(); break;
     case 'threats': document.getElementById('threats-screen').classList.remove('hidden'); loadThreats(); break;
     case 'settings': document.getElementById('settings-screen').classList.remove('hidden'); loadSettings(); break;
@@ -889,18 +858,18 @@ function initScanPanel() {
   if (_scanPanelReady) return;
   _scanPanelReady = true;
   const slider = document.getElementById('scan-packet-count');
-  const label  = document.getElementById('scan-packet-count-label');
+  const label = document.getElementById('scan-packet-count-label');
   if (slider && label) slider.addEventListener('input', () => { label.textContent = slider.value; });
   const btn = document.getElementById('scan-start-btn');
   if (btn) btn.addEventListener('click', runScan);
 }
 
 const _SCAN_PHASE_LABELS = {
-  starting:    'Initialising scanner...',
-  capturing:   'Capturing packets with Scapy...',
+  starting: 'Initialising scanner...',
+  capturing: 'Capturing packets with Scapy...',
   classifying: 'Running Random Forest classifier...',
-  done:        'Analysis complete',
-  error:       'Error',
+  done: 'Analysis complete',
+  error: 'Error',
 };
 
 function _scanLog(msg) {
@@ -913,31 +882,31 @@ function _scanLog(msg) {
 }
 
 function _setScanProgress(pct, phase) {
-  const bar   = document.getElementById('scan-progress-bar');
+  const bar = document.getElementById('scan-progress-bar');
   const label = document.getElementById('scan-phase-label');
   const pctEl = document.getElementById('scan-progress-pct');
-  if (bar)   bar.style.width = `${pct}%`;
+  if (bar) bar.style.width = `${pct}%`;
   if (label) label.textContent = _SCAN_PHASE_LABELS[phase] || phase;
   if (pctEl) pctEl.textContent = `${pct}%`;
 }
 
 async function runScan() {
-  const slider      = document.getElementById('scan-packet-count');
+  const slider = document.getElementById('scan-packet-count');
   const packetCount = slider ? parseInt(slider.value) : 100;
-  const btn         = document.getElementById('scan-start-btn');
-  const btnIcon     = document.getElementById('scan-btn-icon');
-  const btnLabel    = document.getElementById('scan-btn-label');
-  const progPanel   = document.getElementById('scan-progress-panel');
-  const resultCard  = document.getElementById('scan-result-card');
-  const errDiv      = document.getElementById('scan-error');
-  const term        = document.getElementById('scan-terminal');
+  const btn = document.getElementById('scan-start-btn');
+  const btnIcon = document.getElementById('scan-btn-icon');
+  const btnLabel = document.getElementById('scan-btn-label');
+  const progPanel = document.getElementById('scan-progress-panel');
+  const resultCard = document.getElementById('scan-result-card');
+  const errDiv = document.getElementById('scan-error');
+  const term = document.getElementById('scan-terminal');
 
   // Reset UI
   if (resultCard) resultCard.classList.add('hidden');
-  if (errDiv)     errDiv.classList.add('hidden');
-  if (term)       term.innerHTML = '<div class="text-yellow-400">$ cybermind-ids --scan --model random_forest</div>';
+  if (errDiv) errDiv.classList.add('hidden');
+  if (term) term.innerHTML = '<div class="text-yellow-400">$ cybermind-ids --scan --model random_forest</div>';
   _setScanProgress(0, 'starting');
-  if (progPanel)  progPanel.classList.remove('hidden');
+  if (progPanel) progPanel.classList.remove('hidden');
   if (btn) btn.disabled = true;
   if (btnIcon) btnIcon.className = 'fa-solid fa-spinner fa-spin text-lg';
   if (btnLabel) btnLabel.textContent = 'SCANNING...';
@@ -984,16 +953,16 @@ async function runScan() {
 }
 
 const _SCAN_SEV = {
-  critical: { header: 'bg-red-950/80 border-red-600',     icon: 'bg-red-500/20',     badge: 'bg-red-500 text-white' },
-  medium:   { header: 'bg-orange-950/60 border-orange-500', icon: 'bg-orange-500/20', badge: 'bg-orange-400 text-black' },
-  low:      { header: 'bg-zinc-900/80 border-zinc-600',   icon: 'bg-emerald-500/20', badge: 'bg-emerald-500 text-black' },
+  critical: { header: 'bg-red-950/80 border-red-600', icon: 'bg-red-500/20', badge: 'bg-red-500 text-white' },
+  medium: { header: 'bg-orange-950/60 border-orange-500', icon: 'bg-orange-500/20', badge: 'bg-orange-400 text-black' },
+  low: { header: 'bg-zinc-900/80 border-zinc-600', icon: 'bg-emerald-500/20', badge: 'bg-emerald-500 text-black' },
 };
-const _BAR_CLR = { safe:'bg-emerald-500', brute_force:'bg-red-500', port_scan:'bg-orange-400', ddos:'bg-rose-500', sql_injection:'bg-purple-500', malware_c2:'bg-yellow-500' };
+const _BAR_CLR = { safe: 'bg-emerald-500', brute_force: 'bg-red-500', port_scan: 'bg-orange-400', ddos: 'bg-rose-500', sql_injection: 'bg-purple-500', malware_c2: 'bg-yellow-500' };
 
 function renderScanResult(result) {
-  const card    = document.getElementById('scan-result-card');
-  const sev     = result.severity || 'low';
-  const style   = _SCAN_SEV[sev] || _SCAN_SEV.low;
+  const card = document.getElementById('scan-result-card');
+  const sev = result.severity || 'low';
+  const style = _SCAN_SEV[sev] || _SCAN_SEV.low;
   const confPct = Math.round((result.confidence || 0) * 100);
 
   const header = document.getElementById('scan-result-header');
@@ -1023,16 +992,16 @@ function renderScanResult(result) {
     Object.entries(result.breakdown).sort(([, a], [, b]) => b - a).forEach(([lbl, pct]) => {
       const clr = _BAR_CLR[lbl] || 'bg-zinc-500';
       const row = document.createElement('div');
-      row.innerHTML = `<div class="flex items-center justify-between text-xs mb-1"><span class="text-zinc-300 font-medium">${lbl.replace(/_/g,' ')}</span><span class="text-zinc-500 font-mono">${pct.toFixed(1)}%</span></div><div class="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden"><div class="${clr} h-full rounded-full" style="width:${pct}%"></div></div>`;
+      row.innerHTML = `<div class="flex items-center justify-between text-xs mb-1"><span class="text-zinc-300 font-medium">${lbl.replace(/_/g, ' ')}</span><span class="text-zinc-500 font-mono">${pct.toFixed(1)}%</span></div><div class="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden"><div class="${clr} h-full rounded-full" style="width:${pct}%"></div></div>`;
       barsEl.appendChild(row);
     });
   }
 
   const mc = document.getElementById('scan-meta-count'); if (mc) mc.textContent = result.packet_count;
-  const mm = document.getElementById('scan-meta-mode');  if (mm) mm.textContent = result.capture_mode || '--';
-  const mt = document.getElementById('scan-meta-ts');    if (mt) mt.textContent = result.timestamp ? new Date(result.timestamp).toLocaleTimeString() : '--';
+  const mm = document.getElementById('scan-meta-mode'); if (mm) mm.textContent = result.capture_mode || '--';
+  const mt = document.getElementById('scan-meta-ts'); if (mt) mt.textContent = result.timestamp ? new Date(result.timestamp).toLocaleTimeString() : '--';
 
-  if (card) { card.className = `rounded-2xl border overflow-hidden ${style.header}`; card.classList.remove('hidden'); card.scrollIntoView({ behavior:'smooth', block:'nearest' }); }
+  if (card) { card.className = `rounded-2xl border overflow-hidden ${style.header}`; card.classList.remove('hidden'); card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
 }
 
 // ─── Tab Switching ──────────────────────────────────────────────────────────
@@ -1053,7 +1022,7 @@ async function loadDashboard() {
   try {
     const [status, devices, blacklistResp] = await Promise.all([
       api.getStatus(),
-      api.getDevices(),
+      loadAllDevices(),
       api.getBlacklistStatus().catch(() => null),
     ]);
     renderStatus(status, devices);
@@ -1157,6 +1126,8 @@ function renderFleet(devices) {
   if (!container) return;
   container.innerHTML = '';
 
+  console.log('📦 Rendering fleet, devices:', devices); // ADD THIS LOG
+
   const typeIcons = { laptop: 'fa-laptop', server: 'fa-server', mobile: 'fa-mobile-screen', iot: 'fa-microchip' };
 
   devices.forEach(device => {
@@ -1200,6 +1171,92 @@ function renderFleet(devices) {
   });
 }
 
+// ─── Device Local Storage Helpers ───────────────────────────────────────────
+
+function getLocalDevices() {
+  try {
+    return JSON.parse(localStorage.getItem('cybermind_devices') || '[]');
+  } catch { return []; }
+}
+
+function saveLocalDevices(devices) {
+  localStorage.setItem('cybermind_devices', JSON.stringify(devices));
+}
+
+function generateDeviceId() {
+  return 'dev_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
+async function handleAddDevice(formData) {
+  const newDevice = {
+    id: generateDeviceId(),
+    name: formData.name,
+    type: formData.type || 'server',
+    ip: formData.ip || '',
+    status: 'online',
+    lastThreat: 'None',
+    safety: 95,
+    createdAt: new Date().toISOString(),
+    source: 'manual',
+  };
+  const devices = getLocalDevices();
+  devices.push(newDevice);
+  saveLocalDevices(devices);
+  return newDevice;
+}
+
+async function handleUpdateDevice(id, formData) {
+  const devices = getLocalDevices();
+  const idx = devices.findIndex(d => d.id === id);
+  if (idx === -1) throw new Error('Device not found');
+  devices[idx] = { ...devices[idx], ...formData, updatedAt: new Date().toISOString() };
+  saveLocalDevices(devices);
+  return devices[idx];
+}
+
+async function handleDeleteDevice(id) {
+  const devices = getLocalDevices();
+  const filtered = devices.filter(d => d.id !== id);
+  saveLocalDevices(filtered);
+  return { success: true };
+}
+
+async function loadAllDevices() {
+  // PRIMARY: Flask /api/devices/list — CRUD now persists here (devices.json)
+  try {
+    const flaskData = await api.opsGetDevices();
+    const raw = flaskData?.data || (Array.isArray(flaskData) ? flaskData : []);
+    if (raw.length > 0) {
+      return raw.map(d => ({
+        id: d.id,
+        name: d.name,
+        type: d.device_type || d.type || 'server',
+        ip: d.ip_address || d.ip || '',
+        status: (d.status || 'online').toLowerCase(),
+        lastThreat: d.lastThreat || 'None',
+        safety: Number.isFinite(d.safety) ? d.safety : 95,
+        source: 'flask',
+      }));
+    }
+  } catch (flaskErr) {
+    console.warn('Flask devices unavailable:', flaskErr.message);
+  }
+
+  // FALLBACK: Node.js backend
+  try {
+    const nodeDevices = await api.getDevices();
+    if (Array.isArray(nodeDevices) && nodeDevices.length > 0) {
+      return nodeDevices;
+    }
+  } catch (nodeErr) {
+    console.warn('Node devices also unavailable:', nodeErr.message);
+  }
+
+  // LAST RESORT: in-browser local storage
+  return getLocalDevices();
+}
+
+
 // ─── Device CRUD ────────────────────────────────────────────────────────────
 
 function showAddDeviceModal() {
@@ -1221,34 +1278,50 @@ async function submitAddDevice() {
   if (!name) { showToast('Please enter a device name'); return; }
 
   try {
-    const device = await api.addDevice({ name, type, ip: ip || undefined });
-    showToast(`Device "${device.name}" added successfully`);
+    // POST to Flask /api/devices — persists to data/devices.json
+    await api.opsAddDevice({ name, device_type: type, ip_address: ip || '' });
+    showToast('Device added successfully');
     closeAddDeviceModal();
-    loadDashboard();
-  } catch (err) { showToast('Failed to add device'); }
+    // Reload devices from Flask and re-render
+    const devices = await loadAllDevices();
+    renderFleet(devices);
+  } catch (err) { showToast('Failed: ' + err.message); }
 }
 
 async function showEditDeviceModal(id) {
   try {
     let device;
-    let source = 'node';
+    let source = 'manual';
 
     if (typeof id === 'object' && id !== null) {
-      source = id.source || 'node';
+      source = id.source || 'manual';
       const deviceId = id.id;
+
       if (source === 'flask') {
-        const response = await api.opsGetDevice(deviceId);
-        device = {
-          id: response?.data?.id,
-          name: response?.data?.name,
-          type: response?.data?.device_type || 'laptop',
-          ip: response?.data?.ip_address || '',
-        };
+        // Flask-discovered device — try the ops API
+        try {
+          const response = await api.opsGetDevice(deviceId);
+          device = {
+            id: response?.data?.id || deviceId,
+            name: response?.data?.name || '',
+            type: response?.data?.device_type || 'laptop',
+            ip: response?.data?.ip_address || '',
+          };
+        } catch {
+          showToast('Cannot edit a network-discovered device');
+          return;
+        }
       } else {
-        device = await api.getDevice(deviceId);
+        // Local device — look up from localStorage
+        const localDevices = getLocalDevices();
+        device = localDevices.find(d => d.id === deviceId);
+        if (!device) { showToast('Device not found'); return; }
       }
     } else {
-      device = await api.getDevice(id);
+      // Legacy plain ID — search local first
+      const localDevices = getLocalDevices();
+      device = localDevices.find(d => d.id === id);
+      if (!device) { showToast('Device not found'); return; }
     }
 
     editingDevice = { id: device.id, source };
@@ -1256,7 +1329,7 @@ async function showEditDeviceModal(id) {
     document.getElementById('edit-device-type').value = device.type || 'laptop';
     document.getElementById('edit-device-ip').value = device.ip || '';
     document.getElementById('edit-device-modal').classList.remove('hidden');
-  } catch (err) { showToast(`Failed to load device: ${err.message}`); }
+  } catch (err) { showToast('Failed: ' + err.message); }
 }
 
 function closeEditDeviceModal() {
@@ -1273,24 +1346,31 @@ async function submitEditDevice() {
   if (!name) { showToast('Device name cannot be empty'); return; }
 
   try {
-    if (editingDevice.source === 'flask') {
-      await api.opsUpdateDevice(editingDevice.id, {
-        name,
-        device_type: type,
-        ip_address: ip,
-      });
+    if (editingDevice.source === 'manual' || editingDevice.source === 'node') {
+      await handleUpdateDevice(editingDevice.id, { name, type, ip });
     } else {
-      await api.updateDevice(editingDevice.id, { name, type, ip });
+      // FIX: Send the ID exactly as it is.
+      await api.opsUpdateDevice(editingDevice.id, { name, device_type: type, ip_address: ip });
     }
-    showToast('Device updated');
+
+    showToast('Device updated successfully');
     closeEditDeviceModal();
-    loadDashboard();
-  } catch (err) { showToast(`Failed to update device: ${err.message}`); }
+    const devices = await loadAllDevices();
+    renderFleet(devices);
+  } catch (err) {
+    console.error('Update failed:', err);
+    showToast('Failed to update: ' + err.message);
+  }
 }
 
-function showDeleteConfirm(id, name, source = 'node') {
+function showDeleteConfirm(id, name, source = 'manual') {
+
+  console.log('📝 showDeleteConfirm called with:'); // ADD THIS
+  console.log('  - ID:', id, 'Type:', typeof id); // ADD THIS
+  console.log('  - Name:', name); // ADD THIS
+  console.log('  - Source:', source); // ADD THIS
   deletingDevice = { id, source };
-  document.getElementById('delete-confirm-text').textContent = `Are you sure you want to remove "${name}" from your fleet?`;
+  document.getElementById('delete-confirm-text').textContent = `Are you sure you want to remove "${name}" from ur fleet?`;
   document.getElementById('delete-confirm-modal').classList.remove('hidden');
 }
 
@@ -1302,59 +1382,67 @@ function closeDeleteModal() {
 async function confirmDeleteDevice() {
   if (!deletingDevice) return;
   try {
-    if (deletingDevice.source === 'flask') {
-      await api.opsDeleteDevice(deletingDevice.id);
+    if (deletingDevice.source === 'manual' || deletingDevice.source === 'node') {
+      await handleDeleteDevice(deletingDevice.id);
     } else {
-      await api.deleteDevice(deletingDevice.id);
+      // FIX: Send the ID exactly as it is (e.g. "device_002" or 2). 
+      // DO NOT wrap it in Number() anymore!
+      await api.opsDeleteDevice(deletingDevice.id);
     }
-    showToast('Device removed from fleet');
+
+    showToast('Device removed successfully');
     closeDeleteModal();
-    loadDashboard();
-  } catch (err) { showToast(`Failed to delete device: ${err.message}`); }
+    const devices = await loadAllDevices();
+    renderFleet(devices);
+  } catch (err) {
+    console.error('Delete failed:', err);
+    showToast('Failed to delete: ' + err.message);
+  }
 }
 
-async function handleToggleDevice(id, source = 'node', currentStatus = 'offline') {
+async function handleToggleDevice(id, source = 'manual', currentStatus = 'offline') {
+  const nextStatus = currentStatus === 'online' ? 'offline' : 'online';
   try {
     if (source === 'flask') {
-      const nextStatus = currentStatus === 'online' ? 'offline' : 'online';
+      // FIX: Send the ID exactly as it is.
       await api.opsUpdateDevice(id, { status: nextStatus });
-      showToast(`Device is now ${nextStatus}`);
     } else {
-      const device = await api.toggleDevice(id);
-      showToast(`${device.name} is now ${device.status}`);
+      await handleUpdateDevice(id, { status: nextStatus });
     }
+    showToast(`Device is now ${nextStatus}`);
     loadDashboard();
-  } catch (err) { showToast(`Failed to update device: ${err.message}`); }
+  } catch (err) { showToast('Failed: ' + err.message); }
 }
-
 // ─── Logs ───────────────────────────────────────────────────────────────────
 
 async function loadLogs() {
   try {
     const logs = await api.getLogs();
     renderLogTable(logs);
-  } catch (err) { console.error('Logs load error:', err); }
+  } catch (err) {
+    console.error('Logs load error:', err);
+  }
 }
 
-function renderLogTable(logs) {
-  const tbody = document.getElementById('log-table-body');
-  if (!tbody) return;
-  tbody.innerHTML = '';
+// Add this new function to start the live feed
+function startLogsLiveFeed() {
+  // Clear any existing interval to prevent duplicates
+  if (logsRefreshInterval) clearInterval(logsRefreshInterval);
 
-  logs.forEach(log => {
-    const sevClass = `severity-${log.severity || 'low'}`;
-    const row = document.createElement('tr');
-    row.className = 'hover:bg-yellow-300/5 transition-colors';
-    row.innerHTML = `
-      <td class="py-5 px-8 font-mono text-xs text-zinc-400">${log.time}</td>
-      <td class="py-5 px-8">${log.device}</td>
-      <td class="py-5 px-8 text-amber-300">${log.event}</td>
-      <td class="py-5 px-8 text-xs text-white">${log.summary}</td>
-      <td class="py-5 px-8"><span class="text-[10px] px-3 py-1 rounded-3xl ${sevClass}">${(log.severity || 'low').toUpperCase()}</span></td>
-      <td class="py-5 px-8 text-right"><span class="text-xs px-5 py-2 bg-zinc-800 text-emerald-300 rounded-3xl">${log.action}</span></td>
-    `;
-    tbody.append(row);
-  });
+  // Refresh every 3 seconds
+  logsRefreshInterval = setInterval(() => {
+    if (currentScreen === 'logs') {
+      loadLogs();
+    }
+  }, 3000);
+}
+
+// Add this to stop the feed when leaving the page (saves performance)
+function stopLogsLiveFeed() {
+  if (logsRefreshInterval) {
+    clearInterval(logsRefreshInterval);
+    logsRefreshInterval = null;
+  }
 }
 
 // ─── Honeypot ───────────────────────────────────────────────────────────────
@@ -1367,6 +1455,9 @@ async function loadHoneypot() {
     const countEl = document.getElementById('honeypot-count');
     if (countEl) countEl.textContent = data.count;
   } catch (err) { console.error('Honeypot load error:', err); }
+
+  // Also load capture files from Flask
+  loadHoneypotFiles();
 }
 
 function renderHoneypotTimeline(events) {
@@ -1426,6 +1517,184 @@ async function handleTriggerHoneypot() {
     }
   } catch (err) { showToast('Failed to trigger honeypot'); }
 }
+
+// ─── Honeypot Capture Files ─────────────────────────────────────────────────
+
+async function loadHoneypotFiles() {
+  try {
+    // PRIMARY: list actual files on disk (new endpoint)
+    const diskResult = await api.opsListHoneypotFiles().catch(() => null);
+    const diskFiles = diskResult?.data || [];
+
+    // SECONDARY: metadata captures (legacy endpoint)
+    const capResult = await api.getHoneypotFiles(50).catch(() => null);
+    const capFiles = capResult?.data || [];
+
+    // Merge: disk files first, then any captures not already listed by filename
+    const diskNames = new Set(diskFiles.map(f => f.filename));
+    const extraCaptures = capFiles.filter(c => !diskNames.has(c.filename));
+    const combined = [...diskFiles, ...extraCaptures];
+
+    renderHoneypotFileList(combined.length > 0 ? combined : capFiles);
+  } catch (err) {
+    console.error('Failed to load honeypot files:', err);
+    const container = document.getElementById('honeypot-files-list');
+    if (container) container.innerHTML = '<p class="text-zinc-500 text-sm">No captures available.</p>';
+  }
+}
+
+
+window.deleteHoneypotFile = async function (idOrFilename) {
+  if (!confirm('Delete this capture file?')) return;
+  try {
+    // If it looks like a filename (has an extension or is a string with no numeric only)
+    if (typeof idOrFilename === 'string' && !/^\d+$/.test(idOrFilename)) {
+      await api.opsDeleteHoneypotFileByName(idOrFilename);
+    } else {
+      await api.deleteHoneypotCapture(idOrFilename);
+    }
+    const el = document.getElementById(`honeypot-file-${idOrFilename}`);
+    if (el) el.remove();
+    showToast('Capture deleted');
+    // Re-render the full list
+    loadHoneypotFiles();
+  } catch (err) {
+    showToast('Delete failed: ' + err.message);
+  }
+};
+
+// ─── Honeypot File Add Modal ────────────────────────────────────────────────
+
+function showAddHoneypotFileModal() {
+  // Create a simple inline modal on-demand if it doesn't exist
+  let m = document.getElementById('add-honeypot-file-modal');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = 'add-honeypot-file-modal';
+    m.className = 'fixed inset-0 bg-black/60 flex items-center justify-center z-50';
+    m.innerHTML = `
+      <div class="bg-zinc-900 border border-zinc-700 rounded-2xl p-6 w-full max-w-md">
+        <h3 class="text-white font-semibold mb-4">Add Honeypot File</h3>
+        <label class="block text-xs text-zinc-400 mb-1">Filename</label>
+        <input id="hp-file-name" type="text" placeholder="e.g. credentials.txt"
+               class="w-full bg-zinc-800 text-white border border-zinc-600 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:border-amber-400" />
+        <label class="block text-xs text-zinc-400 mb-1">Content</label>
+        <textarea id="hp-file-content" rows="4" placeholder="File content..."
+               class="w-full bg-zinc-800 text-white border border-zinc-600 rounded-lg px-3 py-2 text-sm mb-4 focus:outline-none focus:border-amber-400"></textarea>
+        <div class="flex gap-3 justify-end">
+          <button onclick="document.getElementById('add-honeypot-file-modal').classList.add('hidden')"
+                  class="px-4 py-2 text-sm text-zinc-400 hover:text-white transition-colors">Cancel</button>
+          <button onclick="submitAddHoneypotFile()"
+                  class="px-4 py-2 text-sm bg-amber-400 text-zinc-900 font-semibold rounded-lg hover:bg-amber-300 transition-colors">Add File</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(m);
+  }
+  document.getElementById('hp-file-name').value = '';
+  document.getElementById('hp-file-content').value = '';
+  m.classList.remove('hidden');
+}
+
+window.showAddHoneypotFileModal = showAddHoneypotFileModal;
+
+window.submitAddHoneypotFile = async function () {
+  const filename = (document.getElementById('hp-file-name')?.value || '').trim();
+  const content = document.getElementById('hp-file-content')?.value || '';
+  if (!filename) { showToast('Please enter a filename'); return; }
+  try {
+    await api.opsCreateHoneypotFile(filename, content);
+    document.getElementById('add-honeypot-file-modal').classList.add('hidden');
+    showToast(`File "${filename}" created`);
+    loadHoneypotFiles();
+  } catch (err) {
+    showToast('Failed to create file: ' + err.message);
+  }
+};
+
+// ─── Honeypot File Rename ────────────────────────────────────────────────────
+
+window.showRenameHoneypotFileModal = function (filename) {
+  let m = document.getElementById('rename-honeypot-file-modal');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = 'rename-honeypot-file-modal';
+    m.className = 'fixed inset-0 bg-black/60 flex items-center justify-center z-50';
+    m.innerHTML = `
+      <div class="bg-zinc-900 border border-zinc-700 rounded-2xl p-6 w-full max-w-sm">
+        <h3 class="text-white font-semibold mb-4">Rename Honeypot File</h3>
+        <input id="hp-rename-old" type="hidden" />
+        <label class="block text-xs text-zinc-400 mb-1">New Filename</label>
+        <input id="hp-rename-new" type="text" placeholder="new_name.txt"
+               class="w-full bg-zinc-800 text-white border border-zinc-600 rounded-lg px-3 py-2 text-sm mb-4 focus:outline-none focus:border-amber-400" />
+        <div class="flex gap-3 justify-end">
+          <button onclick="document.getElementById('rename-honeypot-file-modal').classList.add('hidden')"
+                  class="px-4 py-2 text-sm text-zinc-400 hover:text-white transition-colors">Cancel</button>
+          <button onclick="submitRenameHoneypotFile()"
+                  class="px-4 py-2 text-sm bg-amber-400 text-zinc-900 font-semibold rounded-lg hover:bg-amber-300 transition-colors">Rename</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(m);
+  }
+  document.getElementById('hp-rename-old').value = filename;
+  document.getElementById('hp-rename-new').value = filename;
+  m.classList.remove('hidden');
+};
+
+window.submitRenameHoneypotFile = async function () {
+  const oldName = document.getElementById('hp-rename-old')?.value || '';
+  const newName = (document.getElementById('hp-rename-new')?.value || '').trim();
+  if (!newName || newName === oldName) { showToast('Please enter a different filename'); return; }
+  try {
+    await api.opsRenameHoneypotFile(oldName, newName);
+    document.getElementById('rename-honeypot-file-modal').classList.add('hidden');
+    showToast(`Renamed to "${newName}"`);
+    loadHoneypotFiles();
+  } catch (err) {
+    showToast('Failed to rename: ' + err.message);
+  }
+};
+
+// Update renderHoneypotFileList to use filename-based delete + expose rename
+function renderHoneypotFileList(files) {
+  const container = document.getElementById('honeypot-files-list');
+  if (!container) return;
+
+  if (!files || files.length === 0) {
+    container.innerHTML = '<p class="text-zinc-500 text-sm">No captures yet.</p>';
+    return;
+  }
+
+  container.innerHTML = files.map(f => {
+    // Support both legacy captures format (id, source_ip) and new file format (filename)
+    const displayName = f.filename || f.source_ip || 'Unknown';
+    const meta = f.threat_type
+      ? `${f.threat_type} · ${f.timestamp ? new Date(f.timestamp).toLocaleString() : ''}`
+      : f.modified_at ? new Date(f.modified_at).toLocaleString() : '';
+    const deleteKey = f.filename || f.id;
+    const safeKey = String(deleteKey).replace(/"/g, '&quot;');
+    return `
+    <div class="flex items-center justify-between p-3 bg-zinc-800/50 rounded-lg border border-zinc-700/50" id="honeypot-file-${safeKey}">
+      <div>
+        <span class="text-sm font-medium text-zinc-200">${displayName}</span>
+        <span class="text-xs text-zinc-400 ml-2">${meta}</span>
+      </div>
+      <div class="flex items-center gap-2">
+        ${f.filename ? `<button onclick="showRenameHoneypotFileModal('${safeKey}')"
+          class="text-amber-400 hover:text-amber-300 text-xs px-2 py-1 border border-amber-500/30 rounded hover:bg-amber-500/10 transition-colors">
+          Rename
+        </button>` : ''}
+        <button onclick="deleteHoneypotFile('${safeKey}')"
+                class="text-red-400 hover:text-red-300 text-xs px-2 py-1 border border-red-500/30 rounded hover:bg-red-500/10 transition-colors">
+          Delete
+        </button>
+      </div>
+    </div>
+  `;
+  }).join('');
+}
+
 
 // ─── Threats ────────────────────────────────────────────────────────────────
 
@@ -1549,11 +1818,117 @@ async function viewThreatDetail(id) {
               <i class="fa-solid fa-lightbulb text-yellow-400 mt-0.5"></i>
               <span class="text-sm text-zinc-300">${r}</span>
             </div>
-          `).join('')}
+           `).join('')}
         </div>
       </div>
     `;
   } catch (err) { showToast('Failed to load threat details'); }
+}
+
+// Show block IP modal
+function showBlockIPModal() {
+  const modal = document.getElementById('block-ip-modal');
+  const ipInput = document.getElementById('block-ip-input');
+
+  // Clear previous input
+  ipInput.value = '';
+
+  // Show modal
+  modal.classList.remove('hidden');
+
+  // Focus on input
+  setTimeout(() => ipInput.focus(), 100);
+}
+
+// Close block IP modal
+function closeBlockIPModal() {
+  document.getElementById('block-ip-modal').classList.add('hidden');
+}
+
+// Confirm and block the IP
+async function confirmBlockIP() {
+  const ipInput = document.getElementById('block-ip-input');
+  const ipAddress = ipInput.value.trim();
+
+  // Validate IP address format
+  if (!ipAddress) {
+    showToast('Please enter an IP address');
+    ipInput.focus();
+    return;
+  }
+
+  // Simple IP validation regex
+  const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
+  if (!ipRegex.test(ipAddress)) {
+    showToast('Please enter a valid IP address (e.g., 192.168.1.1)');
+    return;
+  }
+
+  // Validate each octet is 0-255
+  const octets = ipAddress.split('.');
+  const validOctets = octets.every(octet => {
+    const num = parseInt(octet);
+    return num >= 0 && num <= 255;
+  });
+
+  if (!validOctets) {
+    showToast('Invalid IP address. Each number must be between 0-255');
+    return;
+  }
+
+  try {
+    // Show loading state
+    showToast(`Blocking IP ${ipAddress}...`);
+
+    // Call the backend API to block the IP
+    const response = await fetch('http://localhost:5000/api/blacklist/ip', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        ip_address: ipAddress,
+        reason: 'Manual block via dashboard - One-click remediation'
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to block IP');
+    }
+
+    const result = await response.json();
+
+    // Close modal
+    closeBlockIPModal();
+
+    // Show success message
+    showToast(`✅ IP ${ipAddress} has been blocked successfully`);
+
+    // Refresh dashboard to show updated blocked IPs
+    loadDashboard();
+
+    // Also refresh the blocked IP list if on logs page
+    if (currentScreen === 'logs') {
+      loadLogs();
+    }
+
+  } catch (err) {
+    console.error('Block IP error:', err);
+    showToast('Failed to block IP: ' + err.message);
+  }
+}
+
+// Handle Enter key in the IP input field
+function setupBlockIPModalEvents() {
+  const ipInput = document.getElementById('block-ip-input');
+  if (ipInput) {
+    ipInput.addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') {
+        confirmBlockIP();
+      }
+    });
+  }
 }
 
 // ─── Phishing Check ─────────────────────────────────────────────────────────
@@ -1603,11 +1978,81 @@ async function handleTranslateLog() {
   } catch (err) { showToast('Translation failed'); }
 }
 
-// ─── Remediation ────────────────────────────────────────────────────────────
+// ─── Remediation Action Handlers ────────────────────────────────────────────
 
-async function handleRunPlaybook(n) {
-  try { const r = await api.runRemediation(n); showToast(r.message); } catch (err) { showToast('Playbook failed'); }
+async function _runRemediationWithButton(action, button, ip, threatType, severity, successMsg) {
+  const originalHtml = button ? button.innerHTML : '';
+  const isBtn = button && button.tagName.toLowerCase() === 'button';
+  if (button) {
+    if (isBtn) button.disabled = true;
+    button.style.pointerEvents = 'none';
+    button.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Working...';
+  }
+  try {
+    const result = await api.runRemediationAction(action, ip, threatType, severity);
+    if (result.success === false) throw new Error(result.error || result.message || 'Action failed');
+    showToast(successMsg || 'Remediation action completed');
+    return result;
+  } catch (err) {
+    showToast('Remediation failed: ' + err.message);
+    throw err;
+  } finally {
+    if (button) {
+      if (isBtn) button.disabled = false;
+      button.style.pointerEvents = 'auto';
+      button.innerHTML = originalHtml;
+    }
+  }
 }
+
+async function handleBlockIP(button) {
+  let ip = '0.0.0.0';
+  if (button && button.dataset.ip) {
+    ip = button.dataset.ip;
+  } else {
+    // Try to get the most recently blocked IP from the blacklist
+    try {
+      const br = await api.getBlacklistStatus().catch(() => null);
+      const recs = br?.data?.blocked_records || [];
+      if (recs.length > 0) ip = recs[0].ip_address || '0.0.0.0';
+    } catch (_) { }
+  }
+  await _runRemediationWithButton('block_ip', button, ip, 'manual_block', 'high', `IP ${ip} blocked`);
+}
+
+async function handleIsolateDevice(button) {
+  const deviceId = button?.dataset?.deviceId || null;
+  const ip = button?.dataset?.ip || '0.0.0.0';
+  await _runRemediationWithButton('isolate_device', button, ip, 'manual_isolation', 'critical', 'Device/network isolated');
+  // Update UI isolation indicator
+  const statusEl = document.getElementById('isolation-status');
+  if (statusEl) { statusEl.textContent = 'ISOLATED'; statusEl.className = 'text-red-400 font-bold'; }
+  const killToggle = document.getElementById('toggle-killswitch');
+  if (killToggle) {
+    killToggle.classList.replace('bg-zinc-700', 'bg-red-500');
+    const ind = killToggle.querySelector('div');
+    if (ind) ind.classList.replace('translate-x-0', 'translate-x-6');
+  }
+}
+
+async function handleRunPlaybook(playbookNumber, button) {
+  console.log(`🎯 Running playbook ${playbookNumber}`);
+
+  switch (playbookNumber) {
+    case 1: // Block Suspicious IP - We'll implement this later
+      showToast('Block IP feature - coming soon');
+      break;
+
+    case 2: // Quarantine Device - Show device selection
+      showQuarantineModal();
+      break;
+
+    default:
+      showToast('Playbook not implemented');
+  }
+}
+
+
 
 // ─── Kill Switch ────────────────────────────────────────────────────────────
 
@@ -1618,11 +2063,21 @@ function showKillModal() {
 
 async function handleTriggerKillSwitch() {
   try {
-    const r = await api.activateKillSwitch(2);
+    const result = await api.activateKillSwitch(2); // level 2 = full isolation
     document.getElementById('kill-modal').classList.add('hidden');
-    showToast(r.message);
+    showToast('🚨 Kill switch activated - Network isolated!');
+
+    // Update UI
+    const statusEl = document.getElementById('isolation-status');
+    if (statusEl) {
+      statusEl.textContent = 'ISOLATED';
+      statusEl.className = 'text-red-400 font-bold animate-pulse';
+    }
+
     loadDashboard();
-  } catch (err) { showToast('Kill switch failed'); }
+  } catch (err) {
+    showToast('Kill switch failed: ' + err.message);
+  }
 }
 
 // ─── Network Scan ───────────────────────────────────────────────────────────
@@ -1635,53 +2090,91 @@ async function handleRunScan() {
   content.innerHTML = `
     <div class="text-center py-12">
       <i class="fa-solid fa-spinner fa-spin text-4xl text-sky-400 mb-4"></i>
-      <div class="text-sm text-zinc-400 scan-pulse">Scanning network...</div>
-      <div class="scan-progress mt-6 mx-auto max-w-xs"><div class="scan-progress-bar"></div></div>
+      <div class="text-sm text-zinc-400 scan-pulse">Discovering devices on network...</div>
+      <div class="scan-progress mt-6 mx-auto max-w-xs">
+        <div class="scan-progress-bar"></div>
+      </div>
+      <div class="mt-4 text-xs text-zinc-500">Scanning 192.168.1.0/24 subnet...</div>
     </div>
   `;
 
   try {
-    await new Promise(r => setTimeout(r, 3000));
-    const result = await api.runScan();
+    // Start scan - direct fetch
+    const startRes = await fetch('http://localhost:5000/api/scan/start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ packet_count: 100 }),
+    });
 
-    content.innerHTML = `
-      <div class="mb-6">
-        <div class="flex items-center gap-x-4">
-          <div class="text-emerald-400"><i class="fa-solid fa-circle-check text-2xl"></i></div>
-          <div>
-            <div class="font-medium text-white">Scan Complete</div>
-            <div class="text-xs text-zinc-400">${result.results.length} devices scanned • ${result.totalVulnerabilities} vulnerabilities found</div>
-          </div>
-        </div>
-      </div>
-      <div class="space-y-4">
-        ${result.results.map(r => `
-          <div class="bg-zinc-800 rounded-2xl p-5">
-            <div class="flex justify-between items-start mb-3">
-              <div>
-                <div class="font-medium text-white">${r.deviceName}</div>
-                <div class="text-xs text-zinc-500">${r.ip} • ${r.scanDuration}</div>
+    if (!startRes.ok) throw new Error('Failed to start scan');
+    const { job_id } = await startRes.json();
+
+    // Poll for results - direct fetch
+    await new Promise((resolve, reject) => {
+      let attempts = 0;
+      const pollInterval = setInterval(async () => {
+        attempts++;
+        try {
+          const statusRes = await fetch(`http://localhost:5000/api/scan/status/${job_id}`);
+          if (!statusRes.ok) throw new Error('Status check failed');
+          const status = await statusRes.json();
+
+          if (status.status === 'done') {
+            clearInterval(pollInterval);
+
+            content.innerHTML = `
+              <div class="mb-6">
+                <div class="flex items-center gap-x-4">
+                  <div class="text-emerald-400"><i class="fa-solid fa-circle-check text-2xl"></i></div>
+                  <div>
+                    <div class="font-medium text-white">Network Scan Complete</div>
+                    <div class="text-xs text-zinc-400">Discovered ${status.result?.packet_count || 0} network events</div>
+                  </div>
+                </div>
               </div>
-              <span class="text-[10px] px-3 py-1 rounded-3xl ${r.status === 'online' ? 'bg-emerald-400/10 text-emerald-400' : 'bg-zinc-700 text-zinc-400'}">${r.status.toUpperCase()}</span>
-            </div>
-            ${r.openPorts.length > 0 ? `<div class="text-xs text-zinc-400 mb-2">Open ports: ${r.openPorts.map(p => `<span class="text-sky-300">${p}</span>`).join(', ')}</div>` : ''}
-            ${r.vulnerabilities.length > 0 ? `
-              <div class="space-y-2 mt-3">
-                ${r.vulnerabilities.map(v => `
-                  <div class="flex items-center gap-x-2 text-xs">
-                    <span class="px-2 py-0.5 rounded severity-${v.severity}">${v.severity.toUpperCase()}</span>
-                    <span class="text-zinc-300">${v.description}</span>
+              <div class="bg-zinc-950 rounded-2xl p-5 mb-4">
+                <div class="text-xs text-zinc-400 mb-2">Scan Summary</div>
+                <div class="text-2xl font-bold text-white">${status.result?.label_pretty || 'Network Analysis'}</div>
+                <div class="text-sm text-zinc-400 mt-1">Confidence: ${Math.round((status.result?.confidence || 0) * 100)}%</div>
+              </div>
+              <div class="text-xs text-zinc-500">
+                <div class="mb-2">Traffic Breakdown:</div>
+                ${Object.entries(status.result?.breakdown || {}).map(([label, pct]) => `
+                  <div class="flex justify-between py-1">
+                    <span class="text-zinc-400">${label.replace('_', ' ').toUpperCase()}</span>
+                    <span class="text-zinc-300">${pct.toFixed(1)}%</span>
                   </div>
                 `).join('')}
               </div>
-            ` : '<div class="text-xs text-emerald-400 mt-2"><i class="fa-solid fa-check mr-1"></i>No vulnerabilities found</div>'}
-          </div>
-        `).join('')}
+            `;
+
+            const devices = await loadAllDevices();
+            renderFleet(devices);
+            showToast('Network scan complete - devices updated');
+            resolve();
+          } else if (status.status === 'error') {
+            clearInterval(pollInterval);
+            reject(new Error(status.error || 'Scan failed'));
+          } else if (attempts > 30) {
+            clearInterval(pollInterval);
+            reject(new Error('Scan timeout'));
+          }
+        } catch (e) {
+          clearInterval(pollInterval);
+          reject(e);
+        }
+      }, 1000);
+    });
+
+  } catch (err) {
+    console.error('Scan error:', err);
+    content.innerHTML = `
+      <div class="text-center py-12 text-red-400">
+        <i class="fa-solid fa-circle-xmark text-4xl mb-4"></i>
+        <div>Scan failed</div>
+        <div class="text-xs text-zinc-500 mt-2">${err.message}</div>
       </div>
     `;
-    showToast(`Scan complete: ${result.totalVulnerabilities} vulnerabilities found`);
-  } catch (err) {
-    content.innerHTML = '<div class="text-center py-12 text-red-400"><i class="fa-solid fa-circle-xmark text-4xl mb-4"></i><div>Scan failed</div></div>';
   }
 }
 
@@ -1768,7 +2261,7 @@ async function loadUserSessions() {
               <i class="fa-solid fa-clock mr-1"></i>Last active: ${distanceFromNow(lastActivityDate)}
             </div>
             <div class="text-xs text-zinc-500 mt-1">
-              Login: ${loginDate.toLocaleDateString()} ${loginDate.toLocaleTimeString()}
+              <i class="fa-solid fa-clock mr-1"></i>Login: ${loginDate.toLocaleDateString()} ${loginDate.toLocaleTimeString()}
             </div>
           </div>
           ${!session.isCurrent ? `
@@ -1866,33 +2359,6 @@ function appendLiveLogEntry(msg, options = {}) {
   liveLog.scrollTop = liveLog.scrollHeight;
 }
 
-function getNextMockAttackEvents(count = 1) {
-  const now = Date.now();
-  const events = [];
-
-  for (let i = 0; i < count; i += 1) {
-    const scenario = MOCK_ATTACK_SCENARIOS[mockAttackCursor % MOCK_ATTACK_SCENARIOS.length];
-    mockAttackCursor += 1;
-    events.push({
-      type: scenario.type,
-      text: scenario.type === 'warning'
-        ? `We blocked unusual activity from ${scenario.ip}. Your systems are safe.`
-        : `We checked unusual activity from ${scenario.ip} and kept your systems safe.`,
-      timestamp: new Date(now - (count - i - 1) * 25000).toISOString(),
-      eventKey: `mock:${scenario.attack}:${scenario.ip}:${mockAttackCursor}`,
-    });
-  }
-
-  return events;
-}
-
-function seedMockAttackHistory() {
-  const liveLog = document.getElementById('live-log');
-  if (!liveLog) return;
-
-  liveLog.innerHTML = '';
-  getNextMockAttackEvents(30).forEach((entry) => appendLiveLogEntry(entry, { force: true }));
-}
 
 function generateFakeLogActivity() {
   setInterval(async () => {
@@ -1913,8 +2379,6 @@ function generateFakeLogActivity() {
       const records = blacklistResp?.data?.blocked_records || [];
       renderBlockedIpList(records);
       syncBlockedEventsToLiveLog(records, true);
-
-      getNextMockAttackEvents(1).forEach((entry) => appendLiveLogEntry(entry));
     } catch (_) { }
   }, 6500);
 }
@@ -1962,6 +2426,7 @@ function handleKeyboard(e) {
 // ─── Event Delegation ───────────────────────────────────────────────────────
 
 function wireEvents() {
+
   // Auth forms
   document.getElementById('login-form')?.addEventListener('submit', handleLogin);
   document.getElementById('signup-form')?.addEventListener('submit', handleSignup);
@@ -2038,12 +2503,36 @@ function wireEvents() {
   // Auth expired
   window.addEventListener('auth:expired', () => { showLogin(); showToast('Session expired. Please sign in again.'); });
 
+  // Fleet device button handlers (class-based, not data-action)
+  document.addEventListener('click', (e) => {
+    const editBtn = e.target.closest('.edit-device');
+    if (editBtn) {
+      const id = editBtn.dataset.deviceId;
+      const source = editBtn.dataset.deviceSource || 'node';
+      showEditDeviceModal({ id: isNaN(id) ? id : Number(id), source });
+      return;
+    }
+    const deleteBtn = e.target.closest('.delete-device');
+    if (deleteBtn) {
+      const id = deleteBtn.dataset.deviceId;
+      const name = deleteBtn.dataset.deviceName;
+      const source = deleteBtn.dataset.deviceSource || 'node';
+      showDeleteConfirm(isNaN(id) ? id : Number(id), name, source);
+      return;
+    }
+  });
+
   // Main click delegation
   document.addEventListener('click', (e) => {
     const target = e.target.closest('[data-action]');
     if (!target) return;
 
+    // FIX: Prevent clicks inside the modal card (like typing in inputs) 
+    // from triggering the "close modal" action on the background overlay.
     const action = target.dataset.action;
+    if (action.startsWith('close-') && e.target.closest('.modal-card')) {
+      return; // Stop here. Do not close the modal.
+    }
     switch (action) {
       case 'navigate': navigateTo(target.dataset.screen); break;
       case 'navigate-mobile': navigateTo(target.dataset.screen); toggleMobileMenu(); break;
@@ -2057,9 +2546,20 @@ function wireEvents() {
       case 'submit-edit-device': submitEditDevice(); break;
       case 'close-delete-modal': closeDeleteModal(); break;
       case 'confirm-delete-device': confirmDeleteDevice(); break;
+      case 'show-block-ip-modal': showBlockIPModal(); break;
+      case 'close-block-ip-modal': closeBlockIPModal(); break;
+
+      // --- QUARANTINE MODAL HANDLERS ---
+      case 'show-quarantine-modal': showQuarantineModal(); break;
+      case 'close-quarantine-modal': closeQuarantineModal(); break;
+      // ---------------------------------
+
       case 'refresh-logs': refreshLogs(); break;
       case 'speak-alert': speakLastAlert(); break;
-      case 'run-playbook': handleRunPlaybook(parseInt(target.dataset.playbook)); break;
+      case 'run-playbook': handleRunPlaybook(parseInt(target.dataset.playbook), target); break;
+      case 'block-ip': handleBlockIP(target); break;
+      case 'isolate-device': handleIsolateDevice(target); break;
+      case 'add-honeypot-file': showAddHoneypotFileModal(); break;
       case 'run-scan': handleRunScan(); break;
       case 'close-scan': document.getElementById('scan-overlay').classList.add('hidden'); break;
       case 'kill-switch': showKillModal(); break;
@@ -2077,7 +2577,8 @@ function wireEvents() {
       case 'close-threat-detail': loadThreats(); break;
       case 'logout': handleLogout(); break;
     }
-  });
+  }
+  );
 
   // Admin user actions delegated events
   document.addEventListener('click', async (e) => {
@@ -2143,19 +2644,13 @@ function wireEvents() {
     }
   });
 
+
   // Fleet grid delegated events
   document.addEventListener('click', (e) => {
     const toggle = e.target.closest('.toggle-device');
     if (toggle) {
       e.stopPropagation();
       handleToggleDevice(toggle.dataset.deviceId, toggle.dataset.deviceSource || 'node', toggle.dataset.deviceStatus || 'offline');
-      return;
-    }
-
-    const editBtn = e.target.closest('.edit-device');
-    if (editBtn) {
-      e.stopPropagation();
-      showEditDeviceModal({ id: editBtn.dataset.deviceId, source: editBtn.dataset.deviceSource || 'node' });
       return;
     }
 
@@ -2208,8 +2703,8 @@ async function initialize() {
   wireEvents();
   const authed = await checkAuth();
 
+
   if (authed) {
-    seedMockAttackHistory();
     generateFakeLogActivity();
   }
 
@@ -2217,3 +2712,95 @@ async function initialize() {
 }
 
 window.addEventListener('DOMContentLoaded', initialize);
+
+// Show quarantine device selection modal
+function showQuarantineModal() {
+  const modal = document.getElementById('quarantine-modal');
+  const listContainer = document.getElementById('quarantine-device-list');
+
+  modal.classList.remove('hidden');
+
+  // Load and display devices
+  loadAllDevices().then(devices => {
+    if (devices.length === 0) {
+      listContainer.innerHTML = `
+        <div class="text-center py-8 text-zinc-500">
+          <i class="fa-solid fa-circle-exclamation text-2xl mb-2"></i>
+          <div class="text-sm">No devices found</div>
+        </div>
+      `;
+      return;
+    }
+
+    listContainer.innerHTML = devices.map(device => `
+      <div class="flex items-center justify-between p-4 bg-zinc-800/50 rounded-2xl border border-zinc-700 hover:border-amber-400/50 transition-colors">
+        <div class="flex items-center gap-x-4">
+          <div class="w-12 h-12 bg-zinc-700 rounded-xl flex items-center justify-center">
+            <i class="fa-solid ${device.type === 'laptop' ? 'fa-laptop' : device.type === 'server' ? 'fa-server' : device.type === 'mobile' ? 'fa-mobile' : 'fa-desktop'} text-zinc-300"></i>
+          </div>
+          <div>
+            <div class="font-medium text-white">${device.name}</div>
+            <div class="text-xs text-zinc-400">${device.ip || 'Unknown IP'} • ${device.type}</div>
+            <div class="text-xs ${device.status === 'online' ? 'text-emerald-400' : 'text-zinc-500'} mt-1">
+              ${device.status.toUpperCase()}
+            </div>
+          </div>
+        </div>
+        <button onclick="confirmQuarantineDevice('${device.id}', '${device.name}', '${device.ip || ''}')"
+          class="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-zinc-900 font-semibold rounded-2xl text-sm transition-colors">
+          QUARANTINE
+        </button>
+      </div>
+    `).join('');
+  }).catch(err => {
+    listContainer.innerHTML = `
+      <div class="text-center py-8 text-red-400">
+        <i class="fa-solid fa-circle-exclamation text-2xl mb-2"></i>
+        <div class="text-sm">Failed to load devices</div>
+      </div>
+    `;
+  });
+}
+
+// Confirm quarantine action
+async function confirmQuarantineDevice(deviceId, deviceName, deviceIp) {
+  if (!confirm(`Are you sure you want to quarantine "${deviceName}"?\n\nThis will isolate the device from the network and block all traffic.`)) {
+    return;
+  }
+
+  try {
+    // Call the isolation API
+    await api.activateIsolation();
+
+    showToast(`Device "${deviceName}" has been quarantined`);
+
+    // Close modal
+    document.getElementById('quarantine-modal').classList.add('hidden');
+
+    // Update dashboard
+    loadDashboard();
+
+  } catch (err) {
+    showToast('Failed to quarantine device: ' + err.message);
+  }
+}
+
+// Close quarantine modal
+function closeQuarantineModal() {
+  document.getElementById('quarantine-modal').classList.add('hidden');
+}
+
+// ──────────────────────────────────────────────────────────────
+// CRITICAL FIX: Expose functions globally to HTML click handlers
+// ──────────────────────────────────────────────────────────────
+window.submitAddDevice = submitAddDevice;
+window.submitEditDevice = submitEditDevice;
+window.confirmDeleteDevice = confirmDeleteDevice;
+// Expose quarantine functions globally for HTML onclick handlers
+window.showQuarantineModal = showQuarantineModal;
+window.confirmQuarantineDevice = confirmQuarantineDevice;
+window.closeQuarantineModal = closeQuarantineModal;
+
+window.showBlockIPModal = showBlockIPModal;
+window.confirmBlockIP = confirmBlockIP;
+window.closeBlockIPModal = closeBlockIPModal;

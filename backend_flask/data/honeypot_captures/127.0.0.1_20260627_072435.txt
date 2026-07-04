@@ -1,0 +1,5 @@
+Source IP: 127.0.0.1
+Threat Type: reconnaissance
+Timestamp: 2026-06-27T07:24:35.839090
+============================================================
+{'source_ip': '127.0.0.1', 'source_port': 50447, 'target_port': 23, 'service_name': 'Telnet', 'payload': 'Error reading payload: [Errno 54] Connection reset by peer', 'threat_type': 'reconnaissance', 'severity': 'medium', 'timestamp': '2026-06-27T07:24:35.837568', 'banner_sent': 'ÿû\x01ÿû\x03ÿý\x18ÿý\x1f'}\x02\x0f\x08\x00\x02\x00\x00\x00'}

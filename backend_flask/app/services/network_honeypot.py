@@ -147,16 +147,16 @@ class NetworkHoneypot:
             sock.listen(5)
             sock.settimeout(1.0)
 
-            # Start background listener thread
+            # Store listener state BEFORE starting the thread to avoid
+            # a race condition where _listener_loop's while-check runs
+            # before this dict entry exists, causing an immediate exit.
             listener_thread = threading.Thread(
                 target=self._listener_loop,
                 args=(port, sock),
                 daemon=True,
                 name=f'honeypot-{port_config["name"]}-{port}'
             )
-            listener_thread.start()
 
-            # Store listener state
             self.active_listeners[port] = {
                 'thread': listener_thread,
                 'socket': sock,
@@ -166,6 +166,9 @@ class NetworkHoneypot:
                     'started_at': datetime.utcnow().isoformat()
                 }
             }
+
+            # Start background listener thread AFTER dict entry exists
+            listener_thread.start()
 
             self.logger.info(
                 f"Honeypot listening on port {port} ({port_config['name']}) "
