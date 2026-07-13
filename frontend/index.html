@@ -411,10 +411,15 @@
                                         Security Analyst</h1>
                                     <p class="text-zinc-400 mt-2 max-w-md">24/7 AI monitoring. No tech expertise
                                         required.</p>
+                                    <div class="mt-3 text-xs font-mono text-zinc-500 flex items-center gap-x-2">
+                                        <i class="fa-solid fa-wifi text-emerald-400"></i>
+                                        <span>Protected IP:</span>
+                                        <span id="wifi-ip-display" class="text-emerald-400 font-medium">--</span>
+                                    </div>
                                 </div>
                                 <div class="hidden sm:flex items-center gap-x-8">
                                     <div class="text-center">
-                                        <div class="text-4xl font-semibold text-emerald-400" id="safety-score">98.4%
+                                        <div class="text-4xl font-semibold text-emerald-400" id="safety-score">--
                                         </div>
                                         <div class="text-xs text-zinc-400 tracking-widest">SAFETY SCORE</div>
                                     </div>
@@ -446,7 +451,7 @@
                                         <div>
                                             <i class="fa-solid fa-triangle-exclamation text-rose-400 text-2xl"></i>
                                             <div class="mt-6">
-                                                <div class="text-5xl font-semibold text-white" id="threat-count">2</div>
+                                                <div class="text-5xl font-semibold text-white" id="threat-count">--</div>
                                                 <div class="text-sm text-rose-400 font-medium">ACTIVE THREATS</div>
                                             </div>
                                         </div>
@@ -473,7 +478,7 @@
                                             <i class="fa-solid fa-network-wired text-sky-400 text-2xl"></i>
                                             <div class="mt-8">
                                                 <div class="flex items-baseline gap-x-3">
-                                                    <div class="text-5xl font-semibold text-white" id="fleet-count">3
+                                                    <div class="text-5xl font-semibold text-white" id="fleet-count">--
                                                     </div>
                                                     <div class="text-emerald-400 text-sm font-medium">FLEET</div>
                                                 </div>
@@ -515,22 +520,7 @@
                             <div id="live-log"
                                 class="terminal h-64 lg:h-[26rem] bg-zinc-950 p-4 rounded-2xl text-emerald-300 overflow-y-auto overflow-x-hidden text-xs leading-relaxed border border-zinc-800 font-light"
                                 tabindex="0" role="log" aria-label="AI log translation live feed">
-                                <div class="log-line mb-3 text-amber-300">[12:41:09] Event ID 4625 - Failed login
-                                    attempt from 185.53.177.54</div>
-                                <div class="log-line mb-3 text-white">→ <span class="text-sky-400">AI
-                                        TRANSLATION:</span> Someone in Romania is trying to guess your admin password.
-                                    Blocked after 7 attempts.</div>
-                                <div class="log-line mb-6 text-zinc-500">IP has been added to block list.</div>
-                                <div class="log-line mb-3 text-violet-300">[12:41:22] File change detected:
-                                    invoice_043.pdf.exe</div>
-                                <div class="log-line text-white">→ <span class="text-sky-400">AI TRANSLATION:</span> A
-                                    suspicious file was just downloaded. Quarantined automatically.</div>
-                                <div class="log-line mb-3 text-violet-300">[12:41:22] Malware detected:
-                                    invoice_043.pdf.exe</div>
-                                <div class="log-line text-white">→ <span class="text-sky-400">AI TRANSLATION:</span> A
-                                    suspicious file was just downloaded. Quarantined automatically.</div>
-                                <div class="log-line mb-3 text-violet-300">[12:41:22] Malware detected:
-                                    invoice_043.pdf.exe</div>
+                                <div class="log-line text-zinc-500 text-center py-4">Waiting for events... Run a scan to see live results.</div>
                             </div>
                             <button data-action="speak-alert"
                                 class="mt-6 text-xs flex items-center justify-center gap-x-2 py-3 px-6 bg-zinc-900 hover:bg-zinc-800 transition-colors border border-yellow-400/30 rounded-3xl">
@@ -585,7 +575,7 @@
                                     <i class="fa-solid fa-ban text-3xl group-active:scale-110 transition-transform"></i>
                                 </div>
                                 <div class="font-medium">Block Suspicious IP</div>
-                                <div class="text-xs text-zinc-400">185.53.177.54</div>
+                                <div class="text-xs text-zinc-400"> IP ADDRESS</div>
                             </button>
                             <button data-action="run-playbook" data-playbook="2"
                                 class="group bg-zinc-800 hover:bg-amber-500/10 border border-transparent hover:border-amber-400 transition-all p-6 rounded-3xl text-left">
@@ -863,10 +853,13 @@
                                 class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Packet
                                 Count</label>
                             <span id="scan-packet-count-label"
-                                class="text-yellow-400 font-bold font-mono text-sm">100</span>
+                                class="text-yellow-400 font-bold font-mono text-sm">200</span>
                         </div>
-                        <input id="scan-packet-count" type="range" min="10" max="300" step="10" value="100"
-                            class="w-full accent-yellow-400 cursor-pointer mb-5" />
+                        <input id="scan-packet-count" type="range" min="50" max="2000" step="50" value="200"
+                            class="w-full accent-yellow-400 cursor-pointer mb-2" />
+                        <div class="flex justify-between text-[10px] text-zinc-600 mb-3">
+                          <span>50 (fast)</span><span>500</span><span>1000</span><span>2000 (deep)</span>
+                        </div>
                         <button id="scan-start-btn" type="button"
                             class="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-300 hover:to-orange-300 text-black font-extrabold rounded-xl transition-all duration-200 text-sm tracking-widest shadow-lg shadow-yellow-400/20 disabled:opacity-50 disabled:cursor-not-allowed">
                             <i id="scan-btn-icon" class="fa-solid fa-satellite-dish text-lg"></i>
@@ -1434,20 +1427,21 @@
                             <i class="fa-solid fa-skull-crossbones text-red-500 text-5xl"></i>
                         </div>
                     </div>
-                    <h3 class="text-center text-2xl font-medium text-red-400">Ransomware Kill Switch</h3>
-                    <p class="text-center text-zinc-400 text-sm mt-3">Mass file modification detected on <span
-                            class="font-medium text-white">DESKTOP-3F9K1M</span></p>
-                    <div class="my-8 border border-red-900 bg-black rounded-2xl p-5 text-xs font-light text-red-200">183
-                        files encrypted in the last 42 seconds.<br>Suspected strain: LockBit variant</div>
+                    <h3 class="text-center text-2xl font-medium text-red-400">Network Kill Switch</h3>
+                    <p class="text-center text-zinc-400 text-sm mt-3">This will immediately isolate all online devices
+                        from the network.</p>
+                    <div class="my-8 border border-red-900 bg-black rounded-2xl p-5 text-xs font-light text-red-200">
+                        All traffic will be cut. This is a hard isolation —
+                        use during active ransomware or breach response.
+                    </div>
                     <div class="flex gap-x-4">
                         <button data-action="kill-switch-dismiss"
-                            class="flex-1 py-6 text-xs border border-zinc-700 rounded-3xl">DISMISS</button>
+                            class="flex-1 py-6 text-xs border border-zinc-700 rounded-3xl">CANCEL</button>
                         <button data-action="kill-switch-confirm"
                             class="flex-1 py-6 text-xs bg-red-500 hover:bg-red-600 transition-colors rounded-3xl font-semibold">ISOLATE
-                            DEVICE NOW</button>
+                            NETWORK NOW</button>
                     </div>
-                    <div class="text-[10px] text-center text-zinc-500 mt-8">This will cut the device off the network
-                        instantly</div>
+                    <div class="text-[10px] text-center text-zinc-500 mt-8">All devices will be marked offline. Network traffic will be blocked.</div>
                 </div>
             </div>
 

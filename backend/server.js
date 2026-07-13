@@ -124,98 +124,26 @@ const emailVerificationTokens = new Map(); // key: token, value: { email, expire
 // User sessions tracking - key: userId, value: [{ sessionId, token, deviceInfo, ip, loginTime, lastActivity }]
 const userSessions = new Map();
 
-// Devices
-const DEFAULT_DEVICES = [
-  { id: 1, name: 'MacBook-Air', type: 'laptop', ip: '192.168.1.10', status: 'online', lastThreat: 'None', safety: 96, addedAt: '2025-01-15' },
-  { id: 2, name: 'Windows-Server', type: 'server', ip: '192.168.1.20', status: 'online', lastThreat: 'Brute force attempt', safety: 71, addedAt: '2025-01-10' },
-  { id: 3, name: 'POS-Terminal-1', type: 'iot', ip: '192.168.1.30', status: 'offline', lastThreat: 'None', safety: 100, addedAt: '2025-02-01' },
-];
-let devices = loadCollection(DEVICES_FILE, DEFAULT_DEVICES);
+// Devices — start empty; users add real devices via the UI
+let devices = loadCollection(DEVICES_FILE, []);
 let nextDeviceId = devices.length > 0 ? Math.max(...devices.map(d => d.id)) + 1 : 1;
 
-// Logs
-const DEFAULT_LOGS = [
-  { id: 1, time: '12:41', device: 'MacBook-Air', event: 'Failed login', summary: 'Brute-force attempt from Russia', action: 'Blocked', severity: 'high' },
-  { id: 2, time: '12:39', device: 'Windows-Server', event: 'File created', summary: 'Suspicious .exe file downloaded', action: 'Quarantined', severity: 'critical' },
-  { id: 3, time: '12:33', device: 'POS-Terminal-1', event: 'USB inserted', summary: 'Unknown USB device connected', action: 'Monitored', severity: 'medium' },
-  { id: 4, time: '12:20', device: 'MacBook-Air', event: 'App installed', summary: 'New application installed: Slack', action: 'Allowed', severity: 'low' },
-  { id: 5, time: '11:55', device: 'Windows-Server', event: 'Port scan', summary: 'External port scan detected from 45.33.32.156', action: 'Blocked', severity: 'high' },
-];
-let logs = loadCollection(LOGS_FILE, DEFAULT_LOGS);
+// Logs — start empty; only real events are added via detect-attack / scan / honeypot
+let logs = loadCollection(LOGS_FILE, []);
 let nextLogId = logs.length > 0 ? Math.max(...logs.map(l => l.id)) + 1 : 1;
 
 // Ensure baseline persistence files exist.
 if (!fs.existsSync(DEVICES_FILE)) saveCollection(DEVICES_FILE, devices);
 if (!fs.existsSync(LOGS_FILE)) saveCollection(LOGS_FILE, logs);
 
-// Honeypot
-let honeypotData = {
-  count: 14,
-  events: [
-    { id: 1, file: 'invoice.docm.exe', time: '11:04', detail: 'Accessed by IP 194.156.87.22 • Trapped' },
-    { id: 2, file: 'passwords.xlsx', time: '10:51', detail: 'Accessed by unknown user • Trapped' },
-  ],
-  decoys: [
-    { id: 1, name: 'tax-return-2024.pdf', modified: '2hrs ago', status: 'ACTIVE' },
-    { id: 2, name: 'client-contracts.docx', modified: '5hrs ago', status: 'ACTIVE' },
-  ],
-};
-let nextHoneypotEventId = 3;
-let nextDecoyId = 3;
+// Honeypot — empty; real data comes from Flask /api/honeypot/logs and /api/honeypot/status
+let honeypotData = { count: 0, events: [], decoys: [] };
+let nextHoneypotEventId = 1;
+let nextDecoyId = 1;
 
-// Threats (detailed)
-let threats = [
-  {
-    id: 1,
-    title: 'Brute Force Login Attack',
-    severity: 'high',
-    status: 'active',
-    sourceIp: '185.53.177.54',
-    sourceCountry: 'Romania',
-    targetDevice: 'Windows-Server',
-    detectedAt: '2025-02-18 12:41:09',
-    attempts: 14,
-    description: 'Multiple failed login attempts targeting the Administrator account from a known malicious IP address.',
-    timeline: [
-      { time: '12:41:09', event: 'First failed login detected' },
-      { time: '12:41:12', event: '5 rapid attempts in 3 seconds' },
-      { time: '12:41:15', event: 'AI flagged as brute force pattern' },
-      { time: '12:41:16', event: 'IP automatically blocked' },
-      { time: '12:41:17', event: 'Alert sent to admin' },
-    ],
-    recommendations: [
-      'Enable multi-factor authentication',
-      'Consider geo-blocking Eastern European IPs',
-      'Review password policy for Administrator account',
-      'Enable account lockout after 5 failed attempts',
-    ],
-  },
-  {
-    id: 2,
-    title: 'Suspicious File Download',
-    severity: 'critical',
-    status: 'active',
-    sourceIp: '91.234.99.12',
-    sourceCountry: 'Unknown',
-    targetDevice: 'MacBook-Air',
-    detectedAt: '2025-02-18 12:39:22',
-    attempts: 1,
-    description: 'A file disguised as a PDF invoice was downloaded. File extension analysis reveals it is an executable (.pdf.exe).',
-    timeline: [
-      { time: '12:39:22', event: 'File download initiated via email link' },
-      { time: '12:39:23', event: 'AI detected double extension (.pdf.exe)' },
-      { time: '12:39:23', event: 'File quarantined before execution' },
-      { time: '12:39:24', event: 'Hash matched known malware signature' },
-    ],
-    recommendations: [
-      'Train employees on phishing email identification',
-      'Block executable downloads from email links',
-      'Enable real-time file scanning',
-      'Review email filtering rules',
-    ],
-  },
-];
-let nextThreatId = 3;
+// Threats — dynamically populated when detect-attack is called; starts empty
+let threats = [];
+let nextThreatId = 1;
 
 // Settings
 let settings = {
@@ -232,13 +160,13 @@ let settings = {
   retentionDays: 90,
 };
 
-// System Status
+// System Status — real values; stats update when detect-attack is called
 let systemStatus = {
   status: 'online',
-  safetyScore: 98.4,
-  aiConfidence: 92,
-  threatsActive: 2,
-  lastThreatDetected: '17s ago',
+  safetyScore: 100,
+  aiConfidence: 90,
+  threatsActive: 0,
+  lastThreatDetected: 'None',
 };
 
 // Phishing patterns
@@ -1202,64 +1130,159 @@ app.get('/api/threats/:id', (req, res) => {
   res.json(threat);
 });
 
-// ─── Kill Switch ────────────────────────────────────────────────────────────
+// ─── Kill Switch — Real Network Isolation ───────────────────────────────────
 
-app.post('/api/killswitch', requireRole('admin'), (req, res) => {
-  const deviceId = req.body.deviceId || 2;
-  const device = devices.find(d => d.id === deviceId);
+app.post('/api/killswitch', requireRole('admin'), async (req, res) => {
+  const reason = req.body.reason || 'Manual kill switch activation';
 
-  if (device) {
-    device.status = 'offline';
-    device.lastThreat = 'Ransomware — ISOLATED';
-    device.safety = 0;
-  }
+  // Mark ALL online devices as isolated
+  let isolated = 0;
+  devices.forEach(d => {
+    if (d.status === 'online') {
+      d.status = 'offline';
+      d.lastThreat = 'Isolated by kill switch';
+      d.safety = 0;
+      isolated++;
+    }
+  });
+  if (devices.length > 0) saveCollection(DEVICES_FILE, devices);
 
+  const timeStr = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
   logs.unshift({
     id: nextLogId++,
-    time: new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }),
-    device: device ? device.name : 'Unknown',
-    event: 'Kill switch',
-    summary: 'Mass encryption halted — device isolated',
+    time: timeStr,
+    device: 'CyberMind',
+    event: 'Kill Switch Activated',
+    summary: `Network isolation triggered: ${reason}. ${isolated} device(s) isolated.`,
     action: 'ISOLATED',
     severity: 'critical',
   });
+  saveCollection(LOGS_FILE, logs);
 
-  systemStatus.threatsActive = Math.max(0, systemStatus.threatsActive - 1);
-  res.json({ success: true, message: 'Device isolated. Ransomware contained.', device });
+  // Also call Flask isolation endpoint
+  try {
+    await fetch('http://localhost:5000/api/isolation/activate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer killswitch', 'X-User-Role': 'admin' },
+      body: JSON.stringify({ reason }),
+    });
+  } catch (_) { /* Flask may not be running */ }
+
+  systemStatus.lastThreatDetected = 'just now';
+  res.json({
+    success: true,
+    message: `Kill switch activated. ${isolated} device(s) isolated from network.`,
+    isolated_count: isolated,
+  });
 });
 
-// ─── Remediation Playbooks ──────────────────────────────────────────────────
+// Release kill switch
+app.post('/api/killswitch/release', requireRole('admin'), async (req, res) => {
+  devices.forEach(d => { if (d.lastThreat === 'Isolated by kill switch') { d.status = 'online'; d.lastThreat = 'None'; d.safety = 95; } });
+  saveCollection(DEVICES_FILE, devices);
+  try {
+    await fetch('http://localhost:5000/api/isolation/deactivate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer admin', 'X-User-Role': 'admin' },
+      body: JSON.stringify({ authorization_code: 'manual' }),
+    });
+  } catch (_) { }
+  res.json({ success: true, message: 'Network isolation released.' });
+});
+
+// ─── Remediation Playbooks — Real ───────────────────────────────────────────
 
 app.post('/api/remediation', requireRole('analyst'), (req, res) => {
-  const { playbook } = req.body;
-  const results = {
-    1: { action: 'block_ip', message: 'IP 185.53.177.54 successfully blocked', success: true },
-    2: { action: 'quarantine', message: 'Device isolated from network', success: true },
-    3: { action: 'deep_scan', message: 'Deep scan started on all devices', success: true },
-  };
+  const { playbook, ip, device_id } = req.body;
+  const timeStr = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+  const detectedAt = new Date().toISOString();
 
-  const result = results[playbook] || { action: 'unknown', message: 'Unknown playbook', success: false };
-
-  if (result.success) {
-    logs.unshift({
-      id: nextLogId++,
-      time: new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }),
-      device: 'System',
-      event: `Playbook ${playbook}`,
-      summary: result.message,
-      action: 'Executed',
-      severity: 'low',
-    });
+  // Playbook 1: Block suspicious IP
+  if (playbook === 1 || req.body.action === 'block_ip') {
+    const targetIp = ip || 'unknown';
+    const alreadyBlocked = ipBlocklist.some(b => b.ip === targetIp && b.status === 'blocked');
+    if (!alreadyBlocked && targetIp !== 'unknown') {
+      ipBlocklist.unshift({
+        id: nextBlockId++, ip: targetIp, attackType: 'suspicious_activity',
+        label: 'Manually Blocked', severity: 'high', status: 'blocked',
+        detectedAt, timeStr, payload: 'Manual block', source_port: 0, target_port: 0, block_method: 'manual',
+      });
+      if (ipBlocklist.length > 500) ipBlocklist = ipBlocklist.slice(0, 500);
+      saveBlocklist(ipBlocklist);
+    }
+    logs.unshift({ id: nextLogId++, time: timeStr, device: 'CyberMind', event: 'IP Blocked',
+      summary: `Manually blocked ${targetIp}`, action: 'Blocked', severity: 'high' });
+    saveCollection(LOGS_FILE, logs);
+    systemStatus.lastThreatDetected = 'just now';
+    return res.json({ action: 'block_ip', message: `IP ${targetIp} blocked successfully`, success: true });
   }
 
-  res.json(result);
+  // Playbook 2: Quarantine device — mark offline + block its IP
+  if (playbook === 2 || req.body.action === 'quarantine') {
+    const targetIp = ip || 'unknown';
+    const device = devices.find(d => d.ip === targetIp || String(d.id) === String(device_id));
+    if (device) {
+      device.status = 'offline'; device.lastThreat = 'Quarantined'; device.safety = 0;
+      saveCollection(DEVICES_FILE, devices);
+    }
+    if (targetIp !== 'unknown') {
+      const alreadyBlocked = ipBlocklist.some(b => b.ip === targetIp && b.status === 'blocked');
+      if (!alreadyBlocked) {
+        ipBlocklist.unshift({
+          id: nextBlockId++, ip: targetIp, attackType: 'suspicious_activity',
+          label: 'Device Quarantined', severity: 'high', status: 'blocked',
+          detectedAt, timeStr, payload: 'Quarantine', source_port: 0, target_port: 0, block_method: 'quarantine',
+        });
+        saveBlocklist(ipBlocklist);
+      }
+    }
+    logs.unshift({ id: nextLogId++, time: timeStr, device: device?.name || targetIp,
+      event: 'Device Quarantined', summary: `Device ${device?.name || targetIp} isolated from network`,
+      action: 'QUARANTINED', severity: 'high' });
+    saveCollection(LOGS_FILE, logs);
+    return res.json({ action: 'quarantine', message: `Device ${device?.name || targetIp} quarantined`, success: true });
+  }
+
+  res.json({ action: 'unknown', message: 'Unknown playbook', success: false });
 });
 
-// ─── Log Translation ────────────────────────────────────────────────────────
+// ─── Log Translation — Real (Flask Ollama + rule fallback) ─────────────────
 
-app.post('/api/logs/translate', (req, res) => {
+app.post('/api/logs/translate', async (req, res) => {
   const { rawLog } = req.body;
-  const translation = 'An attacker from an unknown IP address in Eastern Europe is trying to brute-force your administrator account. They tried 14 different passwords in under a minute.';
+  if (!rawLog) return res.status(400).json({ error: 'rawLog required' });
+
+  // Try Flask Ollama translation first
+  try {
+    const flaskRes = await fetch('http://localhost:5000/api/traffic/translate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        threat_type: rawLog, severity: 'medium', confidence: 0.7,
+        source_ip: 'unknown', matched_signature: rawLog,
+        mitigation: 'Investigate and block if malicious'
+      }),
+    });
+    if (flaskRes.ok) {
+      const data = await flaskRes.json();
+      return res.json({ rawLog, translation: data.translation?.plain_english || data.translation || rawLog });
+    }
+  } catch (_) { }
+
+  // Rule-based fallback
+  const lower = rawLog.toLowerCase();
+  let translation = `Security event detected: ${rawLog}`;
+  if (lower.includes('brute') || lower.includes('login') || lower.includes('password'))
+    translation = 'Someone is repeatedly trying to guess a password. This is a brute-force attack — block the source IP immediately.';
+  else if (lower.includes('scan') || lower.includes('nmap') || lower.includes('port'))
+    translation = 'An attacker is scanning your network ports to find weaknesses. This reconnaissance precedes targeted attacks.';
+  else if (lower.includes('ddos') || lower.includes('flood') || lower.includes('syn'))
+    translation = 'Your network is being flooded with traffic to overwhelm it. This is a Denial of Service attack.';
+  else if (lower.includes('sql') || lower.includes('inject'))
+    translation = 'An attacker is injecting malicious SQL code into your database. This can steal or destroy your data.';
+  else if (lower.includes('malware') || lower.includes('exploit') || lower.includes('shell'))
+    translation = 'Malicious software or exploit code detected. Isolate the affected device immediately.';
+
   res.json({ rawLog, translation });
 });
 
@@ -1350,16 +1373,41 @@ app.put('/api/alerts/config', requireRole('admin'), (req, res) => {
 // ─── Live Feed ──────────────────────────────────────────────────────────────
 
 app.get('/api/live-feed', (_req, res) => {
-  const liveMessages = [
-    { type: 'info', text: 'New login from trusted device' },
-    { type: 'warning', text: 'Outbound connection to suspicious domain blocked' },
-    { type: 'info', text: 'Scheduled backup completed successfully' },
-    { type: 'success', text: 'Firewall rules updated automatically' },
-    { type: 'warning', text: 'Port scan detected from external IP — blocked' },
-    { type: 'info', text: 'SSL certificate renewal verified' },
-  ];
-  res.json(liveMessages[Math.floor(Math.random() * liveMessages.length)]);
+  // Return the most recent real event from the blocklist or logs
+  if (ipBlocklist.length > 0) {
+    const latest = ipBlocklist[0];
+    const timeAgo = formatTimeAgo(latest.detectedAt);
+    const typeMap = {
+      brute_force: 'Brute force attack',
+      port_scan: 'Port scan',
+      ddos: 'DDoS flood',
+      sql_injection: 'SQL injection attempt',
+      malware: 'Malware payload',
+      recon: 'Reconnaissance activity',
+      suspicious_activity: 'Suspicious activity',
+    };
+    const label = typeMap[latest.attackType] || 'Attack';
+    return res.json({
+      type: 'warning',
+      text: `${label} from ${latest.ip} — blocked ${timeAgo}`,
+      timestamp: latest.detectedAt,
+    });
+  }
+  if (logs.length > 0) {
+    const latest = logs[0];
+    return res.json({ type: 'info', text: latest.summary || latest.event, timestamp: latest.time });
+  }
+  res.json({ type: 'info', text: 'CyberMind is monitoring your network. No threats detected yet.', timestamp: new Date().toISOString() });
 });
+
+function formatTimeAgo(isoTimestamp) {
+  if (!isoTimestamp) return 'recently';
+  const diff = Math.floor((Date.now() - new Date(isoTimestamp).getTime()) / 1000);
+  if (diff < 60) return `${diff}s ago`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  return `${Math.floor(diff / 86400)}d ago`;
+}
 
 // ─── Attack Detection & IP Blocklist (Demo Endpoints) ───────────────────────
 
@@ -1435,6 +1483,37 @@ app.post('/api/detect-attack', (req, res) => {
     severity,
   });
   saveCollection(LOGS_FILE, logs);
+
+  // Add to active threats list (deduplicated by sourceIp)
+  if (!alreadyBlocked) {
+    const existingThreat = threats.find(t => t.sourceIp === sourceIp && t.status === 'active');
+    if (!existingThreat) {
+      threats.unshift({
+        id: nextThreatId++,
+        title: label,
+        severity,
+        status: 'active',
+        sourceIp,
+        sourceCountry: 'Unknown',
+        targetDevice: 'CyberMind Host',
+        detectedAt,
+        attempts: 1,
+        description: `${label} detected from ${sourceIp} on port ${target_port}.`,
+        timeline: [
+          { time: timeStr, event: `${label} detected` },
+          { time: timeStr, event: `IP ${sourceIp} auto-blocked` },
+        ],
+        recommendations: [
+          `Block all traffic from ${sourceIp}`,
+          'Review firewall rules',
+          'Check for related activity in logs',
+        ],
+      });
+    } else {
+      existingThreat.attempts = (existingThreat.attempts || 1) + 1;
+      existingThreat.timeline.push({ time: timeStr, event: `Repeated attempt #${existingThreat.attempts}` });
+    }
+  }
 
   // Update system status
   systemStatus.threatsActive = Math.min(systemStatus.threatsActive + (alreadyBlocked ? 0 : 1), 99);

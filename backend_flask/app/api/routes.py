@@ -715,25 +715,29 @@ def update_device(device_id):
 def delete_device(device_id):
     """Delete a device — no auth guard for demo"""
     try:
-        print(f"🔍 DELETE request for device_id: '{device_id}' (type: {type(device_id)})")  # ADD THIS
+        print(f"🔍 DELETE request for device_id: '{device_id}' (type: {type(device_id)})")
         
         current_app.device_manager._load_devices()
         
-        # ADD THIS: Log what devices are loaded
-        all_devices = current_app.device_manager.devices  # or whatever the attribute is called
-        print(f"📦 Loaded {len(all_devices)} devices: {[d.get('id') for d in all_devices]}")
+        # SAFE DEBUG: Prevents 'str' object has no attribute 'get' error
+        all_devices = getattr(current_app.device_manager, 'devices', [])
+        safe_ids = [d.get('id') if isinstance(d, dict) else d for d in all_devices]
+        print(f"📦 Loaded {len(all_devices)} devices: {safe_ids}")
         
         result = current_app.device_manager.delete_device(device_id)
-        print(f"📋 Delete result: {result}")  # ADD THIS
+        print(f"📋 Delete result: {result}")
         
-        if result.get("success"):
+        # Safely check if result is a dictionary and successful
+        if isinstance(result, dict) and result.get("success"):
             return jsonify({
                 "success": True,
-                "message": result.get("message"),
+                "message": result.get("message", "Device deleted"),
                 "timestamp": datetime.now().isoformat(),
             }), 200
         else:
-            return jsonify({"success": False, "message": result.get("error")}), 404
+            error_msg = result.get("error", "Unknown error") if isinstance(result, dict) else str(result)
+            return jsonify({"success": False, "message": error_msg}), 404
+            
     except Exception as e:
         logger.error(f"Error deleting device {device_id}: {str(e)}")
         return jsonify({"success": False, "message": str(e)}), 500
@@ -1216,6 +1220,7 @@ def _run_scan_job(job_id: str, packet_count: int) -> None:
             "per_packet":       prediction["per_packet"],
             "capture_mode":     scan_result["mode"],
             "capture_warning":  scan_result.get("error"),
+            "pcap_file":        scan_result.get("pcap_file"),
             "timestamp":        datetime.utcnow().isoformat() + "Z",
         }
 
@@ -1255,8 +1260,9 @@ def scan_start():
     try:
         body = request.get_json(silent=True) or {}
         packet_count = int(body.get("packet_count",
-                           os.getenv("SCAN_PACKET_COUNT", 100)))
-        packet_count = max(10, min(packet_count, 500))
+                           os.getenv("SCAN_PACKET_COUNT", 200)))
+        # Allow 50–5000 packets for real live capture (no artificial cap for demo)
+        packet_count = max(50, min(packet_count, 5000))
 
         job_id = str(uuid.uuid4())
 
@@ -1398,3 +1404,83 @@ def get_logs():
             """SELECT * FROM scan_logs ORDER BY id DESC LIMIT 50"""
         ).fetchall()
     return jsonify([dict(r) for r in rows]), 200
+
+
+@api_blueprint.route("/stats", methods=["GET"])
+def get_dashboard_stats():
+    """
+    GET /api/stats
+    Returns live dashboard statistics derived from real scan history.
+
+    Returns:
+        {
+          total_scans:        int,
+          threats_today:      int,
+          safe_scans:         int,
+          safety_score:       float (0-100),
+          last_scan_time:     str | null,
+          last_scan_label:    str | null,
+          honeypot_connections: int,
+          honeypot_active_ports: int,
+          mac_ip:             str
+        }
+    """
+    import socket as _socket
+
+    # ── Scan stats from SQLite ────────────────────────────────────────────
+    try:
+        with _scan_db() as con:
+            total = con.execute(
+                "SELECT COUNT(*) as n FROM scan_logs"
+            ).fetchone()["n"]
+
+            threats_today = con.execute(
+                """SELECT COUNT(*) as n FROM scan_logs
+                   WHERE threat_detected=1
+                     AND timestamp >= datetime('now','-1 day')"""
+            ).fetchone()["n"]
+
+            safe_scans = con.execute(
+                "SELECT COUNT(*) as n FROM scan_logs WHERE threat_detected=0"
+            ).fetchone()["n"]
+
+            last_row = con.execute(
+                "SELECT timestamp, label FROM scan_logs ORDER BY id DESC LIMIT 1"
+            ).fetchone()
+    except Exception:
+        total = threats_today = safe_scans = 0
+        last_row = None
+
+    safety_score = round((safe_scans / total * 100), 1) if total > 0 else None
+    last_scan_time = last_row["timestamp"] if last_row else None
+    last_scan_label = last_row["label"] if last_row else None
+
+    # ── Honeypot stats ────────────────────────────────────────────────────
+    try:
+        hp_analysis = current_app.network_honeypot.get_threat_analysis()
+        honeypot_connections = hp_analysis.get("total_connections", 0)
+        honeypot_active_ports = len(hp_analysis.get("active_ports", []))
+    except Exception:
+        honeypot_connections = honeypot_active_ports = 0
+
+    # ── Local machine IP ──────────────────────────────────────────────────
+    try:
+        s = _socket.socket(_socket.AF_INET, _socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        mac_ip = s.getsockname()[0]
+        s.close()
+    except Exception:
+        mac_ip = "127.0.0.1"
+
+    return jsonify({
+        "total_scans":            total,
+        "threats_today":          threats_today,
+        "safe_scans":             safe_scans,
+        "safety_score":           safety_score,
+        "last_scan_time":         last_scan_time,
+        "last_scan_label":        last_scan_label,
+        "honeypot_connections":   honeypot_connections,
+        "honeypot_active_ports":  honeypot_active_ports,
+        "mac_ip":                 mac_ip,
+        "timestamp":              datetime.utcnow().isoformat() + "Z",
+    }), 200

@@ -160,6 +160,12 @@ export const logoutOtherSessions = () => authRequest('/sessions/logout-others', 
 // Status (Node.js Backend)
 export const getStatus = () => authRequest('/status');
 
+// Real-time dashboard stats from Flask SQLite (Phase 1.2 / 2.1 / 2.3 / 2.4)
+export const getFlaskStats = () => opsRequest('/stats');
+
+// Scan history logs from Flask SQLite
+export const getScanLogs = () => opsRequest('/logs');
+
 // Dashboard data (Node.js Backend - Port 3001)
 // Keep these names for compatibility with frontend app.js
 export const getDevices = async () => {
@@ -180,15 +186,39 @@ export const toggleDevice = (id) => authRequest(`/devices/${id}/toggle`, { metho
 export const deleteDevice = (id) => authRequest(`/devices/${id}`, { method: 'DELETE' });
 
 export const getLogs = async () => {
-  const [nodeRes, hpRes] = await Promise.allSettled([
+  const [nodeRes, hpRes, scanRes] = await Promise.allSettled([
     authRequest('/logs'),
     opsRequest('/honeypot/logs'),
+    opsRequest('/logs'),                // Flask SQLite scan history (Phase 1.1)
   ]);
 
   const nodeLogs = nodeRes.status === 'fulfilled' ? nodeRes.value : [];
   const honeypotLogs = hpRes.status === 'fulfilled' ? normalizeHoneypotLogs(hpRes.value) : [];
 
-  return [...honeypotLogs, ...nodeLogs];
+  // Normalize Flask scan logs into the shared log format
+  const rawScanLogs = scanRes.status === 'fulfilled' ? (Array.isArray(scanRes.value) ? scanRes.value : []) : [];
+  const flaskScanLogs = rawScanLogs.map((r) => {
+    const labelMap = {
+      normal: 'success', port_scan: 'warning', brute_force: 'warning',
+      ddos: 'warning', malware: 'warning', probe: 'info',
+    };
+    const severityLabel = r.threat_detected ? (r.severity || 'medium') : 'safe';
+    return {
+      id: `scan-${r.id}`,
+      time: r.timestamp ? new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--',
+      device: 'Network Scanner',
+      event: r.label || 'scan',
+      summary: `${r.label || 'scan'} — ${r.packet_count || 0} packets, ${Math.round((r.confidence || 0) * 100)}% confidence (${r.capture_mode || 'live'})`,
+      action: r.threat_detected ? 'THREAT DETECTED' : 'NORMAL',
+      severity: severityLabel,
+      threat_detected: r.threat_detected,
+      timestamp: r.timestamp,
+      source: 'flask_scan',
+    };
+  });
+
+  // Merge: scan logs first (most recent events), then honeypot, then Node.js logs
+  return [...flaskScanLogs, ...honeypotLogs, ...nodeLogs];
 };
 export const addLog = (data) => authRequest('/logs', { method: 'POST', body: JSON.stringify(data) });
 export const deleteLog = (id) => authRequest(`/logs/${id}`, { method: 'DELETE' });
@@ -200,8 +230,14 @@ export const triggerHoneypot = () => authRequest('/honeypot/trigger', { method: 
 export const checkPhishing = (url) => authRequest('/phishing/check', { method: 'POST', body: JSON.stringify({ url }) });
 export const getThreats = () => authRequest('/threats');
 export const getThreat = (id) => authRequest(`/threats/${id}`);
-export const activateKillSwitch = (deviceId) => authRequest('/killswitch', { method: 'POST', body: JSON.stringify({ deviceId }) });
-export const runRemediation = (playbook) => authRequest('/remediation', { method: 'POST', body: JSON.stringify({ playbook }) });
+// Kill switch — now accepts reason string; Node.js handler sends to all devices
+export const activateKillSwitch = (reason = 'Manual activation') =>
+  authRequest('/killswitch', { method: 'POST', body: JSON.stringify({ reason }) });
+export const releaseKillSwitch = () =>
+  authRequest('/killswitch/release', { method: 'POST', body: JSON.stringify({}) });
+// Remediation — accepts playbook number + optional ip/device_id
+export const runRemediation = (playbook, ip = null, device_id = null) =>
+  authRequest('/remediation', { method: 'POST', body: JSON.stringify({ playbook, ip, device_id }) });
 export const translateLog = (rawLog) => authRequest('/logs/translate', { method: 'POST', body: JSON.stringify({ rawLog }) });
 export const getLiveFeed = () => authRequest('/live-feed');
 export const getSettings = () => authRequest('/settings');

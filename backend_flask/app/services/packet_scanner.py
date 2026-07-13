@@ -188,11 +188,15 @@ def _live_capture(count: int, timeout: int = 30) -> list[dict[str, float]]:
 
     logger.info("Starting Scapy live capture: %d packets (timeout=%ds)", count, timeout)
     try:
-        packets = sniff(count=count, timeout=timeout, store=False)
+        # store=True (default) — we MUST keep packets to extract features
+        packets = sniff(count=count, timeout=timeout, store=True)
     except PermissionError as exc:
         raise RuntimeError("Root privilege required for packet capture") from exc
     except OSError as exc:
         raise RuntimeError(f"Network interface error: {exc}") from exc
+
+    if not packets:
+        raise RuntimeError("No packets captured (network may be idle or timeout reached)")
 
     features: list[dict] = []
     prev_ts: float = 0.0
@@ -202,7 +206,51 @@ def _live_capture(count: int, timeout: int = 30) -> list[dict[str, float]]:
         prev_ts = float(getattr(pkt, "time", prev_ts))
         features.append(feat)
 
+    logger.info("Live capture complete: %d packets → %d feature vectors", len(packets), len(features))
     return features
+
+
+# ── PCAP file reader (offline analysis) ───────────────────────────────────────
+
+def _read_pcap(pcap_path: str, count: int = 100) -> list[dict[str, float]]:
+    """
+    Read packets from a .pcap file and extract features.
+    This allows the professor demo to work with pre-captured real traffic.
+    """
+    try:
+        from scapy.all import rdpcap  # noqa: PLC0415
+    except ImportError as exc:
+        raise RuntimeError("Scapy not installed — cannot read pcap") from exc
+
+    from pathlib import Path
+    path = Path(pcap_path)
+    if not path.exists():
+        raise RuntimeError(f"PCAP file not found: {pcap_path}")
+
+    logger.info("Reading pcap file: %s", pcap_path)
+    packets = rdpcap(str(path))
+    packets = packets[:count]  # limit to requested count
+
+    features: list[dict] = []
+    prev_ts: float = 0.0
+    for pkt in packets:
+        feat = _extract_features(pkt, prev_ts)
+        prev_ts = float(getattr(pkt, "time", prev_ts))
+        features.append(feat)
+
+    logger.info("PCAP read complete: %d packets → %d feature vectors", len(packets), len(features))
+    return features
+
+
+def _find_pcap_file() -> str | None:
+    """Look for .pcap files in the data directory for offline analysis."""
+    from pathlib import Path
+    data_dir = Path(__file__).parent.parent.parent / "data"
+    for ext in ("*.pcap", "*.pcapng", "*.cap"):
+        files = sorted(data_dir.glob(ext), key=lambda f: f.stat().st_mtime, reverse=True)
+        if files:
+            return str(files[0])
+    return None
 
 
 # ── Public entry-point ────────────────────────────────────────────────────────
@@ -211,30 +259,56 @@ def scan_packets(count: int = 100) -> dict[str, Any]:
     """
     Capture (or simulate) `count` packets and return raw feature dicts.
 
+    Priority order:
+        1. Live Scapy capture (requires root / sudo)
+        2. PCAP file in data/ directory (offline real-data analysis)
+        3. Synthetic simulation (fallback for demo environments)
+
     Returns
     -------
     {
         features   : list[dict]   — feature vector per packet
-        mode       : str          — 'live' | 'simulated'
+        mode       : str          — 'live' | 'pcap' | 'simulated'
         count      : int          — actual packets captured
-        error      : str | None   — non-fatal warning if fell back to simulation
+        error      : str | None   — non-fatal warning if fell back
+        pcap_file  : str | None   — pcap filename if mode == 'pcap'
     }
     """
     count = max(10, min(count, 500))   # clamp to sane range
     error: str | None = None
+    pcap_file: str | None = None
 
+    # Attempt 1: Live capture
     try:
         features = _live_capture(count)
         mode = "live"
     except RuntimeError as exc:
-        logger.warning("Live capture failed (%s) — using simulation", exc)
+        logger.warning("Live capture failed (%s) — trying pcap fallback", exc)
         error = str(exc)
-        features = _simulate_packet_capture(count)
-        mode = "simulated"
+
+        # Attempt 2: Read from .pcap file
+        pcap_path = _find_pcap_file()
+        if pcap_path:
+            try:
+                features = _read_pcap(pcap_path, count)
+                mode = "pcap"
+                pcap_file = pcap_path.rsplit("/", 1)[-1]
+                error = None  # pcap worked — clear the error
+            except RuntimeError as pcap_exc:
+                logger.warning("PCAP read failed (%s) — falling back to simulation", pcap_exc)
+                error = str(pcap_exc)
+                features = _simulate_packet_capture(count)
+                mode = "simulated"
+        else:
+            # Attempt 3: Simulation
+            features = _simulate_packet_capture(count)
+            mode = "simulated"
 
     return {
         "features": features,
         "mode": mode,
         "count": len(features),
         "error": error,
+        "pcap_file": pcap_file,
     }
+

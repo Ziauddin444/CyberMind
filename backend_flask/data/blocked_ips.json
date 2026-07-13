@@ -1,5 +1,27 @@
 [
   {
+    "record_id": 4,
+    "ip_address": "192.168.2.1",
+    "reason": "Device quarantined: Nothing Pro",
+    "status": "blocked",
+    "blocked_at": "2026-07-11T00:19:55.851781",
+    "message": "IP 192.168.2.1 blocked successfully with pf",
+    "os": "Darwin",
+    "threat_type": "unknown",
+    "timestamp": "2026-07-11T00:19:55.851781"
+  },
+  {
+    "record_id": 3,
+    "ip_address": "192.168.2.1",
+    "reason": "Device quarantined: Nothing Pro",
+    "status": "blocked",
+    "blocked_at": "2026-07-11T00:19:48.501181",
+    "message": "IP 192.168.2.1 blocked successfully with pf",
+    "os": "Darwin",
+    "threat_type": "unknown",
+    "timestamp": "2026-07-11T00:19:48.501181"
+  },
+  {
     "record_id": 2,
     "ip_address": "192.168.0.77",
     "reason": "Auto-block from demo attack simulation (reconnaissance, detected threat)",

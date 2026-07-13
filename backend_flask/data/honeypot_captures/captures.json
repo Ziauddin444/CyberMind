@@ -351,42 +351,6 @@
     "status": "captured"
   },
   {
-    "id": 40,
-    "source_ip": "127.0.0.1",
-    "filename": "127.0.0.1_20260627_072435.txt",
-    "threat_type": "brute_force",
-    "timestamp": "2026-06-27T07:24:35.837894",
-    "file_size": 318,
-    "status": "captured"
-  },
-  {
-    "id": 41,
-    "source_ip": "127.0.0.1",
-    "filename": "127.0.0.1_20260627_072435.txt",
-    "threat_type": "brute_force",
-    "timestamp": "2026-06-27T07:24:35.838736",
-    "file_size": 351,
-    "status": "captured"
-  },
-  {
-    "id": 42,
-    "source_ip": "127.0.0.1",
-    "filename": "127.0.0.1_20260627_072435.txt",
-    "threat_type": "reconnaissance",
-    "timestamp": "2026-06-27T07:24:35.838562",
-    "file_size": 403,
-    "status": "captured"
-  },
-  {
-    "id": 43,
-    "source_ip": "127.0.0.1",
-    "filename": "127.0.0.1_20260627_072435.txt",
-    "threat_type": "reconnaissance",
-    "timestamp": "2026-06-27T07:24:35.839090",
-    "file_size": 307,
-    "status": "captured"
-  },
-  {
     "id": 44,
     "source_ip": "127.0.0.1",
     "filename": "127.0.0.1_20260627_125805.txt",

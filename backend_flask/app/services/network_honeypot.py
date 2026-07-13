@@ -27,30 +27,50 @@ class NetworkHoneypot:
     - Fault-tolerant: Handles port conflicts silently
     """
 
+    # Non-privileged ports (>1024) so the honeypot works WITHOUT sudo.
+    # Each port emulates a well-known service to lure attackers.
     HONEYPOT_PORTS = {
-        22: {
+        2222: {
             'name': 'SSH',
             'banner': 'SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.6\r\n',
             'threat_type': 'brute_force',
-            'severity': 'high'
+            'severity': 'high',
+            'emulates': 22
         },
-        23: {
+        2323: {
             'name': 'Telnet',
             'banner': '\xff\xfb\x01\xff\xfb\x03\xff\xfd\x18\xff\xfd\x1f',
             'threat_type': 'reconnaissance',
-            'severity': 'medium'
+            'severity': 'medium',
+            'emulates': 23
         },
         8080: {
             'name': 'HTTP-Admin',
             'banner': 'HTTP/1.1 200 OK\r\nServer: Apache/2.4.41\r\nContent-Type: text/html\r\n\r\n<html><title>Admin Login</title></html>',
             'threat_type': 'reconnaissance',
-            'severity': 'medium'
+            'severity': 'medium',
+            'emulates': 80
         },
-        3389: {
+        3390: {
             'name': 'RDP',
             'banner': '\x03\x00\x00\x13\x0e\xd0\x00\x00\x124\x00\x02\x0f\x08\x00\x02\x00\x00\x00',
             'threat_type': 'brute_force',
-            'severity': 'critical'
+            'severity': 'critical',
+            'emulates': 3389
+        },
+        2121: {
+            'name': 'FTP',
+            'banner': '220 ProFTPD 1.3.5e Server (Debian) [::ffff:10.0.0.1]\r\n',
+            'threat_type': 'brute_force',
+            'severity': 'high',
+            'emulates': 21
+        },
+        3307: {
+            'name': 'MySQL',
+            'banner': 'J\x00\x00\x005.7.42-0ubuntu0.18.04.1\x00',
+            'threat_type': 'reconnaissance',
+            'severity': 'high',
+            'emulates': 3306
         }
     }
 

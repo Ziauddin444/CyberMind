@@ -929,8 +929,28 @@ async function runScan() {
           if (s.phase === 'classifying') _scanLog('Packets captured — running RF model...');
           if (s.status === 'done') {
             clearInterval(_currentScanPollTimer);
-            _scanLog(`Label: ${s.result.label}  |  Confidence: ${Math.round(s.result.confidence * 100)}%`);
-            renderScanResult(s.result);
+            const r = s.result;
+            // Log capture mode prominently
+            if (r.capture_mode === 'live') {
+              _scanLog('✅ CAPTURE MODE: LIVE — real network packets analysed');
+            } else if (r.capture_mode === 'pcap') {
+              _scanLog(`📁 CAPTURE MODE: PCAP FILE — ${r.pcap_file || 'offline data'}`);
+            } else {
+              _scanLog('⚠️  CAPTURE MODE: SIMULATED — run with sudo for live capture');
+            }
+            if (r.capture_warning) _scanLog(`⚠️  ${r.capture_warning}`);
+            _scanLog(`Label: ${r.label}  |  Confidence: ${Math.round(r.confidence * 100)}%`);
+            renderScanResult(r);
+            // Phase 1.3 — push scan result to dashboard live log
+            const isTheat = r.label && r.label !== 'normal';
+            appendLiveLogEntry({
+              type: isTheat ? 'warning' : 'success',
+              timestamp: r.timestamp || new Date().toISOString(),
+              eventKey: `scan-result:${r.timestamp || Date.now()}`,
+              text: isTheat
+                ? `RF model detected ${(r.label || 'unknown').toUpperCase()} — ${Math.round((r.confidence || 0) * 100)}% confidence (${r.capture_mode || 'live'})`
+                : `Network scan complete — NORMAL traffic (${Math.round((r.confidence || 0) * 100)}% confidence, ${r.capture_mode || 'live'})`,
+            });
             resolve();
           } else if (s.status === 'error') {
             clearInterval(_currentScanPollTimer);
@@ -981,7 +1001,15 @@ function renderScanResult(result) {
   if (cl) cl.textContent = `${confPct}% confidence`;
 
   const ml = document.getElementById('scan-result-mode-label');
-  if (ml) ml.textContent = result.capture_mode === 'live' ? '📡 live capture' : '🔬 simulated';
+  if (ml) {
+    if (result.capture_mode === 'live') {
+      ml.innerHTML = '<span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span><span class="text-emerald-400 font-semibold">LIVE CAPTURE</span></span>';
+    } else if (result.capture_mode === 'pcap') {
+      ml.innerHTML = `<span class="inline-flex items-center gap-1.5"><i class="fa-solid fa-file-lines text-blue-400"></i><span class="text-blue-400 font-semibold">PCAP FILE</span></span>`;
+    } else {
+      ml.innerHTML = '<span class="inline-flex items-center gap-1.5"><i class="fa-solid fa-flask text-yellow-400"></i><span class="text-yellow-400 font-semibold">SIMULATED</span></span>';
+    }
+  }
 
   const bc = document.getElementById('scan-big-conf');
   if (bc) bc.textContent = `${confPct}%`;
@@ -1020,13 +1048,63 @@ function switchTab(tabIndex) {
 
 async function loadDashboard() {
   try {
-    const [status, devices, blacklistResp] = await Promise.all([
+    const [status, devices, blacklistResp, flaskStats] = await Promise.all([
       api.getStatus(),
       loadAllDevices(),
       api.getBlacklistStatus().catch(() => null),
+      api.getFlaskStats().catch(() => null),   // Phase 1.2 — real stats
     ]);
-    renderStatus(status, devices);
-    renderFleet(devices);
+
+    // Phase 2.1 / 2.3 — override hardcoded Node.js status with real Flask data
+    const mergedStatus = { ...status };
+    if (flaskStats) {
+      if (flaskStats.threats_today != null)  mergedStatus.threatsActive  = flaskStats.threats_today;
+      if (flaskStats.safety_score   != null)  mergedStatus.safetyScore    = flaskStats.safety_score;
+      if (flaskStats.mac_ip)                  mergedStatus.mac_ip         = flaskStats.mac_ip;
+      // Update AI confidence only when we have real scans
+      if (flaskStats.total_scans > 0) {
+        mergedStatus.aiConfidence = Math.min(99, 70 + Math.round(flaskStats.safe_scans / flaskStats.total_scans * 29));
+      }
+      // Phase 1.3 — inject last scan result into live log
+      if (flaskStats.last_scan_time && flaskStats.last_scan_label) {
+        const isTheat = flaskStats.last_scan_label !== 'normal';
+        appendLiveLogEntry({
+          type: isTheat ? 'warning' : 'success',
+          timestamp: flaskStats.last_scan_time,
+          eventKey: `scan:${flaskStats.last_scan_time}`,
+          text: isTheat
+            ? `RF model detected ${flaskStats.last_scan_label.toUpperCase()} — threat logged`
+            : `Network scan complete — traffic classified as NORMAL`,
+        });
+      }
+      // Phase 2.4 — inject honeypot stats into live log if any connections
+      if (flaskStats.honeypot_connections > 0) {
+        appendLiveLogEntry({
+          type: 'warning',
+          eventKey: `hp:connections:${flaskStats.honeypot_connections}`,
+          text: `Honeypot: ${flaskStats.honeypot_connections} connection(s) trapped across ${flaskStats.honeypot_active_ports} port(s)`,
+        });
+      }
+    }
+
+    renderStatus(mergedStatus, devices);
+
+    // Phase 2.2 — if no devices registered, show the real local machine
+    let displayDevices = devices;
+    if (devices.length === 0 && flaskStats?.mac_ip) {
+      displayDevices = [{
+        id: 'local-mac',
+        name: 'This Mac (CyberMind Host)',
+        type: 'laptop',
+        ip: flaskStats.mac_ip,
+        status: 'online',
+        lastThreat: flaskStats.last_scan_label && flaskStats.last_scan_label !== 'normal'
+          ? flaskStats.last_scan_label : 'None',
+        safety: flaskStats.safety_score != null ? Math.round(flaskStats.safety_score) : 100,
+        source: 'auto',
+      }];
+    }
+    renderFleet(displayDevices);
     const records = blacklistResp?.data?.blocked_records || [];
     renderBlockedIpList(records);
     syncBlockedEventsToLiveLog(records, false);
@@ -1107,7 +1185,9 @@ function syncBlockedEventsToLiveLog(records, notify = true, force = false) {
 
 function renderStatus(status, devices) {
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-  set('safety-score', `${status.safetyScore}%`);
+  // Phase 2.3 — show "--" until real scans exist
+  const safetyDisplay = status.safetyScore != null ? `${status.safetyScore}%` : '--';
+  set('safety-score', safetyDisplay);
   set('ai-confidence', `${status.aiConfidence}%`);
   set('threat-count', status.threatsActive);
   set('last-threat-time', status.lastThreatDetected);
@@ -1414,6 +1494,63 @@ async function handleToggleDevice(id, source = 'manual', currentStatus = 'offlin
   } catch (err) { showToast('Failed: ' + err.message); }
 }
 // ─── Logs ───────────────────────────────────────────────────────────────────
+
+// ─── Phase 1.1 — Render Scan History in Logs Table ──────────────────────────
+function renderLogTable(logs) {
+  const tbody = document.getElementById('log-table-body');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  if (!logs || !logs.length) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td colspan="6" class="py-8 px-8 text-center text-zinc-500">
+      No scan history yet. Run a scan from the Analyze screen.
+    </td>`;
+    tbody.appendChild(tr);
+    return;
+  }
+
+  const severityColors = {
+    critical: 'text-red-400 bg-red-400/10',
+    high:     'text-red-300 bg-red-300/10',
+    medium:   'text-amber-300 bg-amber-300/10',
+    low:      'text-sky-300 bg-sky-300/10',
+    safe:     'text-emerald-300 bg-emerald-300/10',
+    info:     'text-sky-200 bg-sky-200/10',
+  };
+
+  const actionColors = {
+    'THREAT DETECTED': 'text-red-400',
+    'NORMAL':          'text-emerald-400',
+    'Captured':        'text-amber-300',
+  };
+
+  logs.forEach((log) => {
+    const tr = document.createElement('tr');
+    tr.className = 'hover:bg-zinc-800/40 transition-colors';
+    const sev = (log.severity || 'info').toLowerCase();
+    const sevClass = severityColors[sev] || severityColors.info;
+    const actClass = actionColors[log.action] || 'text-zinc-300';
+
+    tr.innerHTML = `
+      <td class="py-4 px-8 font-mono text-xs text-zinc-400 whitespace-nowrap">${log.time || '--:--'}</td>
+      <td class="py-4 px-8">
+        <span class="text-white font-medium">${log.device || 'System'}</span>
+      </td>
+      <td class="py-4 px-8">
+        <span class="font-medium text-white">${(log.event || 'event').toUpperCase()}</span>
+      </td>
+      <td class="py-4 px-8 text-zinc-400 text-xs max-w-xs truncate">${log.summary || ''}</td>
+      <td class="py-4 px-8">
+        <span class="text-xs px-3 py-1 rounded-full font-medium uppercase ${sevClass}">${sev}</span>
+      </td>
+      <td class="py-4 px-8 text-right">
+        <span class="text-xs font-medium ${actClass}">${log.action || '—'}</span>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
 
 async function loadLogs() {
   try {
@@ -2039,16 +2176,33 @@ async function handleRunPlaybook(playbookNumber, button) {
   console.log(`🎯 Running playbook ${playbookNumber}`);
 
   switch (playbookNumber) {
-    case 1: // Block Suspicious IP - We'll implement this later
-      showToast('Block IP feature - coming soon');
+    case 1: {
+      // Block Suspicious IP — prompt for real IP
+      const ip = prompt('Enter the IP address to block:');
+      if (!ip || !ip.trim()) { showToast('Block cancelled — no IP entered'); return; }
+      const cleanIp = ip.trim();
+      try {
+        button.disabled = true;
+        button.textContent = 'BLOCKING...';
+        // Block via Flask
+        await api.blockIP(cleanIp, 'Manual block from dashboard');
+        showToast(`✅ IP ${cleanIp} blocked successfully`);
+        loadDashboard();
+      } catch (err) {
+        showToast(`Failed to block ${cleanIp}: ${err.message}`);
+      } finally {
+        button.disabled = false;
+        button.textContent = 'BLOCK IP';
+      }
       break;
+    }
 
-    case 2: // Quarantine Device - Show device selection
+    case 2:
       showQuarantineModal();
       break;
 
     default:
-      showToast('Playbook not implemented');
+      showToast('Playbook not available');
   }
 }
 
@@ -2063,15 +2217,26 @@ function showKillModal() {
 
 async function handleTriggerKillSwitch() {
   try {
-    const result = await api.activateKillSwitch(2); // level 2 = full isolation
     document.getElementById('kill-modal').classList.add('hidden');
-    showToast('🚨 Kill switch activated - Network isolated!');
+    showToast('🚨 Kill switch activated — isolating network...');
 
-    // Update UI
+    // Call real kill switch endpoint
+    const result = await api.activateKillSwitch(null);  // null = isolate all
+
+    const msg = result?.message || 'Network isolated.';
+    showToast(`✅ ${msg}`);
+
+    // Update UI isolation indicators
     const statusEl = document.getElementById('isolation-status');
     if (statusEl) {
       statusEl.textContent = 'ISOLATED';
       statusEl.className = 'text-red-400 font-bold animate-pulse';
+    }
+    const killToggle = document.getElementById('toggle-killswitch');
+    if (killToggle) {
+      killToggle.classList.replace('bg-zinc-700', 'bg-red-500');
+      const ind = killToggle.querySelector('div');
+      if (ind) ind.classList.replace('translate-x-0', 'translate-x-6');
     }
 
     loadDashboard();
@@ -2080,7 +2245,7 @@ async function handleTriggerKillSwitch() {
   }
 }
 
-// ─── Network Scan ───────────────────────────────────────────────────────────
+// ─── Network Scan (Fleet / Device Discovery) ────────────────────────────────
 
 async function handleRunScan() {
   const overlay = document.getElementById('scan-overlay');
@@ -2090,26 +2255,26 @@ async function handleRunScan() {
   content.innerHTML = `
     <div class="text-center py-12">
       <i class="fa-solid fa-spinner fa-spin text-4xl text-sky-400 mb-4"></i>
-      <div class="text-sm text-zinc-400 scan-pulse">Discovering devices on network...</div>
+      <div class="text-sm text-zinc-400 scan-pulse">Capturing live network packets...</div>
       <div class="scan-progress mt-6 mx-auto max-w-xs">
         <div class="scan-progress-bar"></div>
       </div>
-      <div class="mt-4 text-xs text-zinc-500">Scanning 192.168.1.0/24 subnet...</div>
+      <div class="mt-4 text-xs text-zinc-500">RF model classifying traffic...</div>
     </div>
   `;
 
   try {
-    // Start scan - direct fetch
+    // Start real packet scan via Flask
     const startRes = await fetch('http://localhost:5000/api/scan/start', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ packet_count: 100 }),
+      body: JSON.stringify({ packet_count: 150 }),
     });
 
-    if (!startRes.ok) throw new Error('Failed to start scan');
+    if (!startRes.ok) throw new Error('Flask scanner unavailable. Run: sudo python3 backend_flask/run.py');
     const { job_id } = await startRes.json();
 
-    // Poll for results - direct fetch
+    // Poll for real results
     await new Promise((resolve, reject) => {
       let attempts = 0;
       const pollInterval = setInterval(async () => {
@@ -2121,28 +2286,31 @@ async function handleRunScan() {
 
           if (status.status === 'done') {
             clearInterval(pollInterval);
+            const r = status.result || {};
+            const isTheat = r.threat_detected;
+            const sevColor = isTheat ? 'text-red-400' : 'text-emerald-400';
 
             content.innerHTML = `
               <div class="mb-6">
                 <div class="flex items-center gap-x-4">
-                  <div class="text-emerald-400"><i class="fa-solid fa-circle-check text-2xl"></i></div>
+                  <div class="${sevColor}"><i class="fa-solid ${isTheat ? 'fa-triangle-exclamation' : 'fa-circle-check'} text-2xl"></i></div>
                   <div>
-                    <div class="font-medium text-white">Network Scan Complete</div>
-                    <div class="text-xs text-zinc-400">Discovered ${status.result?.packet_count || 0} network events</div>
+                    <div class="font-medium text-white">${isTheat ? '⚠️ Threat Detected' : '✅ Traffic Normal'}</div>
+                    <div class="text-xs text-zinc-400">${r.packet_count || 0} packets analysed • ${r.capture_mode || 'live'} mode</div>
                   </div>
                 </div>
               </div>
               <div class="bg-zinc-950 rounded-2xl p-5 mb-4">
-                <div class="text-xs text-zinc-400 mb-2">Scan Summary</div>
-                <div class="text-2xl font-bold text-white">${status.result?.label_pretty || 'Network Analysis'}</div>
-                <div class="text-sm text-zinc-400 mt-1">Confidence: ${Math.round((status.result?.confidence || 0) * 100)}%</div>
+                <div class="text-xs text-zinc-400 mb-2">Classification Result</div>
+                <div class="text-2xl font-bold ${sevColor}">${(r.label_pretty || r.label || 'Normal').toUpperCase()}</div>
+                <div class="text-sm text-zinc-400 mt-1">Confidence: ${Math.round((r.confidence || 0) * 100)}%</div>
               </div>
               <div class="text-xs text-zinc-500">
                 <div class="mb-2">Traffic Breakdown:</div>
-                ${Object.entries(status.result?.breakdown || {}).map(([label, pct]) => `
+                ${Object.entries(r.breakdown || {}).map(([lbl, pct]) => `
                   <div class="flex justify-between py-1">
-                    <span class="text-zinc-400">${label.replace('_', ' ').toUpperCase()}</span>
-                    <span class="text-zinc-300">${pct.toFixed(1)}%</span>
+                    <span class="text-zinc-400">${lbl.replace('_', ' ').toUpperCase()}</span>
+                    <span class="${pct > 30 && lbl !== 'normal' ? 'text-red-400' : 'text-zinc-300'}">${pct.toFixed(1)}%</span>
                   </div>
                 `).join('')}
               </div>
@@ -2150,14 +2318,14 @@ async function handleRunScan() {
 
             const devices = await loadAllDevices();
             renderFleet(devices);
-            showToast('Network scan complete - devices updated');
+            showToast(isTheat ? `⚠️ Threat detected: ${r.label_pretty}` : '✅ Network scan complete — traffic normal');
             resolve();
           } else if (status.status === 'error') {
             clearInterval(pollInterval);
             reject(new Error(status.error || 'Scan failed'));
-          } else if (attempts > 30) {
+          } else if (attempts > 60) {
             clearInterval(pollInterval);
-            reject(new Error('Scan timeout'));
+            reject(new Error('Scan timeout after 60s'));
           }
         } catch (e) {
           clearInterval(pollInterval);
@@ -2167,12 +2335,13 @@ async function handleRunScan() {
     });
 
   } catch (err) {
-    console.error('Scan error:', err);
+    console.error('Fleet scan error:', err);
     content.innerHTML = `
       <div class="text-center py-12 text-red-400">
         <i class="fa-solid fa-circle-xmark text-4xl mb-4"></i>
-        <div>Scan failed</div>
+        <div class="font-medium">Scan failed</div>
         <div class="text-xs text-zinc-500 mt-2">${err.message}</div>
+        <div class="text-xs text-zinc-600 mt-2">Tip: Run <code class="bg-zinc-800 px-1 rounded">sudo bash demo_launch.sh</code> for live capture</div>
       </div>
     `;
   }
@@ -2310,21 +2479,35 @@ async function refreshLogs() {
   if (!logContainer) return;
 
   try {
-    const [msg, blacklistResp] = await Promise.all([
-      api.getLiveFeed(),
+    const [blacklistResp, flaskStats] = await Promise.all([
       api.getBlacklistStatus().catch(() => null),
+      api.getFlaskStats().catch(() => null),
     ]);
-
-    if (msg?.text) {
-      appendLiveLogEntry({ ...msg, eventKey: `refresh-live:${msg.text}` }, { force: true });
-    }
 
     const records = blacklistResp?.data?.blocked_records || [];
     renderBlockedIpList(records);
     syncBlockedEventsToLiveLog(records, false, true);
 
-    getNextMockAttackEvents(5).forEach((entry) => appendLiveLogEntry(entry, { force: true }));
-    showToast('Newest simulated attacks loaded');
+    // Show real latest event from blocklist or scan
+    if (records.length > 0) {
+      const latest = records[0];
+      const attackLabel = latest.reason || latest.attackType || 'Attack';
+      appendLiveLogEntry({
+        type: 'warning',
+        timestamp: latest.blocked_at,
+        eventKey: `refresh:${latest.record_id}`,
+        text: `${attackLabel} from ${latest.ip_address} — auto-blocked`,
+      }, { force: true });
+    } else if (flaskStats?.last_scan_label && flaskStats.last_scan_label !== 'normal') {
+      appendLiveLogEntry({
+        type: 'warning',
+        timestamp: flaskStats.last_scan_time,
+        eventKey: `refresh-scan:${flaskStats.last_scan_time}`,
+        text: `RF model detected ${flaskStats.last_scan_label.toUpperCase()} — threat logged`,
+      }, { force: true });
+    }
+
+    showToast('Dashboard refreshed with real data');
   } catch (err) {
     showToast('Failed to refresh logs');
   }
@@ -2360,25 +2543,33 @@ function appendLiveLogEntry(msg, options = {}) {
 }
 
 
+// Real live activity — polls Flask stats + blocklist every 6s
 function generateFakeLogActivity() {
   setInterval(async () => {
     if (currentScreen !== 'dashboard') return;
     try {
-      const [msg, blacklistResp] = await Promise.all([
-        api.getLiveFeed(),
+      const [flaskStats, blacklistResp] = await Promise.all([
+        api.getFlaskStats().catch(() => null),
         api.getBlacklistStatus().catch(() => null),
       ]);
-      if (msg?.text && msg.text !== lastLiveFeedText) {
-        lastLiveFeedText = msg.text;
-        appendLiveLogEntry({ ...msg, eventKey: `live:${msg.text}` });
-        if (msg.type === 'warning') {
-          notifyOnce(`warn:${msg.text}`, `Alert: ${msg.text}`);
-        }
+
+      // Show real events from blocklist
+      const records = blacklistResp?.data?.blocked_records || [];
+      if (records.length > 0) {
+        renderBlockedIpList(records);
+        syncBlockedEventsToLiveLog(records, true);
       }
 
-      const records = blacklistResp?.data?.blocked_records || [];
-      renderBlockedIpList(records);
-      syncBlockedEventsToLiveLog(records, true);
+      // Show real scan result in live feed
+      if (flaskStats?.last_scan_time) {
+        const isTheat = flaskStats.last_scan_label && flaskStats.last_scan_label !== 'normal';
+        const eventKey = `live-scan:${flaskStats.last_scan_time}`;
+        const text = isTheat
+          ? `RF model detected ${flaskStats.last_scan_label.toUpperCase()} — threat logged`
+          : `Network monitoring active — traffic appears normal`;
+        appendLiveLogEntry({ type: isTheat ? 'warning' : 'success', eventKey, text });
+      }
+
     } catch (_) { }
   }, 6500);
 }
@@ -2404,10 +2595,17 @@ function startBlockedIpsRefresh() {
 
 function speakLastAlert() {
   if ('speechSynthesis' in window) {
-    const u = new SpeechSynthesisUtterance('Warning. Brute force password attack detected from external IP.');
+    // Use the most recent real blocked IP if available
+    const firstBlocked = document.querySelector('#blocked-ip-list .font-mono');
+    const ip = firstBlocked ? firstBlocked.textContent.trim() : 'unknown';
+    const u = new SpeechSynthesisUtterance(
+      ip !== 'unknown'
+        ? `Warning. Malicious activity blocked from IP address ${ip.split('.').join(' dot ')}.`
+        : 'CyberMind is monitoring your network. No active threats detected.'
+    );
     u.pitch = 0.9; u.rate = 1.05;
     speechSynthesis.speak(u);
-  } else showToast('AI voice alert: Brute force attack detected');
+  } else showToast('AI voice alert: Network monitoring active');
 }
 
 // ─── Keyboard Shortcuts ─────────────────────────────────────────────────────
@@ -2762,22 +2960,25 @@ function showQuarantineModal() {
   });
 }
 
-// Confirm quarantine action
+// Confirm quarantine action — blocks IP + isolates device
 async function confirmQuarantineDevice(deviceId, deviceName, deviceIp) {
-  if (!confirm(`Are you sure you want to quarantine "${deviceName}"?\n\nThis will isolate the device from the network and block all traffic.`)) {
+  if (!confirm(`Quarantine "${deviceName}"?\n\nThis will:\n• Block all traffic from ${deviceIp || 'this device'}\n• Mark device as offline\n• Log the event`)) {
     return;
   }
 
   try {
-    // Call the isolation API
-    await api.activateIsolation();
-
-    showToast(`Device "${deviceName}" has been quarantined`);
-
-    // Close modal
     document.getElementById('quarantine-modal').classList.add('hidden');
+    showToast(`Quarantining ${deviceName}...`);
 
-    // Update dashboard
+    // Block the device IP via Flask
+    if (deviceIp) {
+      await api.blockIP(deviceIp, `Device quarantined: ${deviceName}`);
+    }
+
+    // Also call Node.js remediation to mark device offline
+    await api.runRemediation(2);  // playbook 2 = quarantine
+
+    showToast(`✅ Device "${deviceName}" quarantined — IP ${deviceIp || 'unknown'} blocked`);
     loadDashboard();
 
   } catch (err) {
