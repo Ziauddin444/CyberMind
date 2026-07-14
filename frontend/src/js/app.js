@@ -1058,9 +1058,9 @@ async function loadDashboard() {
     // Phase 2.1 / 2.3 — override hardcoded Node.js status with real Flask data
     const mergedStatus = { ...status };
     if (flaskStats) {
-      if (flaskStats.threats_today != null)  mergedStatus.threatsActive  = flaskStats.threats_today;
-      if (flaskStats.safety_score   != null)  mergedStatus.safetyScore    = flaskStats.safety_score;
-      if (flaskStats.mac_ip)                  mergedStatus.mac_ip         = flaskStats.mac_ip;
+      if (flaskStats.threats_today != null) mergedStatus.threatsActive = flaskStats.threats_today;
+      if (flaskStats.safety_score != null) mergedStatus.safetyScore = flaskStats.safety_score;
+      if (flaskStats.mac_ip) mergedStatus.mac_ip = flaskStats.mac_ip;
       // Update AI confidence only when we have real scans
       if (flaskStats.total_scans > 0) {
         mergedStatus.aiConfidence = Math.min(99, 70 + Math.round(flaskStats.safe_scans / flaskStats.total_scans * 29));
@@ -1512,17 +1512,17 @@ function renderLogTable(logs) {
 
   const severityColors = {
     critical: 'text-red-400 bg-red-400/10',
-    high:     'text-red-300 bg-red-300/10',
-    medium:   'text-amber-300 bg-amber-300/10',
-    low:      'text-sky-300 bg-sky-300/10',
-    safe:     'text-emerald-300 bg-emerald-300/10',
-    info:     'text-sky-200 bg-sky-200/10',
+    high: 'text-red-300 bg-red-300/10',
+    medium: 'text-amber-300 bg-amber-300/10',
+    low: 'text-sky-300 bg-sky-300/10',
+    safe: 'text-emerald-300 bg-emerald-300/10',
+    info: 'text-sky-200 bg-sky-200/10',
   };
 
   const actionColors = {
     'THREAT DETECTED': 'text-red-400',
-    'NORMAL':          'text-emerald-400',
-    'Captured':        'text-amber-300',
+    'NORMAL': 'text-emerald-400',
+    'Captured': 'text-amber-300',
   };
 
   logs.forEach((log) => {

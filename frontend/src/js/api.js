@@ -431,3 +431,21 @@ export async function startScan(packetCount = 100) {
   }
   return res.json();
 }
+
+// src/services/api.js (or wherever your API calls are)
+const API_BASE_URL = 'http://localhost:5000/api';
+
+export const startScan = (packetCount) => {
+  return fetch(`${API_BASE_URL}/scan/start`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ packet_count: packetCount })
+  }).then(res => res.json());
+};
+
+// ADD THIS FUNCTION:
+export const getScanStatus = () => {
+  return fetch(`${API_BASE_URL}/scan/status`)
+    .then(res => res.json())
+    .catch(err => console.error("Error fetching status:", err));
+};

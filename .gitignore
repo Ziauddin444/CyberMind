@@ -1,9 +1,13 @@
-.aider*
-
-# OS / editor noise
+# ─── OS / Editor ──────────────────────────────────────────────
 .DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
-# Python caches / envs
+# ─── Python ───────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
 *.pyo
@@ -11,11 +15,30 @@ __pycache__/
 .mypy_cache/
 .venv/
 venv/
+*.egg-info/
 
-# Logs and runtime artifacts
-*.log
-backend.log
-flask.log
-
-# JS dependencies
+# ─── Node.js ─────────────────────────────────────────────────
 node_modules/
+package-lock.json
+
+# ─── Logs & Runtime Data ─────────────────────────────────────
+*.log
+*.pcap
+*.pcapng
+*.db
+
+# ─── Environment & Secrets ───────────────────────────────────
+.env
+!.env.example
+
+# ─── AI / Continue / Aider ───────────────────────────────────
+.aider*
+.continue/
+
+# ─── ML Models (tracked via Git LFS or regenerated) ──────────
+# Uncomment the line below if you DON'T want .pkl in the repo:
+# *.pkl
+
+# ─── Misc ────────────────────────────────────────────────────
+*.bak
+*.tmp
