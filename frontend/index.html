@@ -451,7 +451,8 @@
                                         <div>
                                             <i class="fa-solid fa-triangle-exclamation text-rose-400 text-2xl"></i>
                                             <div class="mt-6">
-                                                <div class="text-5xl font-semibold text-white" id="threat-count">--</div>
+                                                <div class="text-5xl font-semibold text-white" id="threat-count">--
+                                                </div>
                                                 <div class="text-sm text-rose-400 font-medium">ACTIVE THREATS</div>
                                             </div>
                                         </div>
@@ -520,7 +521,8 @@
                             <div id="live-log"
                                 class="terminal h-64 lg:h-[26rem] bg-zinc-950 p-4 rounded-2xl text-emerald-300 overflow-y-auto overflow-x-hidden text-xs leading-relaxed border border-zinc-800 font-light"
                                 tabindex="0" role="log" aria-label="AI log translation live feed">
-                                <div class="log-line text-zinc-500 text-center py-4">Waiting for events... Run a scan to see live results.</div>
+                                <div class="log-line text-zinc-500 text-center py-4">Waiting for events... Run a scan to
+                                    see live results.</div>
                             </div>
                             <button data-action="speak-alert"
                                 class="mt-6 text-xs flex items-center justify-center gap-x-2 py-3 px-6 bg-zinc-900 hover:bg-zinc-800 transition-colors border border-yellow-400/30 rounded-3xl">
@@ -609,877 +611,798 @@
                 </div>
 
                 <!-- FEATURE TABS -->
-                <div class="mt-8 px-6 lg:px-8 pb-24">
-                    <div class="flex border-b border-zinc-700">
-                        <button data-action="switch-tab" data-tab="0" id="tab-0"
-                            class="tab-button px-8 py-4 border-b-2 border-yellow-400 text-yellow-400 font-medium text-sm">HONEYPOT</button>
-                        <button data-action="switch-tab" data-tab="1" id="tab-1"
-                            class="tab-button px-8 py-4 text-zinc-400 hover:text-zinc-200 font-medium text-sm">PHISH
-                            SANDBOX</button>
-                        <button data-action="switch-tab" data-tab="2" id="tab-2"
-                            class="tab-button px-8 py-4 text-zinc-400 hover:text-zinc-200 font-medium text-sm">LOG
-                            TRANSLATOR</button>
-                    </div>
-
-                    <!-- HONEYPOT TAB -->
-                    <div id="tab-content-0" class="tab-content pt-8">
-                        <div class="flex gap-8">
-                            <div class="flex-1">
-                                <div class="flex items-center gap-x-3 mb-4">
-                                    <div
-                                        class="w-6 h-px bg-gradient-to-r from-transparent via-yellow-400 to-yellow-400">
-                                    </div>
-                                    <span class="uppercase text-xs tracking-[1px]">Decoy files deployed</span>
-                                </div>
-                                <div class="bg-zinc-900 p-6 rounded-3xl">
-                                    <div class="flex gap-8 items-center">
-                                        <div>
-                                            <div class="text-7xl font-bold text-white tabular-nums" id="honeypot-count">
-                                                14</div>
-                                            <div class="text-xs text-lime-400">traps triggered</div>
-                                        </div>
-                                        <div class="flex-1 h-px bg-gradient-to-r from-lime-300/30 to-transparent"></div>
-                                        <div class="text-xs max-w-[210px]">
-                                            Hackers have been lured into our decoy folder.
-                                            <span class="block text-lime-400 mt-2 font-medium">All decoys are
-                                                safe.</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div data-action="trigger-honeypot"
-                                class="flex-1 bg-gradient-to-br from-zinc-900 to-zinc-950 border border-dashed border-lime-400 rounded-3xl p-8 flex flex-col items-center justify-center cursor-pointer hover:border-lime-300 group">
-                                <i
-                                    class="fa-solid fa-bug-slash text-6xl text-lime-400 mb-4 group-active:rotate-12 transition-transform"></i>
-                                <div class="text-lime-300 font-medium">DEPLOY NEW DECOY</div>
-                                <div class="text-xs text-center text-zinc-400 mt-1">Invoice-2025-confidential.pdf</div>
-                            </div>
-                        </div>
-
-                        <!-- Honeypot Capture Files -->
-                        <div class="mt-8">
-                            <div class="flex items-center gap-x-3 mb-4">
-                                <div class="w-6 h-px bg-gradient-to-r from-transparent via-yellow-400 to-yellow-400">
-                                </div>
-                                <span class="uppercase text-xs tracking-[1px]">Capture Files</span>
-                            </div>
-                            <div id="honeypot-files-list" class="space-y-2">
-                                <p class="text-zinc-500 text-sm">Loading captures…</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- PHISH SANDBOX TAB -->
-                    <div id="tab-content-1" class="tab-content pt-8 hidden">
-                        <div class="max-w-lg mx-auto bg-zinc-900 rounded-3xl p-8">
-                            <label class="block text-xs font-medium mb-3 text-zinc-400">PASTE SUSPICIOUS LINK
-                                HERE</label>
-                            <div class="flex">
-                                <input id="phish-input" type="text" value="https://secure-bank-login.com/claim-bonus"
-                                    class="flex-1 bg-black border border-zinc-700 focus:border-yellow-400 rounded-l-3xl px-6 py-5 outline-none text-sm">
-                                <button data-action="check-phishing"
-                                    class="bg-yellow-400 hover:bg-amber-300 transition-colors text-zinc-950 px-10 font-semibold rounded-r-3xl">CHECK</button>
-                            </div>
-                            <div id="phish-result" class="mt-8 hidden"></div>
-                        </div>
-                    </div>
-
-                    <!-- LOG TRANSLATOR TAB -->
-                    <div id="tab-content-2" class="tab-content pt-8 hidden">
-                        <div class="max-w-2xl mx-auto">
-                            <div class="bg-black p-5 rounded-3xl text-xs font-light terminal border border-zinc-700">
-                                <div class="mb-4 text-zinc-400">Raw log entry:</div>
-                                <div class="bg-zinc-900 p-5 rounded-2xl mb-6 font-mono text-amber-200 text-[13px]">
-                                    2025-02-18 12:41:09
-                                    WinEventLog:Security<br>EventCode=4625<br>AccountName=Administrator<br>WorkstationName=SRV01<br>IpAddress=185.53.177.54
-                                </div>
-                                <div data-action="translate-log"
-                                    class="inline-flex items-center gap-x-3 bg-white text-zinc-900 text-sm px-7 py-4 rounded-3xl cursor-pointer hover:shadow-2xl">
-                                    <i class="fa-solid fa-wand-magic-sparkles"></i><span class="font-semibold">Translate
-                                        with AI</span>
-                                </div>
-                                <div id="translated-log" class="mt-8 bg-zinc-900 p-6 rounded-3xl hidden"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ═══════════════════════════════════════════════════════════ -->
-            <!-- ANALYZE SCREEN — Layer 1 (Frontend)                        -->
-            <!-- Sends input to Flask /api/analyze → IDS Engine             -->
-            <!-- ═══════════════════════════════════════════════════════════ -->
-            <div id="analyze-screen" class="hidden px-4 sm:px-8 py-10 pb-24 max-w-4xl mx-auto">
-
-                <div class="mb-8">
-                    <h1 class="text-4xl font-semibold logo-font tracking-tight">AI Threat Analyzer</h1>
-                    <p class="text-zinc-400 mt-2 text-sm leading-relaxed">
-                        Paste a log line, CLI command, or upload a file — the IDS engine analyses it
-                        and returns a structured threat assessment.
-                    </p>
+                <div class="flex border-b border-zinc-700">
+                    <button data-action="switch-tab" data-tab="0" id="tab-0"
+                        class="tab-button px-8 py-4 border-b-2 border-yellow-400 text-yellow-400 font-medium text-sm">PHISH
+                        SANDBOX</button>
                 </div>
 
-                <!-- Architecture badge row -->
-                <div class="flex flex-wrap gap-2 mb-8 text-[10px] font-mono tracking-widest">
-                    <span class="px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">LAYER 1
-                        — Frontend (fetch)</span>
-                    <span class="text-zinc-600 self-center">→</span>
-                    <span
-                        class="px-3 py-1 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20">LAYER
-                        2 — Flask /api/analyze</span>
-                    <span class="text-zinc-600 self-center">→</span>
-                    <span
-                        class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">LAYER
-                        3 — IDS Engine (Python)</span>
-                </div>
-
-                <!-- Input card -->
-                <div class="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-6 mb-6">
-                    <form id="analyze-form" class="space-y-5">
-                        <div>
-                            <label for="analyze-text-input"
-                                class="block text-xs font-semibold text-zinc-400 mb-2 tracking-wider uppercase">Log Line
-                                / Alert Text / CLI Command</label>
-                            <textarea id="analyze-text-input" rows="4"
-                                placeholder="e.g.  nmap -sS -p 1-65535 192.168.1.1&#10;      hydra -l admin -P wordlist.txt ssh://10.0.0.1&#10;      ' OR '1'='1' -- (SQL injection)"
-                                class="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-white font-mono placeholder-zinc-600 focus:outline-none focus:border-yellow-400 resize-y transition-colors duration-200"></textarea>
+                <!-- PHISH SANDBOX TAB -->
+                <div id="tab-content-0" class="tab-content pt-8 ">
+                    <div class="max-w-lg mx-auto bg-zinc-900 rounded-3xl p-8">
+                        <label class="block text-xs font-medium mb-3 text-zinc-400">PASTE SUSPICIOUS LINK
+                            HERE</label>
+                        <div class="flex">
+                            <input id="phish-input" type="text" value="https://secure-bank-login.com/claim-bonus"
+                                class="flex-1 bg-black border border-zinc-700 focus:border-yellow-400 rounded-l-3xl px-6 py-5 outline-none text-sm">
+                            <button data-action="check-phishing"
+                                class="bg-yellow-400 hover:bg-amber-300 transition-colors text-zinc-950 px-10 font-semibold rounded-r-3xl">CHECK</button>
                         </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label for="analyze-ip-input"
-                                    class="block text-xs font-semibold text-zinc-400 mb-2 tracking-wider uppercase">Source
-                                    IP <span class="text-zinc-600 normal-case font-normal">(optional)</span></label>
-                                <input id="analyze-ip-input" type="text" placeholder="e.g. 45.83.122.41"
-                                    class="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-white font-mono placeholder-zinc-600 focus:outline-none focus:border-yellow-400 transition-colors" />
-                            </div>
-                            <div>
-                                <label
-                                    class="block text-xs font-semibold text-zinc-400 mb-2 tracking-wider uppercase">Upload
-                                    Log / PCAP File <span
-                                        class="text-zinc-600 normal-case font-normal">(optional)</span></label>
-                                <label for="analyze-file-input"
-                                    class="flex items-center gap-3 w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 cursor-pointer hover:border-zinc-500 transition-colors"
-                                    style="min-height:46px;">
-                                    <i class="fa-solid fa-file-arrow-up text-zinc-500"></i>
-                                    <span id="analyze-file-label" class="text-sm text-zinc-500 truncate">Choose
-                                        file…</span>
-                                    <input id="analyze-file-input" type="file" class="hidden"
-                                        accept=".log,.txt,.pcap,.cap,.csv" />
-                                </label>
-                            </div>
-                        </div>
-                        <button id="analyze-submit-btn" type="submit"
-                            class="w-full flex items-center justify-center gap-3 px-6 py-3.5 bg-yellow-400 hover:bg-yellow-300 text-black font-bold rounded-xl transition-all duration-200 text-sm tracking-wide disabled:opacity-50 disabled:cursor-not-allowed">
-                            <i id="analyze-btn-icon" class="fa-solid fa-magnifying-glass"></i>
-                            <span id="analyze-btn-label">Analyze with CyberMind IDS</span>
-                        </button>
-                    </form>
-                </div>
-
-                <!-- Result card -->
-                <div id="analyze-result-card" class="hidden">
-                    <div id="analyze-result-header"
-                        class="flex items-center gap-4 rounded-t-2xl border border-b-0 px-6 py-4">
-                        <div id="analyze-result-icon"
-                            class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0">
-                            <i class="fa-solid fa-shield-halved text-xl"></i>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <span id="analyze-result-severity-badge"
-                                    class="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">CRITICAL</span>
-                                <span id="analyze-result-type-badge"
-                                    class="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-zinc-700 text-zinc-200">exploitation</span>
-                                <span id="analyze-result-confidence" class="text-[10px] text-zinc-400 font-mono">97%
-                                    confidence</span>
-                            </div>
-                            <div id="analyze-result-label" class="text-white font-bold text-lg mt-1 truncate">Threat
-                                label</div>
-                        </div>
+                        <div id="phish-result" class="mt-8 hidden"></div>
                     </div>
-                    <div class="border border-t-0 border-zinc-700 rounded-b-2xl bg-zinc-900/60 px-6 py-5 space-y-5">
-                        <div>
-                            <div class="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold mb-1">Summary
-                            </div>
-                            <p id="analyze-result-summary" class="text-zinc-200 text-sm leading-relaxed"></p>
-                        </div>
-                        <div id="analyze-matches-section" class="hidden">
-                            <div class="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold mb-2">
-                                Signature Matches</div>
-                            <div id="analyze-matches-list" class="space-y-1.5"></div>
-                        </div>
-                        <div>
-                            <div class="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold mb-2">
-                                Recommendations</div>
-                            <ul id="analyze-recommendations-list" class="space-y-1.5 text-sm text-zinc-300"></ul>
-                        </div>
-                        <div
-                            class="flex flex-wrap gap-x-6 gap-y-1 text-[10px] font-mono text-zinc-600 pt-2 border-t border-zinc-800">
-                            <span>model: <span id="analyze-result-model" class="text-zinc-400">—</span></span>
-                            <span>fingerprint: <span id="analyze-result-fp" class="text-zinc-400">—</span></span>
-                            <span>timestamp: <span id="analyze-result-ts" class="text-zinc-400">—</span></span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Error state -->
-                <div id="analyze-error"
-                    class="hidden mt-4 p-4 bg-red-950/50 border border-red-800 rounded-xl text-red-300 text-sm flex items-center gap-3">
-                    <i class="fa-solid fa-circle-exclamation text-red-400 flex-shrink-0"></i>
-                    <span id="analyze-error-text"></span>
-                </div>
-
-
-                <!-- ═══════════════════════════════════════════════════════ -->
-                <!-- NETWORK SCAN PANEL                                     -->
-                <!-- Click Start Scan → Scapy captures packets →           -->
-                <!-- Random Forest AI classifies → live result displayed   -->
-                <!-- ═══════════════════════════════════════════════════════ -->
-                <div class="mt-10">
-                    <div class="flex items-center gap-3 mb-2">
-                        <div class="w-2 h-2 rounded-full bg-yellow-400"></div>
-                        <h2 class="text-lg font-bold tracking-tight">Live Network Scan</h2>
-                        <span
-                            class="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 tracking-widest">SCAPY
-                            + RANDOM FOREST</span>
-                    </div>
-                    <p class="text-zinc-500 text-xs mb-5 ml-5">Captures live packets from your network interface and
-                        classifies them with a trained Random Forest model.</p>
-
-                    <!-- Packet count slider + Start button -->
-                    <div class="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-6 mb-5">
-                        <div class="flex items-center justify-between mb-3">
-                            <label for="scan-packet-count"
-                                class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Packet
-                                Count</label>
-                            <span id="scan-packet-count-label"
-                                class="text-yellow-400 font-bold font-mono text-sm">200</span>
-                        </div>
-                        <input id="scan-packet-count" type="range" min="50" max="2000" step="50" value="200"
-                            class="w-full accent-yellow-400 cursor-pointer mb-2" />
-                        <div class="flex justify-between text-[10px] text-zinc-600 mb-3">
-                          <span>50 (fast)</span><span>500</span><span>1000</span><span>2000 (deep)</span>
-                        </div>
-                        <button id="scan-start-btn" type="button"
-                            class="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-300 hover:to-orange-300 text-black font-extrabold rounded-xl transition-all duration-200 text-sm tracking-widest shadow-lg shadow-yellow-400/20 disabled:opacity-50 disabled:cursor-not-allowed">
-                            <i id="scan-btn-icon" class="fa-solid fa-satellite-dish text-lg"></i>
-                            <span id="scan-btn-label">START SCAN</span>
-                        </button>
-                    </div>
-
-                    <!-- Progress panel -->
-                    <div id="scan-progress-panel"
-                        class="hidden bg-zinc-900/60 border border-zinc-800 rounded-2xl p-6 mb-5">
-                        <div class="flex items-center justify-between mb-3">
-                            <div class="flex items-center gap-2">
-                                <div id="scan-phase-dot" class="w-2.5 h-2.5 rounded-full bg-yellow-400 animate-pulse">
-                                </div>
-                                <span id="scan-phase-label"
-                                    class="text-sm font-semibold text-zinc-300">Starting...</span>
-                            </div>
-                            <span id="scan-progress-pct" class="font-mono text-yellow-400 text-sm">0%</span>
-                        </div>
-                        <div class="w-full h-2 bg-zinc-800 rounded-full overflow-hidden mb-4">
-                            <div id="scan-progress-bar"
-                                class="h-full bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full transition-all duration-500"
-                                style="width:0%"></div>
-                        </div>
-                        <div class="bg-zinc-950 rounded-xl p-4 font-mono text-[11px] text-zinc-400 h-28 overflow-y-auto"
-                            id="scan-terminal">
-                            <div class="text-yellow-400">$ cybermind-ids --scan --model random_forest</div>
-                        </div>
-                    </div>
-
-                    <!-- Result card -->
-                    <div id="scan-result-card" class="hidden rounded-2xl border overflow-hidden">
-                        <div id="scan-result-header" class="flex items-center gap-5 px-6 py-5">
-                            <div id="scan-result-icon"
-                                class="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 text-2xl">
-                                &#x1F6E1;&#xFE0F;</div>
-                            <div class="flex-1">
-                                <div id="scan-verdict-text" class="text-white font-extrabold text-xl leading-snug">
-                                </div>
-                                <div class="flex flex-wrap items-center gap-2 mt-1">
-                                    <span id="scan-result-severity"
-                                        class="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"></span>
-                                    <span class="text-[10px] text-zinc-400 font-mono"
-                                        id="scan-result-confidence-label"></span>
-                                    <span class="text-[10px] text-zinc-500 font-mono"
-                                        id="scan-result-mode-label"></span>
-                                </div>
-                            </div>
-                            <div class="flex-shrink-0 text-right">
-                                <div class="text-4xl font-black font-mono" id="scan-big-conf"></div>
-                                <div class="text-[10px] text-zinc-500 uppercase tracking-widest">confidence</div>
-                            </div>
-                        </div>
-                        <div class="border-t border-zinc-800 bg-zinc-900/60 px-6 py-5">
-                            <div class="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold mb-3">Traffic
-                                Breakdown</div>
-                            <div id="scan-breakdown-bars" class="space-y-2.5"></div>
-                        </div>
-                        <div
-                            class="border-t border-zinc-800 bg-zinc-950/40 px-6 py-3 flex flex-wrap gap-x-6 gap-y-1 text-[10px] font-mono text-zinc-600">
-                            <span>packets: <span id="scan-meta-count" class="text-zinc-400">--</span></span>
-                            <span>mode: <span id="scan-meta-mode" class="text-zinc-400">--</span></span>
-                            <span>timestamp: <span id="scan-meta-ts" class="text-zinc-400">--</span></span>
-                        </div>
-                    </div>
-
-                    <!-- Scan error -->
-                    <div id="scan-error"
-                        class="hidden mt-4 p-4 bg-red-950/50 border border-red-800 rounded-xl text-red-300 text-sm flex items-center gap-3">
-                        <i class="fa-solid fa-circle-exclamation text-red-400 flex-shrink-0"></i>
-                        <span id="scan-error-text"></span>
-                    </div>
-                </div><!-- /scan panel -->
-
-            </div><!-- /analyze-screen -->
-
-            <!-- ═══════════════════════════════════════════════════════════ -->
-            <!-- LOGS SCREEN                                                -->
-            <!-- ═══════════════════════════════════════════════════════════ -->
-            <div id="logs-screen" class="hidden px-8 py-10 pb-20">
-                <div class="flex justify-between items-baseline">
-                    <h1 class="text-4xl font-semibold logo-font tracking-tight">Security Logs</h1>
-                    <div class="flex items-center text-xs bg-zinc-900 rounded-3xl px-5 py-3">
-                        <span class="text-emerald-400 mr-2">●</span>
-                        <span class="font-medium">Live feed enabled</span>
-                    </div>
-                </div>
-                <div class="mt-8 border border-zinc-700 rounded-3xl overflow-hidden">
-                    <table class="w-full">
-                        <thead>
-                            <tr class="bg-zinc-900 border-b border-zinc-700">
-                                <th class="py-5 px-8 text-left text-xs font-medium text-zinc-400">TIME</th>
-                                <th class="py-5 px-8 text-left text-xs font-medium text-zinc-400">DEVICE</th>
-                                <th class="py-5 px-8 text-left text-xs font-medium text-zinc-400">EVENT</th>
-                                <th class="py-5 px-8 text-left text-xs font-medium text-zinc-400">AI SUMMARY</th>
-                                <th class="py-5 px-8 text-left text-xs font-medium text-zinc-400">SEVERITY</th>
-                                <th class="py-5 px-8 text-right text-xs font-medium text-zinc-400">ACTION</th>
-                            </tr>
-                        </thead>
-                        <tbody id="log-table-body" class="text-sm divide-y divide-zinc-700"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- ═══════════════════════════════════════════════════════════ -->
-            <!-- HONEYPOT SCREEN                                            -->
-            <!-- ═══════════════════════════════════════════════════════════ -->
-            <div id="honeypot-screen" class="hidden px-8 py-10 pb-20">
-                <div class="max-w-4xl mx-auto">
-                    <div class="flex gap-3 items-center mb-8">
-                        <i class="fa-solid fa-bug text-yellow-400 text-4xl"></i>
-                        <div>
-                            <span class="uppercase tracking-widest text-xs text-lime-400 font-medium">Advanced Threat
-                                Detection</span>
-                            <h2 class="text-4xl font-semibold text-white">Honeypot Decoy Network</h2>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-12 gap-6">
-                        <div class="col-span-12 md:col-span-7 bg-zinc-900 rounded-3xl p-8">
-                            <div class="flex justify-between items-center">
-                                <div class="text-zinc-400 text-sm">DECOY ACTIVITY</div>
-                                <div class="flex items-center gap-x-2 text-lime-300 text-xs">
-                                    <div class="h-px w-12 bg-lime-400"></div><span>Attacks trapped today</span>
-                                </div>
-                            </div>
-                            <div id="honeypot-timeline" class="mt-8 space-y-8"></div>
-                        </div>
-                        <div class="col-span-12 md:col-span-5">
-                            <div class="bg-zinc-900 h-full rounded-3xl p-8 flex flex-col">
-                                <div class="flex-1">
-                                    <div class="text-xs text-zinc-400 mb-2">CURRENT DECOYS ACTIVE</div>
-                                    <ul class="space-y-6 text-sm" id="decoy-list"></ul>
-                                </div>
-                                <button data-action="deploy-decoy"
-                                    class="mt-auto flex items-center justify-center gap-x-3 bg-lime-400 text-zinc-950 py-6 rounded-3xl font-semibold">
-                                    <i class="fa-solid fa-plus"></i><span>DEPLOY NEW DECOY FILE</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ═══════════════════════════════════════════════════════════ -->
-            <!-- THREATS SCREEN                                             -->
-            <!-- ═══════════════════════════════════════════════════════════ -->
-            <div id="threats-screen" class="hidden px-8 py-10 pb-20">
-                <div class="flex justify-between items-baseline mb-8">
-                    <div>
-                        <span class="uppercase tracking-widest text-xs text-rose-400 font-medium">Threat
-                            Intelligence</span>
-                        <h1 class="text-4xl font-semibold logo-font tracking-tight text-white">Active Threats</h1>
-                    </div>
-                </div>
-                <div id="threats-list" class="space-y-6"></div>
-
-                <!-- Threat Detail Panel (shown when a threat is clicked) -->
-                <div id="threat-detail" class="hidden mt-8">
-                    <div data-action="close-threat-detail"
-                        class="flex items-center gap-x-2 text-xs text-zinc-400 cursor-pointer hover:text-white mb-6">
-                        <i class="fa-solid fa-arrow-left"></i><span>Back to threats</span>
-                    </div>
-                    <div id="threat-detail-content" class="bg-zinc-900 rounded-3xl p-8"></div>
-                </div>
-            </div>
-
-            <!-- ═══════════════════════════════════════════════════════════ -->
-            <!-- SETTINGS SCREEN                                            -->
-            <!-- ═══════════════════════════════════════════════════════════ -->
-            <div id="settings-screen" class="hidden px-8 py-10 pb-20">
-                <div class="max-w-2xl mx-auto">
-                    <h1 class="text-4xl font-semibold logo-font tracking-tight mb-8">Settings</h1>
-
-                    <!-- General -->
-                    <div class="bg-zinc-900 rounded-3xl p-8 mb-6">
-                        <h3 class="text-sm font-medium text-yellow-300 mb-6 flex items-center gap-x-2">
-                            <i class="fa-solid fa-sliders"></i><span>GENERAL</span>
-                        </h3>
-                        <div class="space-y-6">
-                            <div>
-                                <label class="block text-xs text-zinc-400 mb-2">COMPANY NAME</label>
-                                <input id="settings-company" type="text" class="modal-input" value="Acme Bakery">
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <div class="font-medium">Auto-block threats</div>
-                                    <div class="text-xs text-zinc-400">Automatically block detected threats</div>
-                                </div>
-                                <div id="toggle-autoblock" class="toggle-switch active" data-action="toggle-setting"
-                                    data-setting="autoBlockThreats"></div>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <div class="font-medium">Notifications</div>
-                                    <div class="text-xs text-zinc-400">Show in-app notifications</div>
-                                </div>
-                                <div id="toggle-notifications" class="toggle-switch active" data-action="toggle-setting"
-                                    data-setting="notificationsEnabled"></div>
-                            </div>
-                            <div>
-                                <label class="block text-xs text-zinc-400 mb-2">AUTO SCAN INTERVAL (minutes)</label>
-                                <input id="settings-scan-interval" type="number" class="modal-input" value="30" min="5"
-                                    max="120">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-zinc-400 mb-2">LOG RETENTION (days)</label>
-                                <input id="settings-retention" type="number" class="modal-input" value="90" min="7"
-                                    max="365">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Email Alerts -->
-                    <div class="bg-zinc-900 rounded-3xl p-8 mb-6">
-                        <h3 class="text-sm font-medium text-yellow-300 mb-6 flex items-center gap-x-2">
-                            <i class="fa-solid fa-envelope"></i><span>EMAIL ALERTS</span>
-                        </h3>
-                        <div class="space-y-6">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <div class="font-medium">Enable email alerts</div>
-                                    <div class="text-xs text-zinc-400">Receive alerts via email</div>
-                                </div>
-                                <div id="toggle-email-alerts" class="toggle-switch" data-action="toggle-setting"
-                                    data-setting="emailAlertsEnabled"></div>
-                            </div>
-                            <div>
-                                <label class="block text-xs text-zinc-400 mb-2">ALERT EMAIL</label>
-                                <input id="settings-alert-email" type="email" class="modal-input"
-                                    placeholder="your@email.com">
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <div class="font-medium text-red-400">High severity</div>
-                                    <div class="text-xs text-zinc-400">Alert on high severity threats</div>
-                                </div>
-                                <div id="toggle-alert-high" class="toggle-switch active" data-action="toggle-setting"
-                                    data-setting="alertOnHigh"></div>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <div class="font-medium text-amber-400">Medium severity</div>
-                                    <div class="text-xs text-zinc-400">Alert on medium severity threats</div>
-                                </div>
-                                <div id="toggle-alert-medium" class="toggle-switch" data-action="toggle-setting"
-                                    data-setting="alertOnMedium"></div>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <div class="font-medium text-emerald-400">Low severity</div>
-                                    <div class="text-xs text-zinc-400">Alert on low severity threats</div>
-                                </div>
-                                <div id="toggle-alert-low" class="toggle-switch" data-action="toggle-setting"
-                                    data-setting="alertOnLow"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- User Profile -->
-                    <div class="bg-zinc-900 rounded-3xl p-8 mb-6">
-                        <h3 class="text-sm font-medium text-yellow-300 mb-6 flex items-center gap-x-2">
-                            <i class="fa-solid fa-user-circle"></i><span>USER PROFILE</span>
-                        </h3>
-                        <div class="space-y-6">
-                            <div>
-                                <label class="block text-xs text-zinc-400 mb-2">FULL NAME</label>
-                                <input id="profile-name" type="text" class="modal-input" placeholder="Your full name">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-zinc-400 mb-2">EMAIL</label>
-                                <input id="profile-email" type="email" class="modal-input" placeholder="your@email.com">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-zinc-400 mb-2">COMPANY</label>
-                                <input id="profile-company" type="text" class="modal-input" placeholder="Your company">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-zinc-400 mb-2">USERNAME</label>
-                                <input id="profile-username" type="text" class="modal-input" placeholder="Username"
-                                    disabled>
-                                <p class="text-xs text-zinc-500 mt-1">Username cannot be changed</p>
-                            </div>
-                            <button type="button" data-action="update-profile"
-                                class="w-full py-3 bg-blue-600 hover:bg-blue-700 transition-colors rounded-2xl font-medium text-sm">
-                                <i class="fa-solid fa-save mr-2"></i>UPDATE PROFILE
-                            </button>
-                            <div id="profile-update-error"
-                                class="hidden p-3 bg-red-500/20 border border-red-500 rounded text-red-400 text-xs">
-                                <i class="fa-solid fa-circle-exclamation mr-2"></i>
-                                <span id="profile-update-error-text"></span>
-                            </div>
-                            <div id="profile-update-success"
-                                class="hidden p-3 bg-emerald-500/20 border border-emerald-500 rounded text-emerald-400 text-xs">
-                                <i class="fa-solid fa-check-circle mr-2"></i>
-                                <span id="profile-update-success-text">Profile updated successfully</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Change Password -->
-                    <div class="bg-zinc-900 rounded-3xl p-8 mb-6">
-                        <h3 class="text-sm font-medium text-yellow-300 mb-6 flex items-center gap-x-2">
-                            <i class="fa-solid fa-lock"></i><span>CHANGE PASSWORD</span>
-                        </h3>
-                        <div class="space-y-6">
-                            <div>
-                                <label class="block text-xs text-zinc-400 mb-2">CURRENT PASSWORD</label>
-                                <input id="change-password-current" type="password" class="modal-input"
-                                    placeholder="Enter current password" autocomplete="current-password">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-zinc-400 mb-2">NEW PASSWORD</label>
-                                <input id="change-password-new" type="password" class="modal-input"
-                                    placeholder="Min 6 characters" autocomplete="new-password">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-zinc-400 mb-2">CONFIRM NEW PASSWORD</label>
-                                <input id="change-password-confirm" type="password" class="modal-input"
-                                    placeholder="Confirm password" autocomplete="new-password">
-                            </div>
-                            <button type="button" data-action="change-password"
-                                class="w-full py-3 bg-purple-600 hover:bg-purple-700 transition-colors rounded-2xl font-medium text-sm">
-                                <i class="fa-solid fa-key mr-2"></i>CHANGE PASSWORD
-                            </button>
-                            <div id="password-change-error"
-                                class="hidden p-3 bg-red-500/20 border border-red-500 rounded text-red-400 text-xs">
-                                <i class="fa-solid fa-circle-exclamation mr-2"></i>
-                                <span id="password-change-error-text"></span>
-                            </div>
-                            <div id="password-change-success"
-                                class="hidden p-3 bg-emerald-500/20 border border-emerald-500 rounded text-emerald-400 text-xs">
-                                <i class="fa-solid fa-check-circle mr-2"></i>
-                                <span id="password-change-success-text">Password changed successfully</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Active Sessions -->
-                    <div class="bg-zinc-900 rounded-3xl p-8 mb-6">
-                        <h3 class="text-sm font-medium text-yellow-300 mb-6 flex items-center gap-x-2">
-                            <i class="fa-solid fa-laptop"></i><span>ACTIVE SESSIONS</span>
-                        </h3>
-                        <div class="space-y-1">
-                            <div id="sessions-list" class="space-y-3">
-                                <!-- Populated by JS -->
-                            </div>
-                        </div>
-                        <button type="button" id="logout-other-sessions-btn"
-                            class="w-full mt-6 py-2 bg-red-600/20 hover:bg-red-600/30 border border-red-500 text-red-400 rounded-lg text-xs font-medium transition hidden">
-                            <i class="fa-solid fa-sign-out mr-2"></i>LOGOUT ALL OTHER SESSIONS
-                        </button>
-                    </div>
-
-                    <button data-action="save-settings"
-                        class="w-full py-5 bg-yellow-400 hover:bg-amber-300 transition-colors text-zinc-950 rounded-3xl font-semibold text-sm">
-                        <i class="fa-solid fa-floppy-disk mr-2"></i>SAVE SETTINGS
-                    </button>
-                </div>
-            </div>
-
-            <!-- ═══════════════════════════════════════════════════════════ -->
-            <!-- ADMIN SCREEN                                               -->
-            <!-- ═══════════════════════════════════════════════════════════ -->
-            <div id="admin-screen" class="hidden px-8 py-10 pb-20">
-                <div class="max-w-6xl mx-auto">
-                    <h1 class="text-4xl font-semibold logo-font tracking-tight mb-8">Admin Panel</h1>
-
-                    <!-- Tabs -->
-                    <div class="flex gap-x-6 mb-8 border-b border-zinc-800">
-                        <button class="admin-tab active pb-3 text-white font-medium border-b-2 border-yellow-400"
-                            data-admin-tab="users">
-                            <i class="fa-solid fa-users mr-2"></i>Users
-                        </button>
-                        <button class="admin-tab pb-3 text-zinc-400 font-medium border-b-2 border-transparent"
-                            data-admin-tab="activity">
-                            <i class="fa-solid fa-history mr-2"></i>Login Activity
-                        </button>
-                    </div>
-
-                    <!-- Users Tab -->
-                    <div id="admin-users-tab" class="admin-tab-content">
-                        <div class="bg-zinc-900 rounded-3xl overflow-hidden">
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-sm">
-                                    <thead class="bg-black border-b border-zinc-700">
-                                        <tr>
-                                            <th class="px-6 py-4 text-left text-xs font-medium text-zinc-400">USERNAME
-                                            </th>
-                                            <th class="px-6 py-4 text-left text-xs font-medium text-zinc-400">EMAIL</th>
-                                            <th class="px-6 py-4 text-left text-xs font-medium text-zinc-400">NAME</th>
-                                            <th class="px-6 py-4 text-left text-xs font-medium text-zinc-400">ROLE</th>
-                                            <th class="px-6 py-4 text-left text-xs font-medium text-zinc-400">LOGIN
-                                                COUNT</th>
-                                            <th class="px-6 py-4 text-left text-xs font-medium text-zinc-400">VERIFIED
-                                            </th>
-                                            <th class="px-6 py-4 text-left text-xs font-medium text-zinc-400">ACTIONS
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="admin-users-list" class="divide-y divide-zinc-800">
-                                        <!-- Populated by JS -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Activity Tab -->
-                    <div id="admin-activity-tab" class="admin-tab-content hidden">
-                        <div class="bg-zinc-900 rounded-3xl p-6">
-                            <div class="space-y-4">
-                                <div class="mb-6">
-                                    <label class="block text-xs text-zinc-400 mb-2">Filter by username</label>
-                                    <input id="activity-username-filter" type="text" class="modal-input"
-                                        placeholder="Leave empty for all">
-                                </div>
-                                <div id="admin-activity-list" class="space-y-3">
-                                    <!-- Populated by JS -->
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ═══════════════════════════════════════════════════════════ -->
-            <!-- SCAN RESULTS OVERLAY                                       -->
-            <!-- ═══════════════════════════════════════════════════════════ -->
-            <div id="scan-overlay"
-                class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[998]">
-                <div class="max-w-2xl w-full bg-zinc-900 rounded-3xl p-8 mx-4 max-h-[80vh] overflow-y-auto">
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-xl font-semibold flex items-center gap-x-3">
-                            <i class="fa-solid fa-radar text-sky-400"></i>
-                            <span>Network Scan</span>
-                        </h3>
-                        <button data-action="close-scan" class="text-zinc-400 hover:text-white text-xl"><i
-                                class="fa-solid fa-xmark"></i></button>
-                    </div>
-                    <div id="scan-content">
-                        <div class="text-center py-12">
-                            <i class="fa-solid fa-spinner fa-spin text-4xl text-sky-400 mb-4"></i>
-                            <div class="text-sm text-zinc-400 scan-pulse">Scanning network...</div>
-                            <div class="scan-progress mt-6 mx-auto max-w-xs">
-                                <div class="scan-progress-bar"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ═══════════════════════════════════════════════════════════ -->
-            <!-- ADD DEVICE MODAL                                           -->
-            <!-- ═══════════════════════════════════════════════════════════ -->
-            <div id="add-device-modal" class="hidden">
-                <div class="modal-overlay" data-action="close-add-device-modal">
-                    <div class="modal-card">
-                        <h3 class="text-xl font-semibold mb-6 flex items-center gap-x-3">
-                            <i class="fa-solid fa-plus-circle text-sky-400"></i>
-                            <span>Add New Device</span>
-                        </h3>
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-xs text-zinc-400 mb-2">DEVICE NAME</label>
-                                <input id="new-device-name" type="text" class="modal-input"
-                                    placeholder="e.g. MacBook-Pro">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-zinc-400 mb-2">DEVICE TYPE</label>
-                                <select id="new-device-type" class="modal-select">
-                                    <option value="laptop">💻 Laptop</option>
-                                    <option value="server">🖥️ Server</option>
-                                    <option value="mobile">📱 Mobile</option>
-                                    <option value="iot">🔌 IoT Device</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs text-zinc-400 mb-2">IP ADDRESS</label>
-                                <input id="new-device-ip" type="text" class="modal-input"
-                                    placeholder="e.g. 192.168.1.50">
-                            </div>
-                        </div>
-                        <div class="flex gap-x-4 mt-8">
-                            <button data-action="close-add-device-modal"
-                                class="flex-1 py-4 text-sm border border-zinc-700 rounded-3xl hover:bg-zinc-800 transition-colors">CANCEL</button>
-                            <button data-action="submit-add-device"
-                                class="flex-1 py-4 text-sm bg-yellow-400 hover:bg-amber-300 text-zinc-950 rounded-3xl font-semibold transition-colors">ADD
-                                DEVICE</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ═══════════════════════════════════════════════════════════ -->
-            <!-- EDIT DEVICE MODAL                                          -->
-            <!-- ═══════════════════════════════════════════════════════════ -->
-            <div id="edit-device-modal" class="hidden">
-                <div class="modal-overlay" data-action="close-edit-device-modal">
-                    <div class="modal-card">
-                        <h3 class="text-xl font-semibold mb-6 flex items-center gap-x-3">
-                            <i class="fa-solid fa-pen-to-square text-amber-400"></i>
-                            <span>Edit Device</span>
-                        </h3>
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-xs text-zinc-400 mb-2">DEVICE NAME</label>
-                                <input id="edit-device-name" type="text" class="modal-input">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-zinc-400 mb-2">DEVICE TYPE</label>
-                                <select id="edit-device-type" class="modal-select">
-                                    <option value="laptop">💻 Laptop</option>
-                                    <option value="server">🖥️ Server</option>
-                                    <option value="mobile">📱 Mobile</option>
-                                    <option value="iot">🔌 IoT Device</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs text-zinc-400 mb-2">IP ADDRESS</label>
-                                <input id="edit-device-ip" type="text" class="modal-input">
-                            </div>
-                        </div>
-                        <div class="flex gap-x-4 mt-8">
-                            <button data-action="close-edit-device-modal"
-                                class="flex-1 py-4 text-sm border border-zinc-700 rounded-3xl hover:bg-zinc-800 transition-colors">CANCEL</button>
-                            <button data-action="submit-edit-device"
-                                class="flex-1 py-4 text-sm bg-amber-400 hover:bg-amber-300 text-zinc-950 rounded-3xl font-semibold transition-colors">SAVE
-                                CHANGES</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ═══════════════════════════════════════════════════════════ -->
-            <!-- DELETE CONFIRMATION MODAL                                  -->
-            <!-- ═══════════════════════════════════════════════════════════ -->
-            <div id="delete-confirm-modal" class="hidden">
-                <div class="modal-overlay" data-action="close-delete-modal">
-                    <div class="modal-card text-center">
-                        <div class="flex justify-center mb-6">
-                            <div class="w-16 h-16 bg-red-500/10 flex items-center justify-center rounded-full">
-                                <i class="fa-solid fa-trash text-red-400 text-3xl"></i>
-                            </div>
-                        </div>
-                        <h3 class="text-xl font-semibold mb-2">Delete Device</h3>
-                        <p class="text-zinc-400 text-sm" id="delete-confirm-text">Are you sure you want to remove this
-                            device?</p>
-                        <div class="flex gap-x-4 mt-8">
-                            <button data-action="close-delete-modal"
-                                class="flex-1 py-4 text-sm border border-zinc-700 rounded-3xl hover:bg-zinc-800 transition-colors">CANCEL</button>
-                            <button data-action="confirm-delete-device"
-                                class="flex-1 py-4 text-sm bg-red-500 hover:bg-red-600 text-white rounded-3xl font-semibold transition-colors">DELETE</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ═══════════════════════════════════════════════════════════ -->
-            <!-- KILL SWITCH MODAL                                          -->
-            <!-- ═══════════════════════════════════════════════════════════ -->
-            <div id="kill-modal" class="hidden fixed inset-0 bg-black/80 items-center justify-center z-[999]">
-                <div class="max-w-md w-full bg-zinc-900 rounded-3xl p-8">
-                    <div class="flex justify-center mb-6">
-                        <div class="threat-pulse w-20 h-20 bg-red-500/10 flex items-center justify-center rounded-full">
-                            <i class="fa-solid fa-skull-crossbones text-red-500 text-5xl"></i>
-                        </div>
-                    </div>
-                    <h3 class="text-center text-2xl font-medium text-red-400">Network Kill Switch</h3>
-                    <p class="text-center text-zinc-400 text-sm mt-3">This will immediately isolate all online devices
-                        from the network.</p>
-                    <div class="my-8 border border-red-900 bg-black rounded-2xl p-5 text-xs font-light text-red-200">
-                        All traffic will be cut. This is a hard isolation —
-                        use during active ransomware or breach response.
-                    </div>
-                    <div class="flex gap-x-4">
-                        <button data-action="kill-switch-dismiss"
-                            class="flex-1 py-6 text-xs border border-zinc-700 rounded-3xl">CANCEL</button>
-                        <button data-action="kill-switch-confirm"
-                            class="flex-1 py-6 text-xs bg-red-500 hover:bg-red-600 transition-colors rounded-3xl font-semibold">ISOLATE
-                            NETWORK NOW</button>
-                    </div>
-                    <div class="text-[10px] text-center text-zinc-500 mt-8">All devices will be marked offline. Network traffic will be blocked.</div>
-                </div>
-            </div>
-
-            <!-- FOOTER BAR -->
-            <div
-                class="fixed bottom-0 left-0 right-0 bg-zinc-900 border-t border-zinc-700 h-14 hidden lg:flex items-center px-8 text-xs z-50">
-                <div class="flex-1 flex items-center gap-x-8">
-                    <div data-action="navigate" data-screen="dashboard"
-                        class="flex items-center gap-x-2 cursor-pointer"><i class="fa-solid fa-house"></i><span
-                            class="font-medium">Home</span></div>
-                    <div data-action="navigate" data-screen="logs" class="flex items-center gap-x-2 cursor-pointer"><i
-                            class="fa-solid fa-list-check"></i><span class="font-medium">Logs</span></div>
-                    <div data-action="navigate" data-screen="honeypot" class="flex items-center gap-x-2 cursor-pointer">
-                        <i class="fa-solid fa-bug"></i><span class="font-medium">Honeypot</span>
-                    </div>
-                    <div data-action="navigate" data-screen="threats" class="flex items-center gap-x-2 cursor-pointer">
-                        <i class="fa-solid fa-shield-virus"></i><span class="font-medium">Threats</span>
-                    </div>
-                    <div data-action="navigate" data-screen="analyze" class="flex items-center gap-x-2 cursor-pointer">
-                        <i class="fa-solid fa-brain"></i><span class="font-medium">Analyze</span>
-                    </div>
-                </div>
-                <div class="text-[10px] font-mono text-zinc-500 flex items-center gap-x-5">
-                    <div>POWERED BY CYBERMIND AI</div>
-                    <div class="w-px h-3 bg-zinc-600"></div>
-                    <div class="flex items-center gap-x-1">
-                        <div class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></div>CONNECTED
-                    </div>
-                </div>
-                <div class="flex-1 flex justify-end items-center gap-x-6 text-xs">
-                    <button data-action="navigate" data-screen="settings"
-                        class="px-5 py-2 border border-zinc-600 rounded-3xl flex items-center gap-x-2 hover:bg-zinc-800"><i
-                            class="fa-solid fa-gear"></i><span>Settings</span></button>
-                    <button data-action="logout"
-                        class="px-6 py-2 bg-white text-zinc-900 rounded-3xl font-medium">LOGOUT</button>
                 </div>
             </div>
         </div>
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- ANALYZE SCREEN — Layer 1 (Frontend)                        -->
+        <!-- Sends input to Flask /api/analyze → IDS Engine             -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <div id="analyze-screen" class="hidden px-4 sm:px-8 py-10 pb-24 max-w-4xl mx-auto">
+
+            <div class="mb-8">
+                <h1 class="text-4xl font-semibold logo-font tracking-tight">AI Threat Analyzer</h1>
+                <p class="text-zinc-400 mt-2 text-sm leading-relaxed">
+                    Paste a log line, CLI command, or upload a file — the IDS engine analyses it
+                    and returns a structured threat assessment.
+                </p>
+            </div>
+
+            <!-- Architecture badge row -->
+            <div class="flex flex-wrap gap-2 mb-8 text-[10px] font-mono tracking-widest">
+                <span class="px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">LAYER 1
+                    — Frontend (fetch)</span>
+                <span class="text-zinc-600 self-center">→</span>
+                <span class="px-3 py-1 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20">LAYER
+                    2 — Flask /api/analyze</span>
+                <span class="text-zinc-600 self-center">→</span>
+                <span
+                    class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">LAYER
+                    3 — IDS Engine (Python)</span>
+            </div>
+
+            <!-- Input card -->
+            <div class="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-6 mb-6">
+                <form id="analyze-form" class="space-y-5">
+                    <div>
+                        <label for="analyze-text-input"
+                            class="block text-xs font-semibold text-zinc-400 mb-2 tracking-wider uppercase">Log Line
+                            / Alert Text / CLI Command</label>
+                        <textarea id="analyze-text-input" rows="4"
+                            placeholder="e.g.  nmap -sS -p 1-65535 192.168.1.1&#10;      hydra -l admin -P wordlist.txt ssh://10.0.0.1&#10;      ' OR '1'='1' -- (SQL injection)"
+                            class="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-white font-mono placeholder-zinc-600 focus:outline-none focus:border-yellow-400 resize-y transition-colors duration-200"></textarea>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="analyze-ip-input"
+                                class="block text-xs font-semibold text-zinc-400 mb-2 tracking-wider uppercase">Source
+                                IP <span class="text-zinc-600 normal-case font-normal">(optional)</span></label>
+                            <input id="analyze-ip-input" type="text" placeholder="e.g. 45.83.122.41"
+                                class="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-white font-mono placeholder-zinc-600 focus:outline-none focus:border-yellow-400 transition-colors" />
+                        </div>
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-zinc-400 mb-2 tracking-wider uppercase">Upload
+                                Log / PCAP File <span
+                                    class="text-zinc-600 normal-case font-normal">(optional)</span></label>
+                            <label for="analyze-file-input"
+                                class="flex items-center gap-3 w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 cursor-pointer hover:border-zinc-500 transition-colors"
+                                style="min-height:46px;">
+                                <i class="fa-solid fa-file-arrow-up text-zinc-500"></i>
+                                <span id="analyze-file-label" class="text-sm text-zinc-500 truncate">Choose
+                                    file…</span>
+                                <input id="analyze-file-input" type="file" class="hidden"
+                                    accept=".log,.txt,.pcap,.cap,.csv" />
+                            </label>
+                        </div>
+                    </div>
+                    <button id="analyze-submit-btn" type="submit"
+                        class="w-full flex items-center justify-center gap-3 px-6 py-3.5 bg-yellow-400 hover:bg-yellow-300 text-black font-bold rounded-xl transition-all duration-200 text-sm tracking-wide disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i id="analyze-btn-icon" class="fa-solid fa-magnifying-glass"></i>
+                        <span id="analyze-btn-label">Analyze with CyberMind IDS</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Result card -->
+            <div id="analyze-result-card" class="hidden">
+                <div id="analyze-result-header"
+                    class="flex items-center gap-4 rounded-t-2xl border border-b-0 px-6 py-4">
+                    <div id="analyze-result-icon"
+                        class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0">
+                        <i class="fa-solid fa-shield-halved text-xl"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span id="analyze-result-severity-badge"
+                                class="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">CRITICAL</span>
+                            <span id="analyze-result-type-badge"
+                                class="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-zinc-700 text-zinc-200">exploitation</span>
+                            <span id="analyze-result-confidence" class="text-[10px] text-zinc-400 font-mono">97%
+                                confidence</span>
+                        </div>
+                        <div id="analyze-result-label" class="text-white font-bold text-lg mt-1 truncate">Threat
+                            label</div>
+                    </div>
+                </div>
+                <div class="border border-t-0 border-zinc-700 rounded-b-2xl bg-zinc-900/60 px-6 py-5 space-y-5">
+                    <div>
+                        <div class="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold mb-1">Summary
+                        </div>
+                        <p id="analyze-result-summary" class="text-zinc-200 text-sm leading-relaxed"></p>
+                    </div>
+                    <div id="analyze-matches-section" class="hidden">
+                        <div class="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold mb-2">
+                            Signature Matches</div>
+                        <div id="analyze-matches-list" class="space-y-1.5"></div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold mb-2">
+                            Recommendations</div>
+                        <ul id="analyze-recommendations-list" class="space-y-1.5 text-sm text-zinc-300"></ul>
+                    </div>
+                    <div
+                        class="flex flex-wrap gap-x-6 gap-y-1 text-[10px] font-mono text-zinc-600 pt-2 border-t border-zinc-800">
+                        <span>model: <span id="analyze-result-model" class="text-zinc-400">—</span></span>
+                        <span>fingerprint: <span id="analyze-result-fp" class="text-zinc-400">—</span></span>
+                        <span>timestamp: <span id="analyze-result-ts" class="text-zinc-400">—</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error state -->
+            <div id="analyze-error"
+                class="hidden mt-4 p-4 bg-red-950/50 border border-red-800 rounded-xl text-red-300 text-sm flex items-center gap-3">
+                <i class="fa-solid fa-circle-exclamation text-red-400 flex-shrink-0"></i>
+                <span id="analyze-error-text"></span>
+            </div>
+
+
+            <!-- ═══════════════════════════════════════════════════════ -->
+            <!-- NETWORK SCAN PANEL                                     -->
+            <!-- Click Start Scan → Scapy captures packets →           -->
+            <!-- Random Forest AI classifies → live result displayed   -->
+            <!-- ═══════════════════════════════════════════════════════ -->
+            <div class="mt-10">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-2 h-2 rounded-full bg-yellow-400"></div>
+                    <h2 class="text-lg font-bold tracking-tight">Live Network Scan</h2>
+                    <span
+                        class="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 tracking-widest">SCAPY
+                        + RANDOM FOREST</span>
+                </div>
+                <p class="text-zinc-500 text-xs mb-5 ml-5">Captures live packets from your network interface and
+                    classifies them with a trained Random Forest model.</p>
+
+                <!-- Packet count slider + Start button -->
+                <div class="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-6 mb-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <label for="scan-packet-count"
+                            class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Packet
+                            Count</label>
+                        <span id="scan-packet-count-label"
+                            class="text-yellow-400 font-bold font-mono text-sm">200</span>
+                    </div>
+                    <input id="scan-packet-count" type="range" min="50" max="2000" step="50" value="200"
+                        class="w-full accent-yellow-400 cursor-pointer mb-2" />
+                    <div class="flex justify-between text-[10px] text-zinc-600 mb-3">
+                        <span>50 (fast)</span><span>500</span><span>1000</span><span>2000 (deep)</span>
+                    </div>
+                    <button id="scan-start-btn" type="button"
+                        class="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-300 hover:to-orange-300 text-black font-extrabold rounded-xl transition-all duration-200 text-sm tracking-widest shadow-lg shadow-yellow-400/20 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i id="scan-btn-icon" class="fa-solid fa-satellite-dish text-lg"></i>
+                        <span id="scan-btn-label">START SCAN</span>
+                    </button>
+                </div>
+
+                <!-- Progress panel -->
+                <div id="scan-progress-panel" class="hidden bg-zinc-900/60 border border-zinc-800 rounded-2xl p-6 mb-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2">
+                            <div id="scan-phase-dot" class="w-2.5 h-2.5 rounded-full bg-yellow-400 animate-pulse">
+                            </div>
+                            <span id="scan-phase-label" class="text-sm font-semibold text-zinc-300">Starting...</span>
+                        </div>
+                        <span id="scan-progress-pct" class="font-mono text-yellow-400 text-sm">0%</span>
+                    </div>
+                    <div class="w-full h-2 bg-zinc-800 rounded-full overflow-hidden mb-4">
+                        <div id="scan-progress-bar"
+                            class="h-full bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full transition-all duration-500"
+                            style="width:0%"></div>
+                    </div>
+                    <div class="bg-zinc-950 rounded-xl p-4 font-mono text-[11px] text-zinc-400 h-28 overflow-y-auto"
+                        id="scan-terminal">
+                        <div class="text-yellow-400">$ cybermind-ids --scan --model random_forest</div>
+                    </div>
+                </div>
+
+                <!-- Result card -->
+                <div id="scan-result-card" class="hidden rounded-2xl border overflow-hidden">
+                    <div id="scan-result-header" class="flex items-center gap-5 px-6 py-5">
+                        <div id="scan-result-icon"
+                            class="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 text-2xl">
+                            &#x1F6E1;&#xFE0F;</div>
+                        <div class="flex-1">
+                            <div id="scan-verdict-text" class="text-white font-extrabold text-xl leading-snug">
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2 mt-1">
+                                <span id="scan-result-severity"
+                                    class="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"></span>
+                                <span class="text-[10px] text-zinc-400 font-mono"
+                                    id="scan-result-confidence-label"></span>
+                                <span class="text-[10px] text-zinc-500 font-mono" id="scan-result-mode-label"></span>
+                            </div>
+                        </div>
+                        <div class="flex-shrink-0 text-right">
+                            <div class="text-4xl font-black font-mono" id="scan-big-conf"></div>
+                            <div class="text-[10px] text-zinc-500 uppercase tracking-widest">confidence</div>
+                        </div>
+                    </div>
+                    <div class="border-t border-zinc-800 bg-zinc-900/60 px-6 py-5">
+                        <div class="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold mb-3">Traffic
+                            Breakdown</div>
+                        <div id="scan-breakdown-bars" class="space-y-2.5"></div>
+                    </div>
+                    <div
+                        class="border-t border-zinc-800 bg-zinc-950/40 px-6 py-3 flex flex-wrap gap-x-6 gap-y-1 text-[10px] font-mono text-zinc-600">
+                        <span>packets: <span id="scan-meta-count" class="text-zinc-400">--</span></span>
+                        <span>mode: <span id="scan-meta-mode" class="text-zinc-400">--</span></span>
+                        <span>timestamp: <span id="scan-meta-ts" class="text-zinc-400">--</span></span>
+                    </div>
+                </div>
+
+                <!-- Scan error -->
+                <div id="scan-error"
+                    class="hidden mt-4 p-4 bg-red-950/50 border border-red-800 rounded-xl text-red-300 text-sm flex items-center gap-3">
+                    <i class="fa-solid fa-circle-exclamation text-red-400 flex-shrink-0"></i>
+                    <span id="scan-error-text"></span>
+                </div>
+            </div><!-- /scan panel -->
+
+        </div><!-- /analyze-screen -->
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- LOGS SCREEN                                                -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <div id="logs-screen" class="hidden px-8 py-10 pb-20">
+            <div class="flex justify-between items-baseline">
+                <h1 class="text-4xl font-semibold logo-font tracking-tight">Security Logs</h1>
+                <div class="flex items-center text-xs bg-zinc-900 rounded-3xl px-5 py-3">
+                    <span class="text-emerald-400 mr-2">●</span>
+                    <span class="font-medium">Live feed enabled</span>
+                </div>
+            </div>
+            <div class="mt-8 border border-zinc-700 rounded-3xl overflow-hidden">
+                <table class="w-full">
+                    <thead>
+                        <tr class="bg-zinc-900 border-b border-zinc-700">
+                            <th class="py-5 px-8 text-left text-xs font-medium text-zinc-400">TIME</th>
+                            <th class="py-5 px-8 text-left text-xs font-medium text-zinc-400">DEVICE</th>
+                            <th class="py-5 px-8 text-left text-xs font-medium text-zinc-400">EVENT</th>
+                            <th class="py-5 px-8 text-left text-xs font-medium text-zinc-400">AI SUMMARY</th>
+                            <th class="py-5 px-8 text-left text-xs font-medium text-zinc-400">SEVERITY</th>
+                            <th class="py-5 px-8 text-right text-xs font-medium text-zinc-400">ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody id="log-table-body" class="text-sm divide-y divide-zinc-700"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- HONEYPOT SCREEN                                            -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <div id="honeypot-screen" class="hidden px-8 py-10 pb-20">
+            <div class="max-w-4xl mx-auto">
+                <div class="flex gap-3 items-center mb-8">
+                    <i class="fa-solid fa-bug text-yellow-400 text-4xl"></i>
+                    <div>
+                        <span class="uppercase tracking-widest text-xs text-lime-400 font-medium">Advanced Threat
+                            Detection</span>
+                        <h2 class="text-4xl font-semibold text-white">Honeypot Decoy Network</h2>
+                    </div>
+                </div>
+                <div class="grid grid-cols-12 gap-6">
+                    <div class="col-span-12 md:col-span-7 bg-zinc-900 rounded-3xl p-8">
+                        <div class="flex justify-between items-center">
+                            <div class="text-zinc-400 text-sm">DECOY ACTIVITY</div>
+                            <div class="flex items-center gap-x-2 text-lime-300 text-xs">
+                                <div class="h-px w-12 bg-lime-400"></div><span>Attacks trapped today</span>
+                            </div>
+                        </div>
+                        <div id="honeypot-timeline" class="mt-8 space-y-8"></div>
+                    </div>
+                    <div class="col-span-12 md:col-span-5">
+                        <div class="bg-zinc-900 h-full rounded-3xl p-8 flex flex-col">
+                            <div class="flex-1">
+                                <div class="text-xs text-zinc-400 mb-2">CURRENT DECOYS ACTIVE</div>
+                                <ul class="space-y-6 text-sm" id="decoy-list"></ul>
+                            </div>
+                            <button data-action="deploy-decoy"
+                                class="mt-auto flex items-center justify-center gap-x-3 bg-lime-400 text-zinc-950 py-6 rounded-3xl font-semibold">
+                                <i class="fa-solid fa-plus"></i><span>DEPLOY NEW DECOY FILE</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- THREATS SCREEN                                             -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <div id="threats-screen" class="hidden px-8 py-10 pb-20">
+            <div class="flex justify-between items-baseline mb-8">
+                <div>
+                    <span class="uppercase tracking-widest text-xs text-rose-400 font-medium">Threat
+                        Intelligence</span>
+                    <h1 class="text-4xl font-semibold logo-font tracking-tight text-white">Active Threats</h1>
+                </div>
+            </div>
+            <div id="threats-list" class="space-y-6"></div>
+
+            <!-- Threat Detail Panel (shown when a threat is clicked) -->
+            <div id="threat-detail" class="hidden mt-8">
+                <div data-action="close-threat-detail"
+                    class="flex items-center gap-x-2 text-xs text-zinc-400 cursor-pointer hover:text-white mb-6">
+                    <i class="fa-solid fa-arrow-left"></i><span>Back to threats</span>
+                </div>
+                <div id="threat-detail-content" class="bg-zinc-900 rounded-3xl p-8"></div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- SETTINGS SCREEN                                            -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <div id="settings-screen" class="hidden px-8 py-10 pb-20">
+            <div class="max-w-2xl mx-auto">
+                <h1 class="text-4xl font-semibold logo-font tracking-tight mb-8">Settings</h1>
+
+                <!-- General -->
+                <div class="bg-zinc-900 rounded-3xl p-8 mb-6">
+                    <h3 class="text-sm font-medium text-yellow-300 mb-6 flex items-center gap-x-2">
+                        <i class="fa-solid fa-sliders"></i><span>GENERAL</span>
+                    </h3>
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-xs text-zinc-400 mb-2">COMPANY NAME</label>
+                            <input id="settings-company" type="text" class="modal-input" value="Acme Bakery">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="font-medium">Auto-block threats</div>
+                                <div class="text-xs text-zinc-400">Automatically block detected threats</div>
+                            </div>
+                            <div id="toggle-autoblock" class="toggle-switch active" data-action="toggle-setting"
+                                data-setting="autoBlockThreats"></div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="font-medium">Notifications</div>
+                                <div class="text-xs text-zinc-400">Show in-app notifications</div>
+                            </div>
+                            <div id="toggle-notifications" class="toggle-switch active" data-action="toggle-setting"
+                                data-setting="notificationsEnabled"></div>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-zinc-400 mb-2">AUTO SCAN INTERVAL (minutes)</label>
+                            <input id="settings-scan-interval" type="number" class="modal-input" value="30" min="5"
+                                max="120">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-zinc-400 mb-2">LOG RETENTION (days)</label>
+                            <input id="settings-retention" type="number" class="modal-input" value="90" min="7"
+                                max="365">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Email Alerts -->
+                <div class="bg-zinc-900 rounded-3xl p-8 mb-6">
+                    <h3 class="text-sm font-medium text-yellow-300 mb-6 flex items-center gap-x-2">
+                        <i class="fa-solid fa-envelope"></i><span>EMAIL ALERTS</span>
+                    </h3>
+                    <div class="space-y-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="font-medium">Enable email alerts</div>
+                                <div class="text-xs text-zinc-400">Receive alerts via email</div>
+                            </div>
+                            <div id="toggle-email-alerts" class="toggle-switch" data-action="toggle-setting"
+                                data-setting="emailAlertsEnabled"></div>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-zinc-400 mb-2">ALERT EMAIL</label>
+                            <input id="settings-alert-email" type="email" class="modal-input"
+                                placeholder="your@email.com">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="font-medium text-red-400">High severity</div>
+                                <div class="text-xs text-zinc-400">Alert on high severity threats</div>
+                            </div>
+                            <div id="toggle-alert-high" class="toggle-switch active" data-action="toggle-setting"
+                                data-setting="alertOnHigh"></div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="font-medium text-amber-400">Medium severity</div>
+                                <div class="text-xs text-zinc-400">Alert on medium severity threats</div>
+                            </div>
+                            <div id="toggle-alert-medium" class="toggle-switch" data-action="toggle-setting"
+                                data-setting="alertOnMedium"></div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="font-medium text-emerald-400">Low severity</div>
+                                <div class="text-xs text-zinc-400">Alert on low severity threats</div>
+                            </div>
+                            <div id="toggle-alert-low" class="toggle-switch" data-action="toggle-setting"
+                                data-setting="alertOnLow"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Profile -->
+                <div class="bg-zinc-900 rounded-3xl p-8 mb-6">
+                    <h3 class="text-sm font-medium text-yellow-300 mb-6 flex items-center gap-x-2">
+                        <i class="fa-solid fa-user-circle"></i><span>USER PROFILE</span>
+                    </h3>
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-xs text-zinc-400 mb-2">FULL NAME</label>
+                            <input id="profile-name" type="text" class="modal-input" placeholder="Your full name">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-zinc-400 mb-2">EMAIL</label>
+                            <input id="profile-email" type="email" class="modal-input" placeholder="your@email.com">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-zinc-400 mb-2">COMPANY</label>
+                            <input id="profile-company" type="text" class="modal-input" placeholder="Your company">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-zinc-400 mb-2">USERNAME</label>
+                            <input id="profile-username" type="text" class="modal-input" placeholder="Username"
+                                disabled>
+                            <p class="text-xs text-zinc-500 mt-1">Username cannot be changed</p>
+                        </div>
+                        <button type="button" data-action="update-profile"
+                            class="w-full py-3 bg-blue-600 hover:bg-blue-700 transition-colors rounded-2xl font-medium text-sm">
+                            <i class="fa-solid fa-save mr-2"></i>UPDATE PROFILE
+                        </button>
+                        <div id="profile-update-error"
+                            class="hidden p-3 bg-red-500/20 border border-red-500 rounded text-red-400 text-xs">
+                            <i class="fa-solid fa-circle-exclamation mr-2"></i>
+                            <span id="profile-update-error-text"></span>
+                        </div>
+                        <div id="profile-update-success"
+                            class="hidden p-3 bg-emerald-500/20 border border-emerald-500 rounded text-emerald-400 text-xs">
+                            <i class="fa-solid fa-check-circle mr-2"></i>
+                            <span id="profile-update-success-text">Profile updated successfully</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Change Password -->
+                <div class="bg-zinc-900 rounded-3xl p-8 mb-6">
+                    <h3 class="text-sm font-medium text-yellow-300 mb-6 flex items-center gap-x-2">
+                        <i class="fa-solid fa-lock"></i><span>CHANGE PASSWORD</span>
+                    </h3>
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-xs text-zinc-400 mb-2">CURRENT PASSWORD</label>
+                            <input id="change-password-current" type="password" class="modal-input"
+                                placeholder="Enter current password" autocomplete="current-password">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-zinc-400 mb-2">NEW PASSWORD</label>
+                            <input id="change-password-new" type="password" class="modal-input"
+                                placeholder="Min 6 characters" autocomplete="new-password">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-zinc-400 mb-2">CONFIRM NEW PASSWORD</label>
+                            <input id="change-password-confirm" type="password" class="modal-input"
+                                placeholder="Confirm password" autocomplete="new-password">
+                        </div>
+                        <button type="button" data-action="change-password"
+                            class="w-full py-3 bg-purple-600 hover:bg-purple-700 transition-colors rounded-2xl font-medium text-sm">
+                            <i class="fa-solid fa-key mr-2"></i>CHANGE PASSWORD
+                        </button>
+                        <div id="password-change-error"
+                            class="hidden p-3 bg-red-500/20 border border-red-500 rounded text-red-400 text-xs">
+                            <i class="fa-solid fa-circle-exclamation mr-2"></i>
+                            <span id="password-change-error-text"></span>
+                        </div>
+                        <div id="password-change-success"
+                            class="hidden p-3 bg-emerald-500/20 border border-emerald-500 rounded text-emerald-400 text-xs">
+                            <i class="fa-solid fa-check-circle mr-2"></i>
+                            <span id="password-change-success-text">Password changed successfully</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Sessions -->
+                <div class="bg-zinc-900 rounded-3xl p-8 mb-6">
+                    <h3 class="text-sm font-medium text-yellow-300 mb-6 flex items-center gap-x-2">
+                        <i class="fa-solid fa-laptop"></i><span>ACTIVE SESSIONS</span>
+                    </h3>
+                    <div class="space-y-1">
+                        <div id="sessions-list" class="space-y-3">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                    <button type="button" id="logout-other-sessions-btn"
+                        class="w-full mt-6 py-2 bg-red-600/20 hover:bg-red-600/30 border border-red-500 text-red-400 rounded-lg text-xs font-medium transition hidden">
+                        <i class="fa-solid fa-sign-out mr-2"></i>LOGOUT ALL OTHER SESSIONS
+                    </button>
+                </div>
+
+                <button data-action="save-settings"
+                    class="w-full py-5 bg-yellow-400 hover:bg-amber-300 transition-colors text-zinc-950 rounded-3xl font-semibold text-sm">
+                    <i class="fa-solid fa-floppy-disk mr-2"></i>SAVE SETTINGS
+                </button>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- ADMIN SCREEN                                               -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <div id="admin-screen" class="hidden px-8 py-10 pb-20">
+            <div class="max-w-6xl mx-auto">
+                <h1 class="text-4xl font-semibold logo-font tracking-tight mb-8">Admin Panel</h1>
+
+                <!-- Tabs -->
+                <div class="flex gap-x-6 mb-8 border-b border-zinc-800">
+                    <button class="admin-tab active pb-3 text-white font-medium border-b-2 border-yellow-400"
+                        data-admin-tab="users">
+                        <i class="fa-solid fa-users mr-2"></i>Users
+                    </button>
+                    <button class="admin-tab pb-3 text-zinc-400 font-medium border-b-2 border-transparent"
+                        data-admin-tab="activity">
+                        <i class="fa-solid fa-history mr-2"></i>Login Activity
+                    </button>
+                </div>
+
+                <!-- Users Tab -->
+                <div id="admin-users-tab" class="admin-tab-content">
+                    <div class="bg-zinc-900 rounded-3xl overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead class="bg-black border-b border-zinc-700">
+                                    <tr>
+                                        <th class="px-6 py-4 text-left text-xs font-medium text-zinc-400">USERNAME
+                                        </th>
+                                        <th class="px-6 py-4 text-left text-xs font-medium text-zinc-400">EMAIL</th>
+                                        <th class="px-6 py-4 text-left text-xs font-medium text-zinc-400">NAME</th>
+                                        <th class="px-6 py-4 text-left text-xs font-medium text-zinc-400">ROLE</th>
+                                        <th class="px-6 py-4 text-left text-xs font-medium text-zinc-400">LOGIN
+                                            COUNT</th>
+                                        <th class="px-6 py-4 text-left text-xs font-medium text-zinc-400">VERIFIED
+                                        </th>
+                                        <th class="px-6 py-4 text-left text-xs font-medium text-zinc-400">ACTIONS
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-users-list" class="divide-y divide-zinc-800">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Activity Tab -->
+                <div id="admin-activity-tab" class="admin-tab-content hidden">
+                    <div class="bg-zinc-900 rounded-3xl p-6">
+                        <div class="space-y-4">
+                            <div class="mb-6">
+                                <label class="block text-xs text-zinc-400 mb-2">Filter by username</label>
+                                <input id="activity-username-filter" type="text" class="modal-input"
+                                    placeholder="Leave empty for all">
+                            </div>
+                            <div id="admin-activity-list" class="space-y-3">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- SCAN RESULTS OVERLAY                                       -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <div id="scan-overlay"
+            class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[998]">
+            <div class="max-w-2xl w-full bg-zinc-900 rounded-3xl p-8 mx-4 max-h-[80vh] overflow-y-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-semibold flex items-center gap-x-3">
+                        <i class="fa-solid fa-radar text-sky-400"></i>
+                        <span>Network Scan</span>
+                    </h3>
+                    <button data-action="close-scan" class="text-zinc-400 hover:text-white text-xl"><i
+                            class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div id="scan-content">
+                    <div class="text-center py-12">
+                        <i class="fa-solid fa-spinner fa-spin text-4xl text-sky-400 mb-4"></i>
+                        <div class="text-sm text-zinc-400 scan-pulse">Scanning network...</div>
+                        <div class="scan-progress mt-6 mx-auto max-w-xs">
+                            <div class="scan-progress-bar"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- ADD DEVICE MODAL                                           -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <div id="add-device-modal" class="hidden">
+            <div class="modal-overlay" data-action="close-add-device-modal">
+                <div class="modal-card">
+                    <h3 class="text-xl font-semibold mb-6 flex items-center gap-x-3">
+                        <i class="fa-solid fa-plus-circle text-sky-400"></i>
+                        <span>Add New Device</span>
+                    </h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs text-zinc-400 mb-2">DEVICE NAME</label>
+                            <input id="new-device-name" type="text" class="modal-input" placeholder="e.g. MacBook-Pro">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-zinc-400 mb-2">DEVICE TYPE</label>
+                            <select id="new-device-type" class="modal-select">
+                                <option value="laptop">💻 Laptop</option>
+                                <option value="server">🖥️ Server</option>
+                                <option value="mobile">📱 Mobile</option>
+                                <option value="iot">🔌 IoT Device</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-zinc-400 mb-2">IP ADDRESS</label>
+                            <input id="new-device-ip" type="text" class="modal-input" placeholder="e.g. 192.168.1.50">
+                        </div>
+                    </div>
+                    <div class="flex gap-x-4 mt-8">
+                        <button data-action="close-add-device-modal"
+                            class="flex-1 py-4 text-sm border border-zinc-700 rounded-3xl hover:bg-zinc-800 transition-colors">CANCEL</button>
+                        <button data-action="submit-add-device"
+                            class="flex-1 py-4 text-sm bg-yellow-400 hover:bg-amber-300 text-zinc-950 rounded-3xl font-semibold transition-colors">ADD
+                            DEVICE</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- EDIT DEVICE MODAL                                          -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <div id="edit-device-modal" class="hidden">
+            <div class="modal-overlay" data-action="close-edit-device-modal">
+                <div class="modal-card">
+                    <h3 class="text-xl font-semibold mb-6 flex items-center gap-x-3">
+                        <i class="fa-solid fa-pen-to-square text-amber-400"></i>
+                        <span>Edit Device</span>
+                    </h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs text-zinc-400 mb-2">DEVICE NAME</label>
+                            <input id="edit-device-name" type="text" class="modal-input">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-zinc-400 mb-2">DEVICE TYPE</label>
+                            <select id="edit-device-type" class="modal-select">
+                                <option value="laptop">💻 Laptop</option>
+                                <option value="server">🖥️ Server</option>
+                                <option value="mobile">📱 Mobile</option>
+                                <option value="iot">🔌 IoT Device</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-zinc-400 mb-2">IP ADDRESS</label>
+                            <input id="edit-device-ip" type="text" class="modal-input">
+                        </div>
+                    </div>
+                    <div class="flex gap-x-4 mt-8">
+                        <button data-action="close-edit-device-modal"
+                            class="flex-1 py-4 text-sm border border-zinc-700 rounded-3xl hover:bg-zinc-800 transition-colors">CANCEL</button>
+                        <button data-action="submit-edit-device"
+                            class="flex-1 py-4 text-sm bg-amber-400 hover:bg-amber-300 text-zinc-950 rounded-3xl font-semibold transition-colors">SAVE
+                            CHANGES</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- DELETE CONFIRMATION MODAL                                  -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <div id="delete-confirm-modal" class="hidden">
+            <div class="modal-overlay" data-action="close-delete-modal">
+                <div class="modal-card text-center">
+                    <div class="flex justify-center mb-6">
+                        <div class="w-16 h-16 bg-red-500/10 flex items-center justify-center rounded-full">
+                            <i class="fa-solid fa-trash text-red-400 text-3xl"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Delete Device</h3>
+                    <p class="text-zinc-400 text-sm" id="delete-confirm-text">Are you sure you want to remove this
+                        device?</p>
+                    <div class="flex gap-x-4 mt-8">
+                        <button data-action="close-delete-modal"
+                            class="flex-1 py-4 text-sm border border-zinc-700 rounded-3xl hover:bg-zinc-800 transition-colors">CANCEL</button>
+                        <button data-action="confirm-delete-device"
+                            class="flex-1 py-4 text-sm bg-red-500 hover:bg-red-600 text-white rounded-3xl font-semibold transition-colors">DELETE</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- KILL SWITCH MODAL                                          -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <div id="kill-modal" class="hidden fixed inset-0 bg-black/80 items-center justify-center z-[999]">
+            <div class="max-w-md w-full bg-zinc-900 rounded-3xl p-8">
+                <div class="flex justify-center mb-6">
+                    <div class="threat-pulse w-20 h-20 bg-red-500/10 flex items-center justify-center rounded-full">
+                        <i class="fa-solid fa-skull-crossbones text-red-500 text-5xl"></i>
+                    </div>
+                </div>
+                <h3 class="text-center text-2xl font-medium text-red-400">Network Kill Switch</h3>
+                <p class="text-center text-zinc-400 text-sm mt-3">This will immediately isolate all online devices
+                    from the network.</p>
+                <div class="my-8 border border-red-900 bg-black rounded-2xl p-5 text-xs font-light text-red-200">
+                    All traffic will be cut. This is a hard isolation —
+                    use during active ransomware or breach response.
+                </div>
+                <div class="flex gap-x-4">
+                    <button data-action="kill-switch-dismiss"
+                        class="flex-1 py-6 text-xs border border-zinc-700 rounded-3xl">CANCEL</button>
+                    <button data-action="kill-switch-confirm"
+                        class="flex-1 py-6 text-xs bg-red-500 hover:bg-red-600 transition-colors rounded-3xl font-semibold">ISOLATE
+                        NETWORK NOW</button>
+                </div>
+                <div class="text-[10px] text-center text-zinc-500 mt-8">All devices will be marked offline. Network
+                    traffic will be blocked.</div>
+            </div>
+        </div>
+
+        <!-- FOOTER BAR -->
+        <div
+            class="fixed bottom-0 left-0 right-0 bg-zinc-900 border-t border-zinc-700 h-14 hidden lg:flex items-center px-8 text-xs z-50">
+            <div class="flex-1 flex items-center gap-x-8">
+                <div data-action="navigate" data-screen="dashboard" class="flex items-center gap-x-2 cursor-pointer"><i
+                        class="fa-solid fa-house"></i><span class="font-medium">Home</span></div>
+                <div data-action="navigate" data-screen="logs" class="flex items-center gap-x-2 cursor-pointer"><i
+                        class="fa-solid fa-list-check"></i><span class="font-medium">Logs</span></div>
+                <div data-action="navigate" data-screen="honeypot" class="flex items-center gap-x-2 cursor-pointer">
+                    <i class="fa-solid fa-bug"></i><span class="font-medium">Honeypot</span>
+                </div>
+                <div data-action="navigate" data-screen="threats" class="flex items-center gap-x-2 cursor-pointer">
+                    <i class="fa-solid fa-shield-virus"></i><span class="font-medium">Threats</span>
+                </div>
+                <div data-action="navigate" data-screen="analyze" class="flex items-center gap-x-2 cursor-pointer">
+                    <i class="fa-solid fa-brain"></i><span class="font-medium">Analyze</span>
+                </div>
+            </div>
+            <div class="text-[10px] font-mono text-zinc-500 flex items-center gap-x-5">
+                <div>POWERED BY CYBERMIND AI</div>
+                <div class="w-px h-3 bg-zinc-600"></div>
+                <div class="flex items-center gap-x-1">
+                    <div class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></div>CONNECTED
+                </div>
+            </div>
+            <div class="flex-1 flex justify-end items-center gap-x-6 text-xs">
+                <button data-action="navigate" data-screen="settings"
+                    class="px-5 py-2 border border-zinc-600 rounded-3xl flex items-center gap-x-2 hover:bg-zinc-800"><i
+                        class="fa-solid fa-gear"></i><span>Settings</span></button>
+                <button data-action="logout"
+                    class="px-6 py-2 bg-white text-zinc-900 rounded-3xl font-medium">LOGOUT</button>
+            </div>
+        </div>
+    </div>
     </div>
 
     <!-- TOAST -->
@@ -1493,7 +1416,7 @@
     <!-- ═══════════════════════════════════════════════════════════ -->
     <div id="quarantine-modal" class="hidden">
         <div class="modal-overlay" data-action="close-quarantine-modal">
-            <div class="modal-card max-w-2xl" onclick="event.stopPropagation()">
+            <div class="modal-card max-w-2xl">
                 <h3 class="text-xl font-semibold mb-2 flex items-center gap-x-3">
                     <i class="fa-solid fa-file-shield text-amber-400"></i>
                     <span>Quarantine Device</span>
@@ -1521,7 +1444,7 @@
     <!-- ══════════════════════════════════════════════════════════ -->
     <div id="block-ip-modal" class="hidden">
         <div class="modal-overlay" data-action="close-block-ip-modal">
-            <div class="modal-card max-w-lg" onclick="event.stopPropagation()">
+            <div class="modal-card max-w-lg">
                 <h3 class="text-xl font-semibold mb-2 flex items-center gap-x-3">
                     <i class="fa-solid fa-ban text-red-400"></i>
                     <span>Block Suspicious IP</span>
@@ -1544,7 +1467,7 @@
                         class="flex-1 py-4 text-sm border border-zinc-700 rounded-3xl hover:bg-zinc-800 transition-colors">
                         CANCEL
                     </button>
-                    <button onclick="confirmBlockIP()"
+                    <button data-action="confirm-block-ip"
                         class="flex-1 py-4 text-sm bg-red-500 hover:bg-red-600 text-white rounded-3xl font-semibold transition-colors">
                         BLOCK IP
                     </button>

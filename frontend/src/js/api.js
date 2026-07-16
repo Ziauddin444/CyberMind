@@ -263,21 +263,40 @@ export const blockIP = (ip, reason) => opsRequest('/blacklist/ip', { method: 'PO
 // separate service that may not be running during the professor demo.
 // We also normalize the field names so app.js renderBlockedIpList() can read them.
 export const getBlacklistStatus = async () => {
-  const data = await authRequest('/blocklist');
-  // Node.js /api/blocklist returns: { total, bySeverity, byType, records: [...] }
-  // Each record has: { id, ip, attackType, label, severity, status, detectedAt, timeStr, ... }
-  // app.js reads: blocked_records[].ip_address, .blocked_at, .status, .reason, .record_id
-  const normalized = (data.records || []).map((r) => ({
-    record_id: r.id,
-    ip_address: r.ip,
-    blocked_at: r.detectedAt,
-    status: r.status || 'blocked',
-    reason: r.label || r.attackType || 'Attack detected',
-    severity: r.severity,
-    attackType: r.attackType,
-  }));
-  return { data: { blocked_records: normalized, total: data.total, bySeverity: data.bySeverity } };
+  try {
+    // FIX: Fetch from Flask backend (port 5000) where the block actually happens
+    const response = await opsRequest('/blacklist/status');
+
+    // Flask returns: { success: true, data: { blocked_records: [...] } } 
+    // or sometimes just the array directly depending on the service
+    const rawData = response.data?.blocked_records || response.data || [];
+
+    // Normalize the data to match exactly what app.js expects
+    const normalized = rawData.map((r, index) => ({
+      record_id: r.id || r.record_id || `block_${index}`,
+      ip_address: r.ip_address || r.ip,
+      blocked_at: r.blocked_at || r.detected_at || r.timestamp || new Date().toISOString(),
+      status: r.status || 'blocked',
+      reason: r.reason || r.attack_type || 'Manual block via dashboard',
+    }));
+
+    return {
+      data: {
+        blocked_records: normalized,
+        total: normalized.length
+      }
+    };
+  } catch (err) {
+    console.error('Failed to fetch blacklist status from Flask:', err);
+    // Return empty array on error so the dashboard doesn't crash
+    return { data: { blocked_records: [], total: 0 } };
+  }
 };
+export const unblockIP = (ipAddress) =>
+  opsRequest('/blacklist/ip', {
+    method: 'DELETE',
+    body: JSON.stringify({ ip_address: ipAddress })
+  });
 export const getIsolationStatus = () => opsRequest('/isolation/status');
 export const activateIsolation = () => opsRequest('/isolation/activate', { method: 'POST' });
 export const releaseIsolation = () => opsRequest('/isolation/deactivate', { method: 'POST' });
@@ -432,20 +451,14 @@ export async function startScan(packetCount = 100) {
   return res.json();
 }
 
-// src/services/api.js (or wherever your API calls are)
-const API_BASE_URL = 'http://localhost:5000/api';
-
-export const startScan = (packetCount) => {
-  return fetch(`${API_BASE_URL}/scan/start`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ packet_count: packetCount })
-  }).then(res => res.json());
-};
-
-// ADD THIS FUNCTION:
-export const getScanStatus = () => {
-  return fetch(`${API_BASE_URL}/scan/status`)
-    .then(res => res.json())
-    .catch(err => console.error("Error fetching status:", err));
-};
+export async function getScanStatus(job_id) {
+  const url = job_id ? `${OPS_BASE}/scan/status/${job_id}` : `${OPS_BASE}/scan/status`;
+  try {
+    const res = await fetch(url, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
+    if (!res.ok) return { status: 'idle', progress: 0, phase: 'starting' };
+    return await res.json();
+  } catch (err) {
+    console.warn('Scan status check failed:', err);
+    return { status: 'idle', progress: 0, phase: 'starting' };
+  }
+}

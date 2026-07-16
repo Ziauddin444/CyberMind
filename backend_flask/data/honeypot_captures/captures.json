@@ -504,15 +504,6 @@
     "status": "captured"
   },
   {
-    "id": 61,
-    "source_ip": "10.0.0.55",
-    "filename": "10.0.0.55_20260701_042745.txt",
-    "threat_type": "honeypot_capture",
-    "timestamp": "2026-07-01T04:27:45.621924",
-    "file_size": 17,
-    "status": "captured"
-  },
-  {
     "id": 62,
     "source_ip": "203.0.113.42",
     "filename": "203.0.113.42_20260701_042754.txt",

@@ -1,14 +1,25 @@
 [
   {
-    "record_id": 4,
-    "ip_address": "192.168.2.1",
-    "reason": "Device quarantined: Nothing Pro",
+    "record_id": 8,
+    "ip_address": "192.168.22.1",
+    "reason": "Manual block via dashboard - One-click remediation",
     "status": "blocked",
-    "blocked_at": "2026-07-11T00:19:55.851781",
-    "message": "IP 192.168.2.1 blocked successfully with pf",
+    "blocked_at": "2026-07-16T16:32:57.038954",
+    "message": "IP 192.168.22.1 blocked successfully with pf",
     "os": "Darwin",
     "threat_type": "unknown",
-    "timestamp": "2026-07-11T00:19:55.851781"
+    "timestamp": "2026-07-16T16:32:57.038954"
+  },
+  {
+    "record_id": 7,
+    "ip_address": "192.168.1.30",
+    "reason": "Manual block via dashboard - One-click remediation",
+    "status": "blocked",
+    "blocked_at": "2026-07-15T19:56:18.119882",
+    "message": "IP 192.168.1.30 blocked successfully with pf",
+    "os": "Darwin",
+    "threat_type": "unknown",
+    "timestamp": "2026-07-15T19:56:18.119882"
   },
   {
     "record_id": 3,
@@ -20,14 +31,5 @@
     "os": "Darwin",
     "threat_type": "unknown",
     "timestamp": "2026-07-11T00:19:48.501181"
-  },
-  {
-    "record_id": 2,
-    "ip_address": "192.168.0.77",
-    "reason": "Auto-block from demo attack simulation (reconnaissance, detected threat)",
-    "status": "failed",
-    "blocked_at": "2026-04-22T22:11:48.546422",
-    "message": "Failed to block IP on macOS",
-    "os": "Darwin"
   }
 ]

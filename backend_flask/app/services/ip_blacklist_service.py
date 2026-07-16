@@ -109,3 +109,25 @@ class IPBlacklistService:
             "blocked_records": records_to_return,
             "timestamp": datetime.now().isoformat()
         }
+
+    def unblock_ip(self, ip_address: str) -> dict:
+        """Remove an IP from the blocklist and persist to disk."""
+        try:
+            record_to_remove = None
+            # Find the record in the actual list (self.block_records)
+            for record in self.block_records:
+                if record.get("ip_address") == ip_address:
+                    record_to_remove = record
+                    break
+            
+            if record_to_remove:
+                self.block_records.remove(record_to_remove)
+                self._save_records_to_disk() # Use the existing thread-safe save method
+                return {"success": True, "message": f"IP {ip_address} removed from blocklist"}
+            
+            # Fallback success for demo purposes if IP wasn't found
+            return {"success": True, "message": f"IP {ip_address} was not in the blocklist"}
+            
+        except Exception as e:
+            logger.error(f"Error in unblock_ip: {str(e)}")
+            return {"success": False, "message": str(e)}

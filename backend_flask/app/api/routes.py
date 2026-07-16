@@ -185,6 +185,32 @@ def blacklist_ip():
         return jsonify({"success": False, "message": str(e)}), 500
 
 
+@api_blueprint.route("/blacklist/ip", methods=["DELETE"])
+@require_auth
+@require_role("analyst")
+def unblock_ip():
+    try:
+        # Use silent=True to prevent errors if body is empty
+        data = request.get_json(silent=True) or {}
+        ip_address = data.get("ip_address")
+
+        if not ip_address:
+            return jsonify({"success": False, "message": "ip_address required"}), 400
+
+        # Call your service to remove the IP
+        # (If your service doesn't have this method yet, see Step 2 below)
+        result = current_app.ip_blacklist_service.unblock_ip(ip_address)
+        
+        return jsonify({
+            "success": result.get("success", False),
+            "message": result.get("message", "IP unblocked successfully"),
+            "timestamp": datetime.now().isoformat(),
+        }), 200
+    except Exception as e:
+        logger.error(f"Error unblocking IP: {str(e)}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
+
 @api_blueprint.route("/block_ip", methods=["POST"])
 @require_auth
 @require_role("analyst")
