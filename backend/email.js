@@ -6,7 +6,7 @@ const nodemailer = require('nodemailer');
 const EMAIL_CONFIG = {
   // METHOD OPTIONS: 'gmail', 'sendgrid', 'console' (demo mode)
   method: process.env.EMAIL_METHOD || 'console',
-  
+
   // GMAIL: Set EMAIL_USER and EMAIL_PASSWORD (app password, not real password)
   // Example: EMAIL_USER=your@gmail.com EMAIL_PASSWORD=xxxx xxxx xxxx xxxx
   gmail: {
@@ -16,7 +16,7 @@ const EMAIL_CONFIG = {
       pass: process.env.EMAIL_PASSWORD || 'your-app-password'
     }
   },
-  
+
   // SENDGRID: Set SENDGRID_API_KEY
   sendgrid: {
     host: 'smtp.sendgrid.net',
@@ -26,7 +26,7 @@ const EMAIL_CONFIG = {
       pass: process.env.SENDGRID_API_KEY || ''
     }
   },
-  
+
   // Default from email
   fromEmail: process.env.EMAIL_FROM || 'noreply@cybermind.com'
 };
@@ -36,7 +36,7 @@ let transporter = null;
 // Initialize email transporter based on config
 function initializeTransporter() {
   const method = EMAIL_CONFIG.method.toLowerCase();
-  
+
   if (method === 'gmail') {
     transporter = nodemailer.createTransport(EMAIL_CONFIG.gmail);
   } else if (method === 'sendgrid') {
@@ -51,7 +51,7 @@ function initializeTransporter() {
 async function sendVerificationEmail(email, verificationToken) {
   const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:3001'}`;
   const formattedCode = verificationToken.substring(0, 8).toUpperCase();
-  
+
   const emailContent = {
     from: EMAIL_CONFIG.fromEmail,
     to: email,
@@ -81,7 +81,7 @@ async function sendVerificationEmail(email, verificationToken) {
     `,
     text: `Your CyberMind verification code: ${formattedCode}\n\nThis code expires in 24 hours.`
   };
-  
+
   // DEMO mode - just log to console
   if (EMAIL_CONFIG.method === 'console') {
     console.log('\n' + '='.repeat(60));
@@ -93,12 +93,12 @@ async function sendVerificationEmail(email, verificationToken) {
     console.log('='.repeat(60) + '\n');
     return { success: true, demo: true };
   }
-  
+
   // Real email sending
   if (!transporter) {
     throw new Error('Email service not configured');
   }
-  
+
   try {
     const info = await transporter.sendMail(emailContent);
     console.log('[EMAIL SENT]', email, 'Message ID:', info.messageId);
@@ -140,7 +140,7 @@ async function sendPasswordResetEmail(email, resetCode) {
     `,
     text: `Your password reset code: ${resetCode}\n\nThis code expires in 15 minutes.`
   };
-  
+
   if (EMAIL_CONFIG.method === 'console') {
     console.log('\n' + '='.repeat(60));
     console.log('[EMAIL - DEMO MODE] Password Reset');
@@ -149,11 +149,11 @@ async function sendPasswordResetEmail(email, resetCode) {
     console.log('='.repeat(60) + '\n');
     return { success: true, demo: true };
   }
-  
+
   if (!transporter) {
     throw new Error('Email service not configured');
   }
-  
+
   try {
     const info = await transporter.sendMail(emailContent);
     console.log('[EMAIL SENT]', email, 'Message ID:', info.messageId);

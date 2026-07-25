@@ -538,5 +538,32 @@
     "timestamp": "2026-07-01T04:28:28.469953",
     "file_size": 18,
     "status": "captured"
+  },
+  {
+    "id": 61,
+    "source_ip": "192.168.1.100",
+    "filename": "192.168.1.100_20260724_113207.txt",
+    "threat_type": "honeypot_capture",
+    "timestamp": "2026-07-24T11:32:07.947749",
+    "file_size": 18,
+    "status": "captured"
+  },
+  {
+    "id": 62,
+    "source_ip": "10.0.0.55",
+    "filename": "10.0.0.55_20260724_113207.txt",
+    "threat_type": "honeypot_capture",
+    "timestamp": "2026-07-24T11:32:07.957194",
+    "file_size": 17,
+    "status": "captured"
+  },
+  {
+    "id": 63,
+    "source_ip": "203.0.113.42",
+    "filename": "203.0.113.42_20260724_113207.txt",
+    "threat_type": "honeypot_capture",
+    "timestamp": "2026-07-24T11:32:07.966349",
+    "file_size": 18,
+    "status": "captured"
   }
 ]
