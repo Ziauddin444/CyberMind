@@ -42,3 +42,6 @@ package-lock.json
 # ─── Misc ────────────────────────────────────────────────────
 *.bak
 *.tmp
+
+# ─── Docker sandbox results ──────────────────────────────────
+sandbox-results/

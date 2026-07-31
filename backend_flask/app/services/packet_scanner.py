@@ -176,19 +176,16 @@ def _simulate_packet_capture(count: int) -> list[dict[str, float]]:
 
 # ── Scapy live capture ────────────────────────────────────────────────────────
 
-def _live_capture(count: int, timeout: int = 30) -> list[dict[str, float]]:
+def _live_capture(
+    count: int,
+    timeout: int = 30,
+    iface: str = "eth0",
+) -> list[dict[str, float]]:
     """
-<<<<<<< Updated upstream
-    Capture `count` packets using Scapy.
-=======
-    Capture packets using Scapy on a specific interface.
+    Capture packets using Scapy on a specific interface (with fallbacks).
 
-    Key change: we capture for a MINIMUM TIME WINDOW of `timeout` seconds,
-    regardless of how quickly `count` packets are collected.  This ensures
-    that attack traffic arriving during the scan window is actually captured,
-    rather than the scan finishing on safe background traffic before attacks arrive.
-
->>>>>>> Stashed changes
+    Tries the preferred iface first, then en0/en1/eth0/wlan0 so the same
+    code works on macOS demos and Linux Docker sandboxes.
     Raises RuntimeError if Scapy is unavailable or permission denied.
     """
     try:
@@ -196,25 +193,17 @@ def _live_capture(count: int, timeout: int = 30) -> list[dict[str, float]]:
     except ImportError as exc:
         raise RuntimeError("Scapy not installed") from exc
 
-<<<<<<< Updated upstream
-    logger.info("Starting Scapy live capture: %d packets (timeout=%ds)", count, timeout)
-    try:
-        # store=True (default) — we MUST keep packets to extract features
-        packets = sniff(count=count, timeout=timeout, store=True)
-    except PermissionError as exc:
-        raise RuntimeError("Root privilege required for packet capture") from exc
-    except OSError as exc:
-        raise RuntimeError(f"Network interface error: {exc}") from exc
-
-    if not packets:
-        raise RuntimeError("No packets captured (network may be idle or timeout reached)")
-=======
-    # Detect active interface — try en0 first, fall back to other active interfaces
-    ifaces_to_try = [iface, "en1", "en2", "eth0", "wlan0"]
+    # Prefer requested iface, then common host/container names (deduped)
+    ifaces_to_try: list[str] = []
+    for name in (iface, "en0", "en1", "en2", "eth0", "wlan0"):
+        if name and name not in ifaces_to_try:
+            ifaces_to_try.append(name)
 
     logger.info(
         "Starting Scapy TIMED live capture on %s: up to %d packets over %ds window",
-        iface, count, timeout,
+        iface,
+        count,
+        timeout,
     )
 
     packets = []
@@ -222,14 +211,10 @@ def _live_capture(count: int, timeout: int = 30) -> list[dict[str, float]]:
 
     for try_iface in ifaces_to_try:
         try:
-            # Capture for the full timeout window (not just until count is reached).
-            # sniff() with BOTH count AND timeout stops at whichever comes first;
-            # we rely on the timeout to keep the window open long enough for
-            # attack traffic to arrive from a VM.
             packets = sniff(
                 iface=try_iface,
-                count=count,      # upper bound — won't cut off early in practice
-                timeout=timeout,  # minimum observation window
+                count=count,
+                timeout=timeout,
                 store=True,
             )
             if packets:
@@ -245,7 +230,6 @@ def _live_capture(count: int, timeout: int = 30) -> list[dict[str, float]]:
     if not packets:
         err_msg = str(last_exc) if last_exc else "network may be idle"
         raise RuntimeError(f"No packets captured on any interface ({err_msg})")
->>>>>>> Stashed changes
 
     features: list[dict] = []
     prev_ts: float = 0.0
@@ -327,18 +311,10 @@ def scan_packets(count: int = 100) -> dict[str, Any]:
     error: str | None = None
     pcap_file: str | None = None
 
-<<<<<<< Updated upstream
-    # Attempt 1: Live capture
+    # Attempt 1: Live capture — timed window so attack traffic can arrive.
+    # Prefer eth0 (Docker/Linux); _live_capture also tries en0 on macOS.
     try:
-        features = _live_capture(count)
-=======
-    # Attempt 1: Live capture — 20-second observation window so that
-    # attack traffic from a remote VM has time to mix into the capture.
-    # count=500 is a generous upper bound; the 20s timeout is what controls
-    # the scan duration in practice.
-    try:
-        features = _live_capture(count=500, timeout=20, iface="en0")
->>>>>>> Stashed changes
+        features = _live_capture(count=max(count, 100), timeout=20, iface="eth0")
         mode = "live"
     except RuntimeError as exc:
         logger.warning("Live capture failed (%s) — trying pcap fallback", exc)

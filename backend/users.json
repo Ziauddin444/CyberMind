@@ -12,13 +12,8 @@
       "resetExpires": 1774927294406,
       "emailVerified": true,
       "isAdmin": true,
-<<<<<<< Updated upstream
-      "lastLogin": "2026-07-16T06:32:42.655Z",
-      "loginCount": 86,
-=======
       "lastLogin": "2026-07-24T13:46:45.099Z",
       "loginCount": 98,
->>>>>>> Stashed changes
       "role": "super-admin"
     },
     {

@@ -1,0 +1,36 @@
+FROM python:3.11-slim-bookworm
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    FLASK_ENV=development \
+    FLASK_HOST=0.0.0.0 \
+    FLASK_PORT=5000
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpcap0.8 \
+    libpcap-dev \
+    tcpdump \
+    iproute2 \
+    iptables \
+    iputils-ping \
+    net-tools \
+    curl \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY backend_flask/requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
+    && pip install --no-cache-dir -r requirements.txt
+
+COPY backend_flask/ /app/
+
+# Ensure data dirs exist for pcap / captures / sqlite
+RUN mkdir -p /app/data /app/data/honeypot_captures /results
+
+EXPOSE 5000 2222 2323 8080 3390 2121 3307
+
+# Root + NET_RAW needed for Scapy live capture and honeypot listeners
+USER root
+CMD ["python3", "run.py"]

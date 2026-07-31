@@ -439,12 +439,21 @@ def honeypot_logs():
     try:
         limit = request.args.get("limit", 100, type=int)
         logs = current_app.network_honeypot.get_connection_logs(limit)
+        # get_connection_logs returns a list; tolerate dict-shaped adapters too
+        if isinstance(logs, dict):
+            entries = logs.get("logs", [])
+            total = logs.get("total_connections", len(entries))
+            status = logs.get("status", "success")
+        else:
+            entries = list(logs or [])
+            total = getattr(current_app.network_honeypot, "total_connections", len(entries))
+            status = "success"
         return jsonify({
             "success": True,
-            "data": logs.get("logs", []),
+            "data": entries,
             "meta": {
-                "total_connections": logs.get("total_connections", 0),
-                "status": logs.get("status", "success"),
+                "total_connections": total,
+                "status": status,
             },
             "timestamp": datetime.now().isoformat(),
         }), 200
@@ -495,15 +504,18 @@ def demo_attack_simulation():
         except Exception as capture_error:
             logger.warning(f"Honeypot capture save skipped: {capture_error}")
 
-        current_app.network_honeypot.log_connection(
-            source_ip=source_ip,
-            source_port=source_port,
-            target_port=target_port,
-            payload=payload,
-            threat_type=derived_threat_type,
-            severity=derived_severity,
-            capture_file=capture_file,
-        )
+        service_name = current_app.network_honeypot.HONEYPOT_PORTS.get(target_port, {}).get("name", "unknown")
+        current_app.network_honeypot.log_connection({
+            "source_ip": source_ip,
+            "source_port": source_port,
+            "target_port": target_port,
+            "service_name": service_name,
+            "payload": payload,
+            "threat_type": derived_threat_type,
+            "severity": derived_severity,
+            "capture_file": capture_file,
+            "timestamp": datetime.now().isoformat(),
+        })
 
         block_result = None
         if should_auto_block:
