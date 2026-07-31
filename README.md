@@ -146,6 +146,26 @@ Default login: `admin` / `admin123`
 
 ---
 
+## 🐳 Docker Sandbox Lab (recommended for local testing)
+
+Isolated Compose lab with defender + attacker containers. Attacks stay on a private Docker network and write JSON reports to `sandbox-results/`.
+
+| Doc | Link |
+|-----|------|
+| Deploy & attack guide | [docker/sandbox/DEPLOY_AND_ATTACK_GUIDE.md](docker/sandbox/DEPLOY_AND_ATTACK_GUIDE.md) |
+| Detailed attack test report | [docker/sandbox/ATTACK_REPORT.md](docker/sandbox/ATTACK_REPORT.md) |
+| Sandbox overview | [docker/SANDBOX.md](docker/SANDBOX.md) |
+
+```bash
+# One-shot: build, start, attack, write results
+bash docker/sandbox/test-all.sh
+
+# Dashboard
+open http://localhost:5173
+```
+
+---
+
 ## 📡 Live Demo with Kali Linux
 
 To demonstrate real-time attack detection:

@@ -2,6 +2,14 @@
 
 Isolated lab network to attack CyberMind safely and collect full detection results.
 
+## Docs in this folder
+
+| Doc | Description |
+|-----|-------------|
+| **[sandbox/DEPLOY_AND_ATTACK_GUIDE.md](./sandbox/DEPLOY_AND_ATTACK_GUIDE.md)** | Full deploy + scan + attack walkthrough |
+| **[sandbox/ATTACK_REPORT.md](./sandbox/ATTACK_REPORT.md)** | Detailed report of the recorded lab attack run |
+| **[sandbox/RESULTS.md](./sandbox/RESULTS.md)** | Short scorecard / index |
+
 ```
 ┌──────────────────── cybermind-lab (10.10.0.0/24) ────────────────────┐
 │                                                                      │
@@ -22,7 +30,7 @@ Attacks stay on the Docker bridge. Host browser only opens published ports.
 
 ## Prerequisites
 
-- Docker Desktop (macOS) or Docker Engine + Compose v2
+- Docker Desktop (macOS) or Docker Engine + Compose v2 (or Colima — see deploy guide)
 - ~4 GB free RAM (more if you enable Ollama)
 
 ```bash
@@ -37,7 +45,7 @@ docker compose version
 From the repo root:
 
 ```bash
-cd /Users/ad/Desktop/CyberMind
+cd /path/to/CyberMind
 chmod +x docker/sandbox/*.sh
 mkdir -p sandbox-results
 
@@ -63,7 +71,10 @@ jq . sandbox-results/sandbox_report_*.json | less
 ```
 
 Dashboard: http://localhost:5173  
-Login: `admin` / `admin123`
+
+For login credentials, check `docker compose … logs auth` (demo user is typically `admin`).
+
+Full instructions: **[sandbox/DEPLOY_AND_ATTACK_GUIDE.md](./sandbox/DEPLOY_AND_ATTACK_GUIDE.md)**.
 
 ---
 
@@ -141,11 +152,3 @@ rm -rf sandbox-results/*
 | IP blacklist / iptables | Works inside the flask container network namespace (does not touch your Mac firewall). |
 | Kill switch | Isolates the container network path — safe for lab; avoid if you need host net. |
 | Frontend APIs | Browser uses `localhost:5000` / `localhost:3001` (published ports). |
-
----
-
-## Asana-ready status
-
-**On my end (Allauddin):** bring up sandbox with `bash docker/sandbox/test-all.sh`, attach `sandbox-results/sandbox_report_*.json`, confirm honeypot + IDS + scan sections.
-
-**On their end:** review report fields, confirm which detections are required for the demo rubric, say if Ollama profile is required for grading.
