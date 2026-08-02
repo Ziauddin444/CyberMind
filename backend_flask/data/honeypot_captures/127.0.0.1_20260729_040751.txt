@@ -1,0 +1,5 @@
+Source IP: 127.0.0.1
+Threat Type: brute_force
+Timestamp: 2026-07-29T04:07:51.267816
+============================================================
+{'source_ip': '127.0.0.1', 'source_port': 55068, 'target_port': 2222, 'service_name': 'SSH', 'payload': 'SSH-2.0-libssh_0.12.0\r\n', 'threat_type': 'brute_force', 'severity': 'high', 'timestamp': '2026-07-29T04:07:51.266876', 'banner_sent': 'SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.6\r\n'}

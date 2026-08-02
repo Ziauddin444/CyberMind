@@ -1,0 +1,5 @@
+Source IP: 127.0.0.1
+Threat Type: reconnaissance
+Timestamp: 2026-07-29T03:39:31.968448
+============================================================
+{'source_ip': '127.0.0.1', 'source_port': 49890, 'target_port': 8080, 'service_name': 'HTTP-Admin', 'payload': 'Error reading payload: [Errno 54] Connection reset by peer', 'threat_type': 'reconnaissance', 'severity': 'medium', 'timestamp': '2026-07-29T03:39:31.962251', 'banner_sent': 'HTTP/1.1 200 OK\r\nServer: Apache/2.4.41\r\nContent-Type: text/html\r\n\r\n<html><title>Admin Login</title></html>'}

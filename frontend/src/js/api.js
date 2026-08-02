@@ -227,9 +227,18 @@ export const getHoneypot = () => authRequest('/honeypot');
 export const deployDecoy = (name) => authRequest('/honeypot/deploy', { method: 'POST', body: JSON.stringify({ name }) });
 export const triggerHoneypot = () => authRequest('/honeypot/trigger', { method: 'POST' });
 
-export const checkPhishing = (url) => authRequest('/phishing/check', { method: 'POST', body: JSON.stringify({ url }) });
-export const getThreats = () => authRequest('/threats');
-export const getThreat = (id) => authRequest(`/threats/${id}`);
+export const checkPhishing = (url) =>
+  authRequest('/phishing/check', { method: 'POST', body: JSON.stringify({ url }) });
+
+// ─── Threat Intelligence — reads from Flask SQLite (real scan detections) ────
+// FIX: The Node.js /api/threats is always empty (in-memory, never persisted).
+// Real detected threats are stored in Flask's SQLite scan_logs table.
+// We redirect these to the Flask backend (port 5000) which has the /api/threats
+// endpoints that query scan_logs WHERE threat_detected=1.
+export const getThreats = () => opsRequest('/threats');
+export const getThreat = (id) => opsRequest(`/threats/${id}`);
+export const getFlaskThreatsCount = () => opsRequest('/threats/count');
+
 // Kill switch — now accepts reason string; Node.js handler sends to all devices
 export const activateKillSwitch = (reason = 'Manual activation') =>
   authRequest('/killswitch', { method: 'POST', body: JSON.stringify({ reason }) });
@@ -437,12 +446,15 @@ export async function analyzeFile(file, source_ip = '') {
 
 // ─── Layer 1 → Layer 2: Packet Scan Endpoints ────────────────────────────────
 
-export async function startScan(packetCount = 100) {
+export async function startScan(packetCount = 200, continuous = false) {
   const url = `${OPS_BASE}/scan/start`;
+  const body = continuous
+    ? { packet_count: packetCount, continuous: true }
+    : { packet_count: packetCount };
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ packet_count: packetCount }),
+    body: JSON.stringify(body),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
@@ -461,4 +473,19 @@ export async function getScanStatus(job_id) {
     console.warn('Scan status check failed:', err);
     return { status: 'idle', progress: 0, phase: 'starting' };
   }
+}
+
+/**
+ * Best-effort stop signal to the Flask backend.
+ * The backend may not implement /api/scan/stop yet — callers should catch errors.
+ */
+export async function stopScan(job_id = null) {
+  const url = `${OPS_BASE}/scan/stop`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(job_id ? { job_id } : {}),
+  });
+  if (!res.ok) throw new Error(`Stop request failed: ${res.status}`);
+  return res.json();
 }

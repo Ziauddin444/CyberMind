@@ -857,12 +857,48 @@ let _currentScanPollTimer = null;
 function initScanPanel() {
   if (_scanPanelReady) return;
   _scanPanelReady = true;
-  const slider = document.getElementById('scan-packet-count');
-  const label = document.getElementById('scan-packet-count-label');
-  if (slider && label) slider.addEventListener('input', () => { label.textContent = slider.value; });
-  const btn = document.getElementById('scan-start-btn');
-  if (btn) btn.addEventListener('click', runScan);
+
+  // ── Wire segmented mode buttons ──────────────────────────────────────────
+  const modeGroup = document.getElementById('scan-mode-group');
+  const modeValue = document.getElementById('scan-mode-value');
+
+  if (modeGroup && modeValue) {
+    modeGroup.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-mode]');
+      if (!btn) return;
+
+      // Update hidden value
+      modeValue.value = btn.dataset.mode;
+
+      // Toggle active state on all mode buttons
+      modeGroup.querySelectorAll('.scan-mode-btn').forEach(b => {
+        const isContinuous = b.dataset.mode === 'continuous';
+        b.classList.remove(
+          'scan-mode-active',
+          'border-yellow-400', 'bg-yellow-400/10',   // standard highlight
+          'border-rose-400',   'bg-rose-400/10',      // continuous highlight
+          'border-zinc-700',   'bg-zinc-800/60'
+        );
+        b.classList.add('border-zinc-700', 'bg-zinc-800/60');
+      });
+
+      const isContinuousSelected = btn.dataset.mode === 'continuous';
+      btn.classList.remove('border-zinc-700', 'bg-zinc-800/60');
+      if (isContinuousSelected) {
+        btn.classList.add('scan-mode-active', 'border-rose-400', 'bg-rose-400/10');
+      } else {
+        btn.classList.add('scan-mode-active', 'border-yellow-400', 'bg-yellow-400/10');
+      }
+    });
+  }
+
+  // ── Wire Start / Stop buttons ─────────────────────────────────────────────
+  const startBtn = document.getElementById('scan-start-btn');
+  const stopBtn  = document.getElementById('scan-stop-btn');
+  if (startBtn) startBtn.addEventListener('click', runScan);
+  if (stopBtn)  stopBtn.addEventListener('click', stopScan);
 }
+
 
 const _SCAN_PHASE_LABELS = {
   starting: 'Initialising scanner...',
@@ -890,87 +926,135 @@ function _setScanProgress(pct, phase) {
   if (pctEl) pctEl.textContent = `${pct}%`;
 }
 
+// Tracks whether a continuous scan is running
+let _continuousScanActive = false;
+
 async function runScan() {
-  const slider = document.getElementById('scan-packet-count');
-  const packetCount = slider ? parseInt(slider.value) : 100;
-  const btn = document.getElementById('scan-start-btn');
-  const btnIcon = document.getElementById('scan-btn-icon');
+  // Read selected mode from the hidden input (set by segmented buttons)
+  const modeInput  = document.getElementById('scan-mode-value');
+  const modeStr    = modeInput ? modeInput.value : '200';
+  const isContinuous = modeStr === 'continuous';
+  const packetCount  = isContinuous ? 500 : parseInt(modeStr, 10);
+
+  const btn      = document.getElementById('scan-start-btn');
+  const stopBtn  = document.getElementById('scan-stop-btn');
+  const btnIcon  = document.getElementById('scan-btn-icon');
   const btnLabel = document.getElementById('scan-btn-label');
   const progPanel = document.getElementById('scan-progress-panel');
   const resultCard = document.getElementById('scan-result-card');
-  const errDiv = document.getElementById('scan-error');
-  const term = document.getElementById('scan-terminal');
+  const errDiv  = document.getElementById('scan-error');
+  const term    = document.getElementById('scan-terminal');
 
   // Reset UI
   if (resultCard) resultCard.classList.add('hidden');
-  if (errDiv) errDiv.classList.add('hidden');
+  if (errDiv)     errDiv.classList.add('hidden');
   if (term) term.innerHTML = '<div class="text-yellow-400">$ cybermind-ids --scan --model random_forest</div>';
   _setScanProgress(0, 'starting');
   if (progPanel) progPanel.classList.remove('hidden');
   if (btn) btn.disabled = true;
-  if (btnIcon) btnIcon.className = 'fa-solid fa-spinner fa-spin text-lg';
+  if (btnIcon)  btnIcon.className  = 'fa-solid fa-spinner fa-spin text-lg';
   if (btnLabel) btnLabel.textContent = 'SCANNING...';
   if (_currentScanPollTimer) clearInterval(_currentScanPollTimer);
 
-  try {
-    // Fire the scan — returns job_id immediately (no wait)
-    const { startScan, getScanStatus } = await import('./api.js');
-    _scanLog(`Starting scan: ${packetCount} packets`);
-    const { job_id } = await startScan(packetCount);
-    _scanLog(`Job ${job_id.slice(0, 8)}... launched`);
-    _scanLog('Scapy listener active...');
-
-    // Poll every 1 second — screen stays responsive via async/await
-    await new Promise((resolve, reject) => {
-      _currentScanPollTimer = setInterval(async () => {
-        try {
-          const s = await getScanStatus(job_id);
-          _setScanProgress(s.progress || 0, s.phase);
-          if (s.phase === 'classifying') _scanLog('Packets captured — running RF model...');
-          if (s.status === 'done') {
-            clearInterval(_currentScanPollTimer);
-            const r = s.result;
-            // Log capture mode prominently
-            if (r.capture_mode === 'live') {
-              _scanLog('✅ CAPTURE MODE: LIVE — real network packets analysed');
-            } else if (r.capture_mode === 'pcap') {
-              _scanLog(`📁 CAPTURE MODE: PCAP FILE — ${r.pcap_file || 'offline data'}`);
-            } else {
-              _scanLog('⚠️  CAPTURE MODE: SIMULATED — run with sudo for live capture');
-            }
-            if (r.capture_warning) _scanLog(`⚠️  ${r.capture_warning}`);
-            _scanLog(`Label: ${r.label}  |  Confidence: ${Math.round(r.confidence * 100)}%`);
-            renderScanResult(r);
-            // Phase 1.3 — push scan result to dashboard live log
-            const isTheat = r.label && r.label !== 'normal';
-            appendLiveLogEntry({
-              type: isTheat ? 'warning' : 'success',
-              timestamp: r.timestamp || new Date().toISOString(),
-              eventKey: `scan-result:${r.timestamp || Date.now()}`,
-              text: isTheat
-                ? `RF model detected ${(r.label || 'unknown').toUpperCase()} — ${Math.round((r.confidence || 0) * 100)}% confidence (${r.capture_mode || 'live'})`
-                : `Network scan complete — NORMAL traffic (${Math.round((r.confidence || 0) * 100)}% confidence, ${r.capture_mode || 'live'})`,
-            });
-            resolve();
-          } else if (s.status === 'error') {
-            clearInterval(_currentScanPollTimer);
-            reject(new Error(s.error || 'Scan failed'));
-          }
-        } catch (e) { clearInterval(_currentScanPollTimer); reject(e); }
-      }, 1000);
-    });
-
-  } catch (err) {
-    _scanLog(`ERROR: ${err.message}`);
-    const errText = document.getElementById('scan-error-text');
-    if (errText) errText.textContent = err.message || 'Scan failed. Is Flask running on port 5000?';
-    if (errDiv) errDiv.classList.remove('hidden');
-  } finally {
-    if (btn) btn.disabled = false;
-    if (btnIcon) btnIcon.className = 'fa-solid fa-satellite-dish text-lg';
-    if (btnLabel) btnLabel.textContent = 'START SCAN';
+  // Show STOP button for continuous mode
+  if (isContinuous) {
+    _continuousScanActive = true;
+    if (stopBtn) { stopBtn.classList.remove('hidden'); stopBtn.classList.add('flex'); }
+    _scanLog('Continuous monitoring started — scans will repeat until stopped.');
   }
+
+  const runOnce = async () => {
+    try {
+      const { startScan, getScanStatus } = await import('./api.js');
+      _scanLog(`Starting scan: ${isContinuous ? 'continuous (500 pkt / cycle)' : `${packetCount} packets`}`);
+      const { job_id } = await startScan(packetCount, isContinuous);
+      _scanLog(`Job ${job_id.slice(0, 8)}... launched`);
+      _scanLog('Scapy listener active...');
+
+      await new Promise((resolve, reject) => {
+        _currentScanPollTimer = setInterval(async () => {
+          try {
+            const s = await getScanStatus(job_id);
+            _setScanProgress(s.progress || 0, s.phase);
+            if (s.phase === 'classifying') _scanLog('Packets captured — running RF model...');
+            if (s.status === 'done') {
+              clearInterval(_currentScanPollTimer);
+              const r = s.result;
+              if (r.capture_mode === 'live') {
+                _scanLog('✅ CAPTURE MODE: LIVE — real network packets analysed');
+              } else if (r.capture_mode === 'pcap') {
+                _scanLog(`📁 CAPTURE MODE: PCAP FILE — ${r.pcap_file || 'offline data'}`);
+              } else {
+                _scanLog('⚠️  CAPTURE MODE: SIMULATED — run with sudo for live capture');
+              }
+              if (r.capture_warning) _scanLog(`⚠️  ${r.capture_warning}`);
+              _scanLog(`Label: ${r.label}  |  Confidence: ${Math.round(r.confidence * 100)}%`);
+              renderScanResult(r);
+              const isThreat = r.label && r.label !== 'safe';
+              appendLiveLogEntry({
+                type: isThreat ? 'warning' : 'success',
+                timestamp: r.timestamp || new Date().toISOString(),
+                eventKey: `scan-result:${r.timestamp || Date.now()}`,
+                text: isThreat
+                  ? `RF model detected ${(r.label || 'unknown').toUpperCase()} — ${Math.round((r.confidence || 0) * 100)}% confidence (${r.capture_mode || 'live'})`
+                  : `Network scan complete — SAFE traffic (${Math.round((r.confidence || 0) * 100)}% confidence, ${r.capture_mode || 'live'})`,
+              });
+              resolve();
+            } else if (s.status === 'error') {
+              clearInterval(_currentScanPollTimer);
+              reject(new Error(s.error || 'Scan failed'));
+            }
+          } catch (e) { clearInterval(_currentScanPollTimer); reject(e); }
+        }, 1000);
+      });
+
+    } catch (err) {
+      _scanLog(`ERROR: ${err.message}`);
+      const errText = document.getElementById('scan-error-text');
+      if (errText) errText.textContent = err.message || 'Scan failed. Is Flask running on port 5000?';
+      if (errDiv) errDiv.classList.remove('hidden');
+      _continuousScanActive = false; // stop continuous on error
+    }
+  };
+
+  // Run the scan — loop if continuous
+  await runOnce();
+  while (_continuousScanActive) {
+    _scanLog('--- Cycle complete. Starting next cycle in 3 s ---');
+    await new Promise(r => setTimeout(r, 3000));
+    if (!_continuousScanActive) break;
+    await runOnce();
+  }
+
+  // Restore UI when done
+  if (btn) btn.disabled = false;
+  if (btnIcon)  btnIcon.className  = 'fa-solid fa-satellite-dish text-lg';
+  if (btnLabel) btnLabel.textContent = 'START SCAN';
+  if (stopBtn) { stopBtn.classList.add('hidden'); stopBtn.classList.remove('flex'); }
 }
+
+function stopScan() {
+  _continuousScanActive = false;
+  if (_currentScanPollTimer) { clearInterval(_currentScanPollTimer); _currentScanPollTimer = null; }
+
+  const btn      = document.getElementById('scan-start-btn');
+  const stopBtn  = document.getElementById('scan-stop-btn');
+  const btnIcon  = document.getElementById('scan-btn-icon');
+  const btnLabel = document.getElementById('scan-btn-label');
+
+  if (btn)     btn.disabled = false;
+  if (btnIcon)  btnIcon.className  = 'fa-solid fa-satellite-dish text-lg';
+  if (btnLabel) btnLabel.textContent = 'START SCAN';
+  if (stopBtn) { stopBtn.classList.add('hidden'); stopBtn.classList.remove('flex'); }
+
+  _scanLog('⏹  Continuous monitoring stopped by user.');
+
+  // Optionally notify the Flask backend (best-effort, non-blocking)
+  import('./api.js').then(({ stopScan: apiStop }) => {
+    apiStop().catch(() => {}); // backend may not support stop yet — ignore error
+  });
+}
+
 
 const _SCAN_SEV = {
   critical: { header: 'bg-red-950/80 border-red-600', icon: 'bg-red-500/20', badge: 'bg-red-500 text-white' },
