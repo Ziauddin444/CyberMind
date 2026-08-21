@@ -1,5 +1,0 @@
-Source IP: 203.0.113.42
-Threat Type: honeypot_capture
-Timestamp: 2026-07-01T04:28:28.469953
-============================================================
-SYN flood detected

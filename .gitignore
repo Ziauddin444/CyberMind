@@ -15,6 +15,8 @@ __pycache__/
 .mypy_cache/
 .venv/
 venv/
+**/venv/
+**/.venv/
 *.egg-info/
 
 # ─── Node.js ─────────────────────────────────────────────────
@@ -31,17 +33,37 @@ package-lock.json
 .env
 !.env.example
 
+# ─── Runtime Data Files (auto-generated, never commit) ───────
+backend_flask/data/blocked_ips.json
+backend_flask/data/devices.json
+backend/users.json
+backend_flask/data/honeypot_captures/*.txt
+backend_flask/data/honeypot_captures/captures.json
+
+# ─── NSL-KDD Dataset (too large for GitHub, see README) ──────
+backend_flask/data/nsl_kdd/KDDTrain+.csv
+backend_flask/data/nsl_kdd/KDDTest+.csv
+backend_flask/data/nsl_kdd/*.csv
+
+# ─── ML Models (regenerated on first run) ─────────────────────
+backend_flask/data/rf_model.pkl
+backend_flask/data/rf_label_encoder.pkl
+
+# ─── Attack & Testing Scripts (not for public repo) ───────────
+inject_attack.py
+kali_attack.sh
+capture_demo_traffic.sh
+run.md
+backend_flask/test_api.py
+backend_flask/test_classifier.py
+
+# ─── Sandbox Attack Results ───────────────────────────────────
+sandbox-results/
+
 # ─── AI / Continue / Aider ───────────────────────────────────
 .aider*
 .continue/
 
-# ─── ML Models (tracked via Git LFS or regenerated) ──────────
-# Uncomment the line below if you DON'T want .pkl in the repo:
-# *.pkl
-
 # ─── Misc ────────────────────────────────────────────────────
 *.bak
 *.tmp
-
-# ─── Docker sandbox results ──────────────────────────────────
-sandbox-results/

@@ -1,5 +1,0 @@
-Source IP: 192.168.1.100
-Threat Type: honeypot_capture
-Timestamp: 2026-07-01T04:28:12.726983
-============================================================
-NMAP scan detected

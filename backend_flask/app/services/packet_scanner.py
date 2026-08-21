@@ -119,52 +119,72 @@ def _sniff_on_interface(iface: str, count: int, timeout: int,
         logger.debug("Interface %s skipped: %s", iface, exc)
 
 
+def _measure_packet_rate(sample_secs: float = 2.0) -> float:
+    """Return packets/second observed over a short window (used by adaptive drain)."""
+    try:
+        from scapy.all import sniff  # noqa: PLC0415
+        counter = [0]
+
+        def _count(p):  # noqa: ANN001
+            counter[0] += 1
+
+        sniff(count=0, timeout=sample_secs, store=False, prn=_count)
+        return counter[0] / sample_secs
+    except Exception:
+        return 0.0
+
+
 def _live_capture(count: int, timeout: int = 30) -> list[dict[str, float]]:
     """
-    Capture packets across ALL active interfaces simultaneously.
-    
-    Uses a thread per interface so we catch:
-      - Wi-Fi traffic (en0) — external attacks from Kali VM on same LAN
-      - UTM bridge traffic (bridge0, en1, en2) — Kali VM via UTM NAT
-      - Loopback (lo0) — local self-tests from Mac terminal
+    Capture live packets with an adaptive pre-drain that waits until the
+    kernel buffer is truly clear of attack residue before measuring.
     """
     try:
         from scapy.all import sniff  # noqa: PLC0415
     except ImportError as exc:
         raise RuntimeError("Scapy not installed") from exc
 
-    interfaces = _get_active_interfaces()
-    logger.info("Starting multi-interface capture: %s | %d pkts | %ds timeout",
-                interfaces, count, timeout)
+    logger.info("Starting live capture: up to %d pkts, %ds window", count, timeout)
 
-    results: list[dict] = []
-    lock = threading.Lock()
-    threads = []
+    # ── Adaptive buffer drain ─────────────────────────────────────────────────
+    # After hping3/nmap the kernel RST-storm can last 15-30 s.  We drain in
+    # 5 s rounds until the packet rate drops below 200 pps (normal LAN idle),
+    # capping at 4 rounds (20 s maximum drain time).
+    MAX_DRAIN_ROUNDS = 4
+    DRAIN_ROUND_SECS = 5.0
+    HIGH_RATE_THRESHOLD = 200  # pps — above this we keep draining
 
-    # Distribute packet budget across interfaces
-    per_iface_count = max(50, count // len(interfaces))
+    for round_num in range(1, MAX_DRAIN_ROUNDS + 1):
+        try:
+            rate = _measure_packet_rate(DRAIN_ROUND_SECS)
+            logger.info("Drain round %d/%d: %.0f pps", round_num, MAX_DRAIN_ROUNDS, rate)
+            if rate < HIGH_RATE_THRESHOLD:
+                logger.info("Traffic rate normal — drain complete after %d round(s)", round_num)
+                break
+            logger.info("Rate still high (%.0f pps) — continuing drain", rate)
+        except Exception:
+            break  # non-fatal
+    # ─────────────────────────────────────────────────────────────────────────
 
-    for iface in interfaces:
-        t = threading.Thread(
-            target=_sniff_on_interface,
-            args=(iface, per_iface_count, timeout, results, lock),
-            daemon=True,
-        )
-        t.start()
-        threads.append(t)
+    try:
+        packets = sniff(count=count, timeout=timeout, store=True)
+    except PermissionError as exc:
+        raise RuntimeError("Root privilege required for packet capture") from exc
+    except OSError as exc:
+        raise RuntimeError(f"Network interface error: {exc}") from exc
 
-    for t in threads:
-        t.join()
+    if not packets:
+        raise RuntimeError("No packets captured (network may be idle or timeout reached)")
 
-    if not results:
-        raise RuntimeError(
-            "No packets captured on any interface. "
-            "Make sure Flask is running with sudo (root privileges required for Scapy)."
-        )
+    features: list[dict] = []
+    prev_ts: float = 0.0
+    for pkt in packets:
+        feat = _extract_features(pkt, prev_ts)
+        prev_ts = float(getattr(pkt, "time", prev_ts))
+        features.append(feat)
 
-    logger.info("Multi-interface capture complete: %d total feature vectors", len(results))
-    return results
-
+    logger.info("Live capture complete: %d packets → %d feature vectors", len(packets), len(features))
+    return features
 
 # ── Synthetic fallback ────────────────────────────────────────────────────────
 
@@ -249,12 +269,13 @@ def _find_pcap_file() -> str | None:
 # ── Public entry-point ────────────────────────────────────────────────────────
 
 def scan_packets(count: int = 100) -> dict[str, Any]:
-    count = max(10, min(count, 500))
+    # Respect the caller's packet count; cap at 5000 to stay reasonable
+    count = max(50, min(count, 5000))
     error: str | None = None
     pcap_file: str | None = None
 
     try:
-        features = _live_capture(count=500, timeout=20)
+        features = _live_capture(count=count, timeout=max(20, count // 25))
         mode = "live"
     except RuntimeError as exc:
         logger.warning("Live capture failed (%s) — trying pcap fallback", exc)

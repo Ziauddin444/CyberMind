@@ -235,9 +235,15 @@ export const checkPhishing = (url) =>
 // Real detected threats are stored in Flask's SQLite scan_logs table.
 // We redirect these to the Flask backend (port 5000) which has the /api/threats
 // endpoints that query scan_logs WHERE threat_detected=1.
-export const getThreats = () => opsRequest('/threats');
-export const getThreat = (id) => opsRequest(`/threats/${id}`);
+export const getThreats          = () => opsRequest('/threats');
+export const getThreat           = (id) => opsRequest(`/threats/${id}`);
 export const getFlaskThreatsCount = () => opsRequest('/threats/count');
+
+// Clear all threat rows (threat_detected=1) from scan_logs — safe scans kept
+export const clearThreats = () => opsRequest('/threats/clear', { method: 'POST' });
+
+// Clear ALL scan_logs rows (full log reset)
+export const clearLogs = () => opsRequest('/logs/clear', { method: 'POST' });
 
 // Kill switch — now accepts reason string; Node.js handler sends to all devices
 export const activateKillSwitch = (reason = 'Manual activation') =>

@@ -19,7 +19,7 @@ services:
       CORS_ORIGINS: "http://localhost:5173,http://127.0.0.1:5173,http://frontend:5173"
       SCAN_PACKET_COUNT: "120"
       SCAN_TIMEOUT_SECONDS: "25"
-      OLLAMA_HOST: http://ollama:11434
+      OLLAMA_HOST: http://host.docker.internal:11434
     ports:
       - "5000:5000"
       # Honeypot ports published for optional host-side probing

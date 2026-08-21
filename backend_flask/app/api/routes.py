@@ -1472,10 +1472,18 @@ def get_dashboard_stats():
                 "SELECT COUNT(*) as n FROM scan_logs"
             ).fetchone()["n"]
 
+            # threats_today: last 24 h (kept for backwards compat)
             threats_today = con.execute(
                 """SELECT COUNT(*) as n FROM scan_logs
                    WHERE threat_detected=1
                      AND timestamp >= datetime('now','-1 day')"""
+            ).fetchone()["n"]
+
+            # active_threats: ALL detected threats, no time filter.
+            # This matches exactly what GET /api/threats returns to the
+            # Threats page — so the Dashboard counter stays in sync.
+            active_threats = con.execute(
+                "SELECT COUNT(*) as n FROM scan_logs WHERE threat_detected=1"
             ).fetchone()["n"]
 
             safe_scans = con.execute(
@@ -1485,13 +1493,23 @@ def get_dashboard_stats():
             last_row = con.execute(
                 "SELECT timestamp, label FROM scan_logs ORDER BY id DESC LIMIT 1"
             ).fetchone()
+
+            # last_threat_time: timestamp of the most recent threat row,
+            # used by the dashboard to show "LAST DETECTED" correctly.
+            last_threat_row = con.execute(
+                """SELECT timestamp FROM scan_logs
+                   WHERE threat_detected=1
+                   ORDER BY id DESC LIMIT 1"""
+            ).fetchone()
+
     except Exception:
-        total = threats_today = safe_scans = 0
-        last_row = None
+        total = threats_today = active_threats = safe_scans = 0
+        last_row = last_threat_row = None
 
     safety_score = round((safe_scans / total * 100), 1) if total > 0 else None
-    last_scan_time = last_row["timestamp"] if last_row else None
-    last_scan_label = last_row["label"] if last_row else None
+    last_scan_time  = last_row["timestamp"]        if last_row        else None
+    last_scan_label = last_row["label"]            if last_row        else None
+    last_threat_time = last_threat_row["timestamp"] if last_threat_row else None
 
     # ── Honeypot stats ────────────────────────────────────────────────────
     try:
@@ -1513,10 +1531,12 @@ def get_dashboard_stats():
     return jsonify({
         "total_scans":            total,
         "threats_today":          threats_today,
+        "active_threats":         active_threats,   # all-time, matches /api/threats count
         "safe_scans":             safe_scans,
         "safety_score":           safety_score,
         "last_scan_time":         last_scan_time,
         "last_scan_label":        last_scan_label,
+        "last_threat_time":       last_threat_time,  # timestamp of most recent threat row
         "honeypot_connections":   honeypot_connections,
         "honeypot_active_ports":  honeypot_active_ports,
         "mac_ip":                 mac_ip,
@@ -1700,3 +1720,47 @@ def get_threat_count():
         logger.error("GET /api/threats/count failed: %s", exc)
         return jsonify({"count": 0}), 200
 
+
+@api_blueprint.route("/threats/clear", methods=["POST"])
+def clear_threats():
+    """
+    POST /api/threats/clear
+    Deletes all threat_detected=1 rows from scan_logs.
+    Safe-scan rows (threat_detected=0) are preserved.
+
+    Returns:
+        {"status": "success", "cleared_count": int}
+    """
+    try:
+        with _scan_db() as con:
+            n = con.execute(
+                "SELECT COUNT(*) as n FROM scan_logs WHERE threat_detected=1"
+            ).fetchone()["n"]
+            con.execute("DELETE FROM scan_logs WHERE threat_detected=1")
+            con.commit()
+        logger.info("POST /api/threats/clear — deleted %d threat rows", n)
+        return jsonify({"status": "success", "cleared_count": n}), 200
+    except Exception as exc:
+        logger.error("POST /api/threats/clear failed: %s", exc, exc_info=True)
+        return jsonify({"status": "error", "message": str(exc)}), 500
+
+
+@api_blueprint.route("/logs/clear", methods=["POST"])
+def clear_logs():
+    """
+    POST /api/logs/clear
+    Deletes ALL rows from scan_logs (full log reset).
+
+    Returns:
+        {"status": "success", "cleared_count": int}
+    """
+    try:
+        with _scan_db() as con:
+            n = con.execute("SELECT COUNT(*) as n FROM scan_logs").fetchone()["n"]
+            con.execute("DELETE FROM scan_logs")
+            con.commit()
+        logger.info("POST /api/logs/clear — deleted %d log rows", n)
+        return jsonify({"status": "success", "cleared_count": n}), 200
+    except Exception as exc:
+        logger.error("POST /api/logs/clear failed: %s", exc, exc_info=True)
+        return jsonify({"status": "error", "message": str(exc)}), 500

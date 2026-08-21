@@ -1,5 +1,0 @@
-Source IP: 127.0.0.1
-Threat Type: reconnaissance
-Timestamp: 2026-07-29T03:40:24.641649
-============================================================
-{'source_ip': '127.0.0.1', 'source_port': 52095, 'target_port': 8080, 'service_name': 'HTTP-Admin', 'payload': 'No payload received (timeout)', 'threat_type': 'reconnaissance', 'severity': 'medium', 'timestamp': '2026-07-29T03:40:24.509732', 'banner_sent': 'HTTP/1.1 200 OK\r\nServer: Apache/2.4.41\r\nContent-Type: text/html\r\n\r\n<html><title>Admin Login</title></html>'}
