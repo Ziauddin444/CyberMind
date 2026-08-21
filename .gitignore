@@ -7,6 +7,12 @@ Thumbs.db
 *.swo
 *~
 
+# ─── Docker Sandbox (developer testing only — lives in PR #4) ─
+docker/
+docker-compose.sandbox.yml
+.dockerignore
+
+
 # ─── Backend Runtime Data (auto-generated, never commit) ──────
 backend/logs.json
 backend/blocklist.json

@@ -174,60 +174,23 @@ Default login: `admin` / `admin123`
 
 ---
 
-## 🐳 Docker Sandbox Lab (recommended for local testing)
+## 🧪 Developer Sandbox (Attack Simulation Lab)
 
-Isolated Compose lab with defender + attacker containers. Attacks stay on a private Docker network and write JSON reports to `sandbox-results/`.
+> **This is for contributors and developers only — not needed for production deployment.**
 
-| Doc | Link |
-|-----|------|
-| Deploy & attack guide | [docker/sandbox/DEPLOY_AND_ATTACK_GUIDE.md](docker/sandbox/DEPLOY_AND_ATTACK_GUIDE.md) |
-| Detailed attack test report | [docker/sandbox/ATTACK_REPORT.md](docker/sandbox/ATTACK_REPORT.md) |
-| Sandbox overview | [docker/SANDBOX.md](docker/SANDBOX.md) |
+The Docker-based attack sandbox (isolated lab with a simulated attacker container) lives in a separate branch so it never pollutes the production codebase:
 
 ```bash
-# One-shot: build, start, attack, write results
-bash docker/sandbox/test-all.sh
+# Check out the developer sandbox branch
+git checkout feature/docker-sandbox-lab
 
-# Dashboard
-open http://localhost:5173
+# Follow the instructions in docker/SANDBOX.md
 ```
+
+The sandbox lets you simulate port scans, brute-force attacks, DDoS, SQL injection, and C2 beacons against a local CyberMind instance — all contained inside Docker with no risk to your real network.
 
 ---
 
-## 📡 Live Demo with Kali Linux
-
-To demonstrate real-time attack detection:
-
-### On Your Mac (CyberMind Host)
-
-```bash
-# Start CyberMind with live capture
-sudo bash start_all.sh
-```
-
-### On Kali Linux (Attacker)
-
-```bash
-# Set the target IP (your Mac's IP)
-TARGET="192.168.x.x"
-
-# Port scan — CyberMind detects as "port_scan"
-nmap -sS -p 1-1000 $TARGET
-
-# SSH brute force — targets honeypot on port 2222
-hydra -l admin -P /usr/share/wordlists/rockyou.txt ssh://$TARGET:2222 -t 4
-
-# Connect to honeypot decoys
-nc $TARGET 2222    # SSH honeypot
-nc $TARGET 2323    # Telnet honeypot
-nc $TARGET 3307    # MySQL honeypot
-```
-
-### On CyberMind Dashboard
-
-1. Navigate to **Analyze** → Click **Start Scan**
-2. The RF model classifies the captured traffic
-3. View results: threat label, confidence %, and breakdown
 4. Go to **Honeypot** screen to see captured attacker connections
 5. Use **Block Suspicious IP** to blacklist the attacker
 
