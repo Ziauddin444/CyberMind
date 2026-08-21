@@ -104,6 +104,34 @@ cp backend_flask/.env.example backend_flask/.env
 cp backend/.env.example backend/.env
 ```
 
+> **Security Note:** Edit `backend_flask/.env` and set a strong `SECRET_KEY` before running in production.
+
+### 3.5. Download the NSL-KDD Dataset
+
+The ML model training dataset is not included in the repository (too large). Download it manually:
+
+```bash
+# Download NSL-KDD from the official source
+mkdir -p backend_flask/data/nsl_kdd
+curl -L "https://raw.githubusercontent.com/defcom17/NSL_KDD/master/KDDTrain+.txt" \
+     -o backend_flask/data/nsl_kdd/KDDTrain+.csv
+curl -L "https://raw.githubusercontent.com/defcom17/NSL_KDD/master/KDDTest+.txt" \
+     -o backend_flask/data/nsl_kdd/KDDTest+.csv
+```
+
+> **Note:** The AI model (`rf_model.pkl`) is auto-generated on first run if the dataset is present. If you skip this step, the system will still work using the rule-based IDS engine — only the Random Forest AI component will be disabled.
+
+### 3.6. Default Login Credentials
+
+| Username | Password | Role |
+|----------|----------|------|
+| `admin` | `changeme123` | Super Admin |
+| `analyst` | `changeme123` | Analyst |
+
+> ⚠️ **Change these immediately** — edit `backend/users.json` or use the Settings page after first login.
+
+
+
 ### 4. Install Ollama (AI Translation)
 
 ```bash
@@ -143,6 +171,26 @@ http://localhost:5173
 ```
 
 Default login: `admin` / `admin123`
+
+---
+
+## 🐳 Docker Sandbox Lab (recommended for local testing)
+
+Isolated Compose lab with defender + attacker containers. Attacks stay on a private Docker network and write JSON reports to `sandbox-results/`.
+
+| Doc | Link |
+|-----|------|
+| Deploy & attack guide | [docker/sandbox/DEPLOY_AND_ATTACK_GUIDE.md](docker/sandbox/DEPLOY_AND_ATTACK_GUIDE.md) |
+| Detailed attack test report | [docker/sandbox/ATTACK_REPORT.md](docker/sandbox/ATTACK_REPORT.md) |
+| Sandbox overview | [docker/SANDBOX.md](docker/SANDBOX.md) |
+
+```bash
+# One-shot: build, start, attack, write results
+bash docker/sandbox/test-all.sh
+
+# Dashboard
+open http://localhost:5173
+```
 
 ---
 

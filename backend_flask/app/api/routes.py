@@ -439,12 +439,21 @@ def honeypot_logs():
     try:
         limit = request.args.get("limit", 100, type=int)
         logs = current_app.network_honeypot.get_connection_logs(limit)
+        # get_connection_logs returns a list; tolerate dict-shaped adapters too
+        if isinstance(logs, dict):
+            entries = logs.get("logs", [])
+            total = logs.get("total_connections", len(entries))
+            status = logs.get("status", "success")
+        else:
+            entries = list(logs or [])
+            total = getattr(current_app.network_honeypot, "total_connections", len(entries))
+            status = "success"
         return jsonify({
             "success": True,
-            "data": logs.get("logs", []),
+            "data": entries,
             "meta": {
-                "total_connections": logs.get("total_connections", 0),
-                "status": logs.get("status", "success"),
+                "total_connections": total,
+                "status": status,
             },
             "timestamp": datetime.now().isoformat(),
         }), 200
@@ -495,15 +504,18 @@ def demo_attack_simulation():
         except Exception as capture_error:
             logger.warning(f"Honeypot capture save skipped: {capture_error}")
 
-        current_app.network_honeypot.log_connection(
-            source_ip=source_ip,
-            source_port=source_port,
-            target_port=target_port,
-            payload=payload,
-            threat_type=derived_threat_type,
-            severity=derived_severity,
-            capture_file=capture_file,
-        )
+        service_name = current_app.network_honeypot.HONEYPOT_PORTS.get(target_port, {}).get("name", "unknown")
+        current_app.network_honeypot.log_connection({
+            "source_ip": source_ip,
+            "source_port": source_port,
+            "target_port": target_port,
+            "service_name": service_name,
+            "payload": payload,
+            "threat_type": derived_threat_type,
+            "severity": derived_severity,
+            "capture_file": capture_file,
+            "timestamp": datetime.now().isoformat(),
+        })
 
         block_result = None
         if should_auto_block:
@@ -1460,10 +1472,18 @@ def get_dashboard_stats():
                 "SELECT COUNT(*) as n FROM scan_logs"
             ).fetchone()["n"]
 
+            # threats_today: last 24 h (kept for backwards compat)
             threats_today = con.execute(
                 """SELECT COUNT(*) as n FROM scan_logs
                    WHERE threat_detected=1
                      AND timestamp >= datetime('now','-1 day')"""
+            ).fetchone()["n"]
+
+            # active_threats: ALL detected threats, no time filter.
+            # This matches exactly what GET /api/threats returns to the
+            # Threats page — so the Dashboard counter stays in sync.
+            active_threats = con.execute(
+                "SELECT COUNT(*) as n FROM scan_logs WHERE threat_detected=1"
             ).fetchone()["n"]
 
             safe_scans = con.execute(
@@ -1473,13 +1493,23 @@ def get_dashboard_stats():
             last_row = con.execute(
                 "SELECT timestamp, label FROM scan_logs ORDER BY id DESC LIMIT 1"
             ).fetchone()
+
+            # last_threat_time: timestamp of the most recent threat row,
+            # used by the dashboard to show "LAST DETECTED" correctly.
+            last_threat_row = con.execute(
+                """SELECT timestamp FROM scan_logs
+                   WHERE threat_detected=1
+                   ORDER BY id DESC LIMIT 1"""
+            ).fetchone()
+
     except Exception:
-        total = threats_today = safe_scans = 0
-        last_row = None
+        total = threats_today = active_threats = safe_scans = 0
+        last_row = last_threat_row = None
 
     safety_score = round((safe_scans / total * 100), 1) if total > 0 else None
-    last_scan_time = last_row["timestamp"] if last_row else None
-    last_scan_label = last_row["label"] if last_row else None
+    last_scan_time  = last_row["timestamp"]        if last_row        else None
+    last_scan_label = last_row["label"]            if last_row        else None
+    last_threat_time = last_threat_row["timestamp"] if last_threat_row else None
 
     # ── Honeypot stats ────────────────────────────────────────────────────
     try:
@@ -1501,12 +1531,236 @@ def get_dashboard_stats():
     return jsonify({
         "total_scans":            total,
         "threats_today":          threats_today,
+        "active_threats":         active_threats,   # all-time, matches /api/threats count
         "safe_scans":             safe_scans,
         "safety_score":           safety_score,
         "last_scan_time":         last_scan_time,
         "last_scan_label":        last_scan_label,
+        "last_threat_time":       last_threat_time,  # timestamp of most recent threat row
         "honeypot_connections":   honeypot_connections,
         "honeypot_active_ports":  honeypot_active_ports,
         "mac_ip":                 mac_ip,
         "timestamp":              datetime.utcnow().isoformat() + "Z",
     }), 200
+
+
+# ─── Threat Intelligence Endpoints ────────────────────────────────────────────
+# These endpoints feed the Threat Intelligence page in the frontend.
+# Data is sourced from the real SQLite scan_logs table — the same table that
+# the packet scanner writes to when it detects an attack.
+
+_THREAT_TITLES = {
+    "port_scan":    "Port Scan Detected",
+    "ddos":         "DDoS / SYN Flood Detected",
+    "brute_force":  "Brute Force Attack Detected",
+    "sql_injection":"SQL Injection Attempt Detected",
+    "malware_c2":   "Malware C2 Communication Detected",
+}
+
+_THREAT_DESCRIPTIONS = {
+    "port_scan": (
+        "A systematic scan of TCP ports was detected originating from an external IP. "
+        "The attacker sent bare SYN packets (TCP flag 0x02) to sequential ports with zero "
+        "payload, which is the signature of tools like nmap -sS. This indicates reconnaissance "
+        "activity — the attacker is mapping open ports before launching a more targeted attack."
+    ),
+    "ddos": (
+        "A high-rate SYN flood (DDoS) attack was detected. Hundreds of SYN packets per second "
+        "arrived from randomized source IPs targeting a single port, consistent with hping3 "
+        "--flood or similar tools. This attack exhausts server resources by filling the TCP "
+        "half-open connection table."
+    ),
+    "brute_force": (
+        "Repeated TCP SYN connection attempts to SSH (port 22) or RDP (port 3389) were detected "
+        "from a single source IP. This pattern indicates a credential brute-force attack — the "
+        "attacker is attempting to guess valid usernames and passwords by making rapid successive "
+        "login attempts."
+    ),
+    "sql_injection": (
+        "Suspicious HTTP traffic containing SQL injection payloads was detected. The attacker "
+        "is attempting to manipulate database queries by injecting SQL commands into input fields, "
+        "which could lead to unauthorized data access or database compromise."
+    ),
+    "malware_c2": (
+        "Network traffic consistent with malware Command-and-Control (C2) communication was "
+        "detected. A compromised host appears to be beaconing to an external C2 server, "
+        "potentially exfiltrating data or awaiting further instructions from an attacker."
+    ),
+}
+
+
+def _scan_log_to_threat(row: dict, index: int = 0) -> dict:
+    """Convert a scan_logs SQLite row to the threat format the frontend expects."""
+    import json as _json
+    label = row.get("label", "unknown")
+    conf = float(row.get("confidence", 0))
+    ts = row.get("timestamp", datetime.utcnow().isoformat() + "Z")
+
+    # Severity mapping (mirrors _run_scan_job logic)
+    if conf >= 0.80:
+        severity = "critical"
+    elif conf >= 0.55:
+        severity = "high"
+    elif conf >= 0.35:
+        severity = "medium"
+    else:
+        severity = "low"
+
+    title = _THREAT_TITLES.get(label, f"{label.replace('_', ' ').title()} Detected")
+    description = _THREAT_DESCRIPTIONS.get(
+        label,
+        f"Suspicious network traffic classified as '{label}' was detected with "
+        f"{round(conf * 100)}% model confidence. Manual investigation is recommended."
+    )
+
+    # Try to parse breakdown JSON if stored
+    raw_breakdown = row.get("breakdown")
+    if isinstance(raw_breakdown, str):
+        try:
+            breakdown = _json.loads(raw_breakdown)
+        except Exception:
+            breakdown = {}
+    elif isinstance(raw_breakdown, dict):
+        breakdown = raw_breakdown
+    else:
+        breakdown = {}
+
+    return {
+        "id":           row.get("id", index + 1),
+        "title":        title,
+        "description":  description,
+        "severity":     severity,
+        "confidence":   round(conf * 100),
+        "packet_count": row.get("packet_count", 0),
+        "capture_mode": row.get("capture_mode", "live"),
+        "timestamp":    ts,
+        "label":        label,
+        "targetDevice": "Network Interface (en0)",
+        "sourceCountry": "External (Spoofed / Unknown)",
+        "breakdown":    breakdown,
+        "is_active":    True,
+    }
+
+
+@api_blueprint.route("/threats", methods=["GET"])
+def get_threats():
+    """
+    GET /api/threats
+    Returns all detected threats from the SQLite scan_logs table,
+    formatted for the Threat Intelligence page in the frontend.
+
+    Query params:
+        limit   int  — max results (default 50)
+        active  bool — if 'true', return only threat_detected=1 rows (default true)
+    """
+    try:
+        limit = int(request.args.get("limit", 50))
+        active_only = request.args.get("active", "true").lower() != "false"
+
+        where = "WHERE threat_detected=1" if active_only else ""
+        with _scan_db() as con:
+            rows = con.execute(
+                f"""SELECT id, timestamp, label, severity, confidence,
+                           packet_count, capture_mode, threat_detected
+                    FROM scan_logs
+                    {where}
+                    ORDER BY id DESC
+                    LIMIT ?""",
+                (limit,),
+            ).fetchall()
+
+        threats = [_scan_log_to_threat(dict(r), i) for i, r in enumerate(rows)]
+        return jsonify(threats), 200
+
+    except Exception as exc:
+        logger.error("GET /api/threats failed: %s", exc, exc_info=True)
+        return jsonify([]), 200   # Return empty list, never crash the frontend
+
+
+@api_blueprint.route("/threats/<int:threat_id>", methods=["GET"])
+def get_threat(threat_id: int):
+    """
+    GET /api/threats/<id>
+    Returns a single threat by scan_logs row ID, for the detail panel.
+    """
+    try:
+        with _scan_db() as con:
+            row = con.execute(
+                """SELECT id, timestamp, label, severity, confidence,
+                          packet_count, capture_mode, threat_detected
+                   FROM scan_logs WHERE id = ?""",
+                (threat_id,),
+            ).fetchone()
+
+        if row is None:
+            return jsonify({"error": "Threat not found"}), 404
+
+        return jsonify(_scan_log_to_threat(dict(row))), 200
+
+    except Exception as exc:
+        logger.error("GET /api/threats/%s failed: %s", threat_id, exc)
+        return jsonify({"error": str(exc)}), 500
+
+
+@api_blueprint.route("/threats/count", methods=["GET"])
+def get_threat_count():
+    """
+    GET /api/threats/count
+    Returns active threat count (threat_detected=1 in last 24h) for dashboard widgets.
+    """
+    try:
+        with _scan_db() as con:
+            n = con.execute(
+                """SELECT COUNT(*) as n FROM scan_logs
+                   WHERE threat_detected=1
+                     AND timestamp >= datetime('now','-1 day')"""
+            ).fetchone()["n"]
+        return jsonify({"count": n, "timestamp": datetime.utcnow().isoformat() + "Z"}), 200
+    except Exception as exc:
+        logger.error("GET /api/threats/count failed: %s", exc)
+        return jsonify({"count": 0}), 200
+
+
+@api_blueprint.route("/threats/clear", methods=["POST"])
+def clear_threats():
+    """
+    POST /api/threats/clear
+    Deletes all threat_detected=1 rows from scan_logs.
+    Safe-scan rows (threat_detected=0) are preserved.
+
+    Returns:
+        {"status": "success", "cleared_count": int}
+    """
+    try:
+        with _scan_db() as con:
+            n = con.execute(
+                "SELECT COUNT(*) as n FROM scan_logs WHERE threat_detected=1"
+            ).fetchone()["n"]
+            con.execute("DELETE FROM scan_logs WHERE threat_detected=1")
+            con.commit()
+        logger.info("POST /api/threats/clear — deleted %d threat rows", n)
+        return jsonify({"status": "success", "cleared_count": n}), 200
+    except Exception as exc:
+        logger.error("POST /api/threats/clear failed: %s", exc, exc_info=True)
+        return jsonify({"status": "error", "message": str(exc)}), 500
+
+
+@api_blueprint.route("/logs/clear", methods=["POST"])
+def clear_logs():
+    """
+    POST /api/logs/clear
+    Deletes ALL rows from scan_logs (full log reset).
+
+    Returns:
+        {"status": "success", "cleared_count": int}
+    """
+    try:
+        with _scan_db() as con:
+            n = con.execute("SELECT COUNT(*) as n FROM scan_logs").fetchone()["n"]
+            con.execute("DELETE FROM scan_logs")
+            con.commit()
+        logger.info("POST /api/logs/clear — deleted %d log rows", n)
+        return jsonify({"status": "success", "cleared_count": n}), 200
+    except Exception as exc:
+        logger.error("POST /api/logs/clear failed: %s", exc, exc_info=True)
+        return jsonify({"status": "error", "message": str(exc)}), 500

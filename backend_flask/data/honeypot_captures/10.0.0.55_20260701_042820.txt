@@ -1,5 +1,0 @@
-Source IP: 10.0.0.55
-Threat Type: honeypot_capture
-Timestamp: 2026-07-01T04:28:20.180804
-============================================================
-SSH login attempt

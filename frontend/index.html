@@ -396,6 +396,35 @@
             <!-- DASHBOARD SCREEN                                           -->
             <!-- ═══════════════════════════════════════════════════════════ -->
             <div id="dashboard-screen">
+                <!-- ATTACK ALERT BANNER — hidden by default, shown on threat detection -->
+                <div id="threat-alert-banner" class="hidden mx-4 mt-4 lg:mx-8 rounded-2xl overflow-hidden">
+                    <div class="flex items-start gap-x-4 px-5 py-4 bg-red-950/80 border border-red-600/60">
+                        <div class="flex-shrink-0 w-10 h-10 bg-red-500/20 rounded-xl flex items-center justify-center mt-0.5">
+                            <i class="fa-solid fa-triangle-exclamation text-red-400 text-lg"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-x-2 mb-1">
+                                <span class="text-red-400 font-bold text-sm uppercase tracking-wide">⚠ THREAT DETECTED</span>
+                                <span id="threat-banner-time" class="text-red-500/70 text-xs font-mono"></span>
+                            </div>
+                            <div id="threat-banner-text" class="text-red-100 text-sm leading-relaxed"></div>
+                            <div class="flex items-center gap-x-3 mt-3">
+                                <button data-action="navigate" data-screen="analyze"
+                                    class="px-4 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-semibold rounded-lg transition-colors">
+                                    View Analysis
+                                </button>
+                                <button id="threat-banner-dismiss"
+                                    class="px-4 py-1.5 border border-red-700 hover:border-red-500 text-red-400 text-xs rounded-lg transition-colors">
+                                    Dismiss
+                                </button>
+                            </div>
+                        </div>
+                        <button id="threat-banner-close" class="flex-shrink-0 text-red-600 hover:text-red-400 transition-colors">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                </div>
+
                 <div class="hero-bg pt-8 pb-8 px-6 lg:px-8 rounded-b-3xl">
 
 
@@ -661,6 +690,164 @@
                     3 — IDS Engine (Python)</span>
             </div>
 
+
+            <!-- ═══════════════════════════════════════════════════════ -->
+            <!-- NETWORK SCAN PANEL                                     -->
+            <!-- Click Start Scan → Scapy captures packets →           -->
+            <!-- Random Forest AI classifies → live result displayed   -->
+            <!-- ═══════════════════════════════════════════════════════ -->
+            <div class="mb-10">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-2 h-2 rounded-full bg-yellow-400"></div>
+                    <h2 class="text-lg font-bold tracking-tight">Live Network Scan</h2>
+                    <span
+                        class="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 tracking-widest">SCAPY
+                        + RANDOM FOREST</span>
+                </div>
+                <p class="text-zinc-500 text-xs mb-5 ml-5">Captures live packets from your network interface and
+                    classifies them with a trained Random Forest model.</p>
+
+                <!-- Scan mode selector + Start / Stop buttons -->
+                <div class="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-6 mb-5">
+
+                    <!-- Mode selector label -->
+                    <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">
+                        Scan Mode
+                    </label>
+
+                    <!-- Segmented button group -->
+                    <div id="scan-mode-group" class="grid grid-cols-2 gap-2 mb-5" role="radiogroup"
+                        aria-label="Scan mode">
+
+                        <!-- Quick Scan -->
+                        <button type="button" data-mode="50"
+                            class="scan-mode-btn flex flex-col items-start px-4 py-3 rounded-xl border border-zinc-700 bg-zinc-800/60 hover:border-yellow-400/60 transition-all duration-150 text-left">
+                            <span class="flex items-center gap-2 font-bold text-sm text-white">
+                                <i class="fa-solid fa-bolt text-yellow-400 text-xs"></i> Quick Scan
+                            </span>
+                            <span class="text-[10px] text-zinc-500 mt-0.5">50 packets · ~10 sec</span>
+                        </button>
+
+                        <!-- Standard Scan (DEFAULT) -->
+                        <button type="button" data-mode="200"
+                            class="scan-mode-btn scan-mode-active flex flex-col items-start px-4 py-3 rounded-xl border border-yellow-400 bg-yellow-400/10 transition-all duration-150 text-left">
+                            <span class="flex items-center gap-2 font-bold text-sm text-white">
+                                <i class="fa-solid fa-radar text-yellow-400 text-xs"></i> Standard Scan
+                            </span>
+                            <span class="text-[10px] text-zinc-400 mt-0.5">200 packets · ~30 sec</span>
+                        </button>
+
+                        <!-- Deep Scan -->
+                        <button type="button" data-mode="1000"
+                            class="scan-mode-btn flex flex-col items-start px-4 py-3 rounded-xl border border-zinc-700 bg-zinc-800/60 hover:border-yellow-400/60 transition-all duration-150 text-left">
+                            <span class="flex items-center gap-2 font-bold text-sm text-white">
+                                <i class="fa-solid fa-magnifying-glass-chart text-orange-400 text-xs"></i> Deep Scan
+                            </span>
+                            <span class="text-[10px] text-zinc-500 mt-0.5">1000 packets · ~2 min</span>
+                        </button>
+
+                        <!-- Continuous Monitoring -->
+                        <button type="button" data-mode="continuous"
+                            class="scan-mode-btn flex flex-col items-start px-4 py-3 rounded-xl border border-zinc-700 bg-zinc-800/60 hover:border-rose-400/60 transition-all duration-150 text-left">
+                            <span class="flex items-center gap-2 font-bold text-sm text-white">
+                                <i class="fa-solid fa-circle-dot text-rose-400 text-xs animate-pulse"></i> Continuous
+                            </span>
+                            <span class="text-[10px] text-zinc-500 mt-0.5">Runs until stopped</span>
+                        </button>
+                    </div>
+
+                    <!-- Hidden input tracks selected mode value -->
+                    <input type="hidden" id="scan-mode-value" value="200" />
+
+                    <!-- Action buttons row -->
+                    <div class="flex gap-3">
+                        <button id="scan-start-btn" type="button"
+                            class="flex-1 flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-300 hover:to-orange-300 text-black font-extrabold rounded-xl transition-all duration-200 text-sm tracking-widest shadow-lg shadow-yellow-400/20 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i id="scan-btn-icon" class="fa-solid fa-satellite-dish text-lg"></i>
+                            <span id="scan-btn-label">START SCAN</span>
+                        </button>
+
+                        <!-- Stop button — hidden until Continuous mode is active -->
+                        <button id="scan-stop-btn" type="button"
+                            class="hidden items-center justify-center gap-2 px-5 py-4 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl transition-all duration-200 text-sm tracking-wide shadow-lg shadow-rose-600/20">
+                            <i class="fa-solid fa-stop text-sm"></i>
+                            <span>STOP</span>
+                        </button>
+                    </div>
+                </div>
+
+
+                <!-- Progress panel -->
+                <div id="scan-progress-panel" class="hidden bg-zinc-900/60 border border-zinc-800 rounded-2xl p-6 mb-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2">
+                            <div id="scan-phase-dot" class="w-2.5 h-2.5 rounded-full bg-yellow-400 animate-pulse">
+                            </div>
+                            <span id="scan-phase-label" class="text-sm font-semibold text-zinc-300">Starting...</span>
+                        </div>
+                        <span id="scan-progress-pct" class="font-mono text-yellow-400 text-sm">0%</span>
+                    </div>
+                    <div class="w-full h-2 bg-zinc-800 rounded-full overflow-hidden mb-4">
+                        <div id="scan-progress-bar"
+                            class="h-full bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full transition-all duration-500"
+                            style="width:0%"></div>
+                    </div>
+                    <div class="bg-zinc-950 rounded-xl p-4 font-mono text-[11px] text-zinc-400 h-28 overflow-y-auto"
+                        id="scan-terminal">
+                        <div class="text-yellow-400">$ cybermind-ids --scan --model random_forest</div>
+                    </div>
+                </div>
+
+                <!-- Result card -->
+                <div id="scan-result-card" class="hidden rounded-2xl border overflow-hidden">
+                    <div id="scan-result-header" class="flex items-center gap-5 px-6 py-5">
+                        <div id="scan-result-icon"
+                            class="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 text-2xl">
+                            &#x1F6E1;&#xFE0F;</div>
+                        <div class="flex-1">
+                            <div id="scan-verdict-text" class="text-white font-extrabold text-xl leading-snug">
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2 mt-1">
+                                <span id="scan-result-severity"
+                                    class="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"></span>
+                                <span class="text-[10px] text-zinc-400 font-mono"
+                                    id="scan-result-confidence-label"></span>
+                                <span class="text-[10px] text-zinc-500 font-mono" id="scan-result-mode-label"></span>
+                            </div>
+                        </div>
+                        <div class="flex-shrink-0 text-right">
+                            <div class="text-4xl font-black font-mono" id="scan-big-conf"></div>
+                            <div class="text-[10px] text-zinc-500 uppercase tracking-widest">confidence</div>
+                        </div>
+                    </div>
+                    <div class="border-t border-zinc-800 bg-zinc-900/60 px-6 py-5">
+                        <div class="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold mb-3">Traffic
+                            Breakdown</div>
+                        <div id="scan-breakdown-bars" class="space-y-2.5"></div>
+                    </div>
+                    <div
+                        class="border-t border-zinc-800 bg-zinc-950/40 px-6 py-3 flex flex-wrap gap-x-6 gap-y-1 text-[10px] font-mono text-zinc-600">
+                        <span>packets: <span id="scan-meta-count" class="text-zinc-400">--</span></span>
+                        <span>mode: <span id="scan-meta-mode" class="text-zinc-400">--</span></span>
+                        <span>timestamp: <span id="scan-meta-ts" class="text-zinc-400">--</span></span>
+                    </div>
+                </div>
+
+                <!-- Scan error -->
+                <div id="scan-error"
+                    class="hidden mt-4 p-4 bg-red-950/50 border border-red-800 rounded-xl text-red-300 text-sm flex items-center gap-3">
+                    <i class="fa-solid fa-circle-exclamation text-red-400 flex-shrink-0"></i>
+                    <span id="scan-error-text"></span>
+                </div>
+            </div><!-- /scan panel -->
+
+            <!-- Divider -->
+            <div class="flex items-center gap-4 mb-8">
+                <div class="flex-1 h-px bg-zinc-800"></div>
+                <span class="text-[10px] text-zinc-600 uppercase tracking-widest font-semibold">AI Text Analyzer</span>
+                <div class="flex-1 h-px bg-zinc-800"></div>
+            </div>
+
             <!-- Input card -->
             <div class="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-6 mb-6">
                 <form id="analyze-form" class="space-y-5">
@@ -757,119 +944,28 @@
                 <span id="analyze-error-text"></span>
             </div>
 
-
-            <!-- ═══════════════════════════════════════════════════════ -->
-            <!-- NETWORK SCAN PANEL                                     -->
-            <!-- Click Start Scan → Scapy captures packets →           -->
-            <!-- Random Forest AI classifies → live result displayed   -->
-            <!-- ═══════════════════════════════════════════════════════ -->
-            <div class="mt-10">
-                <div class="flex items-center gap-3 mb-2">
-                    <div class="w-2 h-2 rounded-full bg-yellow-400"></div>
-                    <h2 class="text-lg font-bold tracking-tight">Live Network Scan</h2>
-                    <span
-                        class="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 tracking-widest">SCAPY
-                        + RANDOM FOREST</span>
-                </div>
-                <p class="text-zinc-500 text-xs mb-5 ml-5">Captures live packets from your network interface and
-                    classifies them with a trained Random Forest model.</p>
-
-                <!-- Packet count slider + Start button -->
-                <div class="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-6 mb-5">
-                    <div class="flex items-center justify-between mb-3">
-                        <label for="scan-packet-count"
-                            class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Packet
-                            Count</label>
-                        <span id="scan-packet-count-label"
-                            class="text-yellow-400 font-bold font-mono text-sm">200</span>
-                    </div>
-                    <input id="scan-packet-count" type="range" min="50" max="2000" step="50" value="200"
-                        class="w-full accent-yellow-400 cursor-pointer mb-2" />
-                    <div class="flex justify-between text-[10px] text-zinc-600 mb-3">
-                        <span>50 (fast)</span><span>500</span><span>1000</span><span>2000 (deep)</span>
-                    </div>
-                    <button id="scan-start-btn" type="button"
-                        class="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-300 hover:to-orange-300 text-black font-extrabold rounded-xl transition-all duration-200 text-sm tracking-widest shadow-lg shadow-yellow-400/20 disabled:opacity-50 disabled:cursor-not-allowed">
-                        <i id="scan-btn-icon" class="fa-solid fa-satellite-dish text-lg"></i>
-                        <span id="scan-btn-label">START SCAN</span>
-                    </button>
-                </div>
-
-                <!-- Progress panel -->
-                <div id="scan-progress-panel" class="hidden bg-zinc-900/60 border border-zinc-800 rounded-2xl p-6 mb-5">
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="flex items-center gap-2">
-                            <div id="scan-phase-dot" class="w-2.5 h-2.5 rounded-full bg-yellow-400 animate-pulse">
-                            </div>
-                            <span id="scan-phase-label" class="text-sm font-semibold text-zinc-300">Starting...</span>
-                        </div>
-                        <span id="scan-progress-pct" class="font-mono text-yellow-400 text-sm">0%</span>
-                    </div>
-                    <div class="w-full h-2 bg-zinc-800 rounded-full overflow-hidden mb-4">
-                        <div id="scan-progress-bar"
-                            class="h-full bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full transition-all duration-500"
-                            style="width:0%"></div>
-                    </div>
-                    <div class="bg-zinc-950 rounded-xl p-4 font-mono text-[11px] text-zinc-400 h-28 overflow-y-auto"
-                        id="scan-terminal">
-                        <div class="text-yellow-400">$ cybermind-ids --scan --model random_forest</div>
-                    </div>
-                </div>
-
-                <!-- Result card -->
-                <div id="scan-result-card" class="hidden rounded-2xl border overflow-hidden">
-                    <div id="scan-result-header" class="flex items-center gap-5 px-6 py-5">
-                        <div id="scan-result-icon"
-                            class="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 text-2xl">
-                            &#x1F6E1;&#xFE0F;</div>
-                        <div class="flex-1">
-                            <div id="scan-verdict-text" class="text-white font-extrabold text-xl leading-snug">
-                            </div>
-                            <div class="flex flex-wrap items-center gap-2 mt-1">
-                                <span id="scan-result-severity"
-                                    class="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"></span>
-                                <span class="text-[10px] text-zinc-400 font-mono"
-                                    id="scan-result-confidence-label"></span>
-                                <span class="text-[10px] text-zinc-500 font-mono" id="scan-result-mode-label"></span>
-                            </div>
-                        </div>
-                        <div class="flex-shrink-0 text-right">
-                            <div class="text-4xl font-black font-mono" id="scan-big-conf"></div>
-                            <div class="text-[10px] text-zinc-500 uppercase tracking-widest">confidence</div>
-                        </div>
-                    </div>
-                    <div class="border-t border-zinc-800 bg-zinc-900/60 px-6 py-5">
-                        <div class="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold mb-3">Traffic
-                            Breakdown</div>
-                        <div id="scan-breakdown-bars" class="space-y-2.5"></div>
-                    </div>
-                    <div
-                        class="border-t border-zinc-800 bg-zinc-950/40 px-6 py-3 flex flex-wrap gap-x-6 gap-y-1 text-[10px] font-mono text-zinc-600">
-                        <span>packets: <span id="scan-meta-count" class="text-zinc-400">--</span></span>
-                        <span>mode: <span id="scan-meta-mode" class="text-zinc-400">--</span></span>
-                        <span>timestamp: <span id="scan-meta-ts" class="text-zinc-400">--</span></span>
-                    </div>
-                </div>
-
-                <!-- Scan error -->
-                <div id="scan-error"
-                    class="hidden mt-4 p-4 bg-red-950/50 border border-red-800 rounded-xl text-red-300 text-sm flex items-center gap-3">
-                    <i class="fa-solid fa-circle-exclamation text-red-400 flex-shrink-0"></i>
-                    <span id="scan-error-text"></span>
-                </div>
-            </div><!-- /scan panel -->
-
         </div><!-- /analyze-screen -->
+
+
 
         <!-- ═══════════════════════════════════════════════════════════ -->
         <!-- LOGS SCREEN                                                -->
         <!-- ═══════════════════════════════════════════════════════════ -->
         <div id="logs-screen" class="hidden px-8 py-10 pb-20">
-            <div class="flex justify-between items-baseline">
+            <div class="flex justify-between items-center">
                 <h1 class="text-4xl font-semibold logo-font tracking-tight">Security Logs</h1>
-                <div class="flex items-center text-xs bg-zinc-900 rounded-3xl px-5 py-3">
-                    <span class="text-emerald-400 mr-2">●</span>
-                    <span class="font-medium">Live feed enabled</span>
+                <div class="flex items-center gap-x-3">
+                    <div class="flex items-center text-xs bg-zinc-900 rounded-3xl px-5 py-3">
+                        <span class="text-emerald-400 mr-2">●</span>
+                        <span class="font-medium">Live feed enabled</span>
+                    </div>
+                    <button
+                        id="clear-logs-btn"
+                        data-action="clear-logs"
+                        class="flex items-center gap-x-2 px-5 py-3 rounded-2xl bg-zinc-800 border border-zinc-700 text-zinc-300 text-sm font-semibold hover:bg-zinc-700 hover:border-zinc-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fa-solid fa-eraser text-xs"></i>
+                        <span>Clear Logs</span>
+                    </button>
                 </div>
             </div>
             <div class="mt-8 border border-zinc-700 rounded-3xl overflow-hidden">
@@ -932,12 +1028,19 @@
         <!-- THREATS SCREEN                                             -->
         <!-- ═══════════════════════════════════════════════════════════ -->
         <div id="threats-screen" class="hidden px-8 py-10 pb-20">
-            <div class="flex justify-between items-baseline mb-8">
+            <div class="flex justify-between items-center mb-8">
                 <div>
                     <span class="uppercase tracking-widest text-xs text-rose-400 font-medium">Threat
                         Intelligence</span>
                     <h1 class="text-4xl font-semibold logo-font tracking-tight text-white">Active Threats</h1>
                 </div>
+                <button
+                    id="clear-threats-btn"
+                    data-action="clear-threats"
+                    class="flex items-center gap-x-2 px-5 py-3 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-sm font-semibold hover:bg-rose-500/20 hover:border-rose-500/60 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fa-solid fa-trash-can text-xs"></i>
+                    <span>Resolve All</span>
+                </button>
             </div>
             <div id="threats-list" class="space-y-6"></div>
 
