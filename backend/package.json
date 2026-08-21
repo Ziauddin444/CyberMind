@@ -1,7 +1,7 @@
 {
   "name": "cybermind-backend",
   "version": "1.0.0",
-  "description": "CyberMind Sentinel — Backend API Server",
+  "description": "CyberMind Sentinel — Auth & User Management API",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -10,7 +10,10 @@
   "dependencies": {
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
-    "express": "^4.21.0",
-    "nodemailer": "^8.0.4"
+    "express": "^4.21.2",
+    "nodemailer": "^6.9.15"
+  },
+  "overrides": {
+    "tar": "^6.2.1"
   }
 }

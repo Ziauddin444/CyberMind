@@ -7,6 +7,12 @@ Thumbs.db
 *.swo
 *~
 
+# ─── Backend Runtime Data (auto-generated, never commit) ──────
+backend/logs.json
+backend/blocklist.json
+backend/devices.json
+
+
 # ─── Python ───────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
