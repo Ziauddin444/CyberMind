@@ -1,9 +1,25 @@
-.aider*
-
-# OS / editor noise
+# ─── OS / Editor ──────────────────────────────────────────────
 .DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
-# Python caches / envs
+# ─── Docker Sandbox (developer testing only — lives in PR #4) ─
+docker/
+docker-compose.sandbox.yml
+.dockerignore
+
+
+# ─── Backend Runtime Data (auto-generated, never commit) ──────
+backend/logs.json
+backend/blocklist.json
+backend/devices.json
+
+
+# ─── Python ───────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
 *.pyo
@@ -11,11 +27,55 @@ __pycache__/
 .mypy_cache/
 .venv/
 venv/
+**/venv/
+**/.venv/
+*.egg-info/
 
-# Logs and runtime artifacts
-*.log
-backend.log
-flask.log
-
-# JS dependencies
+# ─── Node.js ─────────────────────────────────────────────────
 node_modules/
+package-lock.json
+
+# ─── Logs & Runtime Data ─────────────────────────────────────
+*.log
+*.pcap
+*.pcapng
+*.db
+
+# ─── Environment & Secrets ───────────────────────────────────
+.env
+!.env.example
+
+# ─── Runtime Data Files (auto-generated, never commit) ───────
+backend_flask/data/blocked_ips.json
+backend_flask/data/devices.json
+backend/users.json
+backend_flask/data/honeypot_captures/*.txt
+backend_flask/data/honeypot_captures/captures.json
+
+# ─── NSL-KDD Dataset (too large for GitHub, see README) ──────
+backend_flask/data/nsl_kdd/KDDTrain+.csv
+backend_flask/data/nsl_kdd/KDDTest+.csv
+backend_flask/data/nsl_kdd/*.csv
+
+# ─── ML Models (regenerated on first run) ─────────────────────
+backend_flask/data/rf_model.pkl
+backend_flask/data/rf_label_encoder.pkl
+
+# ─── Attack & Testing Scripts (not for public repo) ───────────
+inject_attack.py
+kali_attack.sh
+capture_demo_traffic.sh
+run.md
+backend_flask/test_api.py
+backend_flask/test_classifier.py
+
+# ─── Sandbox Attack Results ───────────────────────────────────
+sandbox-results/
+
+# ─── AI / Continue / Aider ───────────────────────────────────
+.aider*
+.continue/
+
+# ─── Misc ────────────────────────────────────────────────────
+*.bak
+*.tmp

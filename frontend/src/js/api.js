@@ -160,6 +160,12 @@ export const logoutOtherSessions = () => authRequest('/sessions/logout-others', 
 // Status (Node.js Backend)
 export const getStatus = () => authRequest('/status');
 
+// Real-time dashboard stats from Flask SQLite (Phase 1.2 / 2.1 / 2.3 / 2.4)
+export const getFlaskStats = () => opsRequest('/stats');
+
+// Scan history logs from Flask SQLite
+export const getScanLogs = () => opsRequest('/logs');
+
 // Dashboard data (Node.js Backend - Port 3001)
 // Keep these names for compatibility with frontend app.js
 export const getDevices = async () => {
@@ -180,15 +186,39 @@ export const toggleDevice = (id) => authRequest(`/devices/${id}/toggle`, { metho
 export const deleteDevice = (id) => authRequest(`/devices/${id}`, { method: 'DELETE' });
 
 export const getLogs = async () => {
-  const [nodeRes, hpRes] = await Promise.allSettled([
+  const [nodeRes, hpRes, scanRes] = await Promise.allSettled([
     authRequest('/logs'),
     opsRequest('/honeypot/logs'),
+    opsRequest('/logs'),                // Flask SQLite scan history (Phase 1.1)
   ]);
 
   const nodeLogs = nodeRes.status === 'fulfilled' ? nodeRes.value : [];
   const honeypotLogs = hpRes.status === 'fulfilled' ? normalizeHoneypotLogs(hpRes.value) : [];
 
-  return [...honeypotLogs, ...nodeLogs];
+  // Normalize Flask scan logs into the shared log format
+  const rawScanLogs = scanRes.status === 'fulfilled' ? (Array.isArray(scanRes.value) ? scanRes.value : []) : [];
+  const flaskScanLogs = rawScanLogs.map((r) => {
+    const labelMap = {
+      normal: 'success', port_scan: 'warning', brute_force: 'warning',
+      ddos: 'warning', malware: 'warning', probe: 'info',
+    };
+    const severityLabel = r.threat_detected ? (r.severity || 'medium') : 'safe';
+    return {
+      id: `scan-${r.id}`,
+      time: r.timestamp ? new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--',
+      device: 'Network Scanner',
+      event: r.label || 'scan',
+      summary: `${r.label || 'scan'} — ${r.packet_count || 0} packets, ${Math.round((r.confidence || 0) * 100)}% confidence (${r.capture_mode || 'live'})`,
+      action: r.threat_detected ? 'THREAT DETECTED' : 'NORMAL',
+      severity: severityLabel,
+      threat_detected: r.threat_detected,
+      timestamp: r.timestamp,
+      source: 'flask_scan',
+    };
+  });
+
+  // Merge: scan logs first (most recent events), then honeypot, then Node.js logs
+  return [...flaskScanLogs, ...honeypotLogs, ...nodeLogs];
 };
 export const addLog = (data) => authRequest('/logs', { method: 'POST', body: JSON.stringify(data) });
 export const deleteLog = (id) => authRequest(`/logs/${id}`, { method: 'DELETE' });
@@ -197,11 +227,32 @@ export const getHoneypot = () => authRequest('/honeypot');
 export const deployDecoy = (name) => authRequest('/honeypot/deploy', { method: 'POST', body: JSON.stringify({ name }) });
 export const triggerHoneypot = () => authRequest('/honeypot/trigger', { method: 'POST' });
 
-export const checkPhishing = (url) => authRequest('/phishing/check', { method: 'POST', body: JSON.stringify({ url }) });
-export const getThreats = () => authRequest('/threats');
-export const getThreat = (id) => authRequest(`/threats/${id}`);
-export const activateKillSwitch = (deviceId) => authRequest('/killswitch', { method: 'POST', body: JSON.stringify({ deviceId }) });
-export const runRemediation = (playbook) => authRequest('/remediation', { method: 'POST', body: JSON.stringify({ playbook }) });
+export const checkPhishing = (url) =>
+  authRequest('/phishing/check', { method: 'POST', body: JSON.stringify({ url }) });
+
+// ─── Threat Intelligence — reads from Flask SQLite (real scan detections) ────
+// FIX: The Node.js /api/threats is always empty (in-memory, never persisted).
+// Real detected threats are stored in Flask's SQLite scan_logs table.
+// We redirect these to the Flask backend (port 5000) which has the /api/threats
+// endpoints that query scan_logs WHERE threat_detected=1.
+export const getThreats          = () => opsRequest('/threats');
+export const getThreat           = (id) => opsRequest(`/threats/${id}`);
+export const getFlaskThreatsCount = () => opsRequest('/threats/count');
+
+// Clear all threat rows (threat_detected=1) from scan_logs — safe scans kept
+export const clearThreats = () => opsRequest('/threats/clear', { method: 'POST' });
+
+// Clear ALL scan_logs rows (full log reset)
+export const clearLogs = () => opsRequest('/logs/clear', { method: 'POST' });
+
+// Kill switch — now accepts reason string; Node.js handler sends to all devices
+export const activateKillSwitch = (reason = 'Manual activation') =>
+  authRequest('/killswitch', { method: 'POST', body: JSON.stringify({ reason }) });
+export const releaseKillSwitch = () =>
+  authRequest('/killswitch/release', { method: 'POST', body: JSON.stringify({}) });
+// Remediation — accepts playbook number + optional ip/device_id
+export const runRemediation = (playbook, ip = null, device_id = null) =>
+  authRequest('/remediation', { method: 'POST', body: JSON.stringify({ playbook, ip, device_id }) });
 export const translateLog = (rawLog) => authRequest('/logs/translate', { method: 'POST', body: JSON.stringify({ rawLog }) });
 export const getLiveFeed = () => authRequest('/live-feed');
 export const getSettings = () => authRequest('/settings');
@@ -213,7 +264,8 @@ export const updateAlertConfig = (data) => authRequest('/alerts/config', { metho
 // Additional security operations (Flask Backend - Port 5000)
 export const opsGetDevices = () => opsRequest('/devices/list');
 export const opsGetDevice = (id) => opsRequest(`/devices/${id}`);
-export const opsAddDevice = (data) => opsRequest('/devices/add', { method: 'POST', body: JSON.stringify(data) });
+// POST /api/devices — canonical Flask endpoint that persists to devices.json
+export const opsAddDevice = (data) => opsRequest('/devices', { method: 'POST', body: JSON.stringify(data) });
 export const opsUpdateDevice = (id, data) => opsRequest(`/devices/${id}`, { method: 'PUT', body: JSON.stringify(data) });
 export const opsDeleteDevice = (id) => opsRequest(`/devices/${id}`, { method: 'DELETE' });
 export const opsSearchDevices = (query) => opsRequest(`/devices/search?q=${encodeURIComponent(query)}`);
@@ -226,21 +278,40 @@ export const blockIP = (ip, reason) => opsRequest('/blacklist/ip', { method: 'PO
 // separate service that may not be running during the professor demo.
 // We also normalize the field names so app.js renderBlockedIpList() can read them.
 export const getBlacklistStatus = async () => {
-  const data = await authRequest('/blocklist');
-  // Node.js /api/blocklist returns: { total, bySeverity, byType, records: [...] }
-  // Each record has: { id, ip, attackType, label, severity, status, detectedAt, timeStr, ... }
-  // app.js reads: blocked_records[].ip_address, .blocked_at, .status, .reason, .record_id
-  const normalized = (data.records || []).map((r) => ({
-    record_id:   r.id,
-    ip_address:  r.ip,
-    blocked_at:  r.detectedAt,
-    status:      r.status || 'blocked',
-    reason:      r.label || r.attackType || 'Attack detected',
-    severity:    r.severity,
-    attackType:  r.attackType,
-  }));
-  return { data: { blocked_records: normalized, total: data.total, bySeverity: data.bySeverity } };
+  try {
+    // FIX: Fetch from Flask backend (port 5000) where the block actually happens
+    const response = await opsRequest('/blacklist/status');
+
+    // Flask returns: { success: true, data: { blocked_records: [...] } } 
+    // or sometimes just the array directly depending on the service
+    const rawData = response.data?.blocked_records || response.data || [];
+
+    // Normalize the data to match exactly what app.js expects
+    const normalized = rawData.map((r, index) => ({
+      record_id: r.id || r.record_id || `block_${index}`,
+      ip_address: r.ip_address || r.ip,
+      blocked_at: r.blocked_at || r.detected_at || r.timestamp || new Date().toISOString(),
+      status: r.status || 'blocked',
+      reason: r.reason || r.attack_type || 'Manual block via dashboard',
+    }));
+
+    return {
+      data: {
+        blocked_records: normalized,
+        total: normalized.length
+      }
+    };
+  } catch (err) {
+    console.error('Failed to fetch blacklist status from Flask:', err);
+    // Return empty array on error so the dashboard doesn't crash
+    return { data: { blocked_records: [], total: 0 } };
+  }
 };
+export const unblockIP = (ipAddress) =>
+  opsRequest('/blacklist/ip', {
+    method: 'DELETE',
+    body: JSON.stringify({ ip_address: ipAddress })
+  });
 export const getIsolationStatus = () => opsRequest('/isolation/status');
 export const activateIsolation = () => opsRequest('/isolation/activate', { method: 'POST' });
 export const releaseIsolation = () => opsRequest('/isolation/deactivate', { method: 'POST' });
@@ -253,12 +324,32 @@ export const registerAsset = (data) => opsRequest('/fleet/register_asset', { met
 export const monitorAssets = () => opsRequest('/fleet/monitor_assets', { method: 'POST' });
 export const detectAnomalies = () => opsRequest('/fleet/anomalies');
 
+// Honeypot capture list (legacy — returns metadata objects with id/source_ip/filename)
 export const getHoneypotFiles = (limit = 100) => opsRequest(`/honeypot/files?limit=${limit}`);
 export const getHoneypotFile = (id) => opsRequest(`/honeypot/files/${id}`);
 export const deleteHoneypotCapture = (id) => opsRequest(`/honeypot/files/${id}`, { method: 'DELETE' });
 export const exportHoneypotCaptures = (format = 'json') => opsRequest(`/honeypot/files/export?format=${format}`);
 export const getHoneypotSummary = () => opsRequest('/honeypot/summary');
 export const cleanupHoneypotCaptures = (days = 30) => opsRequest('/honeypot/cleanup', { method: 'POST', body: JSON.stringify({ days }) });
+
+// Honeypot file CRUD by filename — new endpoints
+export const opsListHoneypotFiles = () => opsRequest('/honeypot/files-list');
+export const opsCreateHoneypotFile = (filename, content) =>
+  opsRequest('/honeypot/files', { method: 'POST', body: JSON.stringify({ filename, content }) });
+export const opsRenameHoneypotFile = (filename, newFilename) =>
+  opsRequest(`/honeypot/files/${encodeURIComponent(filename)}`, {
+    method: 'PUT',
+    body: JSON.stringify({ new_filename: newFilename }),
+  });
+export const opsDeleteHoneypotFileByName = (filename) =>
+  opsRequest(`/honeypot/files/${encodeURIComponent(filename)}`, { method: 'DELETE' });
+
+// One-click remediation — new /api/remediation endpoint (no auth required)
+export const runRemediationAction = (action, ip, threatType = 'unknown', severity = 'high', deviceId = null) =>
+  opsRequest('/remediation', {
+    method: 'POST',
+    body: JSON.stringify({ action, ip, threat_type: threatType, severity, device_id: deviceId }),
+  });
 
 export const analyzeEmail = (data) => opsRequest('/phishing/analyze_email', { method: 'POST', body: JSON.stringify(data) });
 export const getPhishingStatistics = () => opsRequest('/phishing/statistics');
@@ -273,36 +364,36 @@ export const closeIncident = (incidentIndex) => opsRequest('/remediation/close_i
  * Translate a threat alert into plain English via Ollama Mistral
  */
 export async function translateTraffic(threatData) {
-    return request(OPS_BASE, '/traffic/translate', {
-        method: 'POST',
-        body: JSON.stringify({
-            threat_type: threatData.threat_type || 'unknown',
-            severity: threatData.severity || 'medium',
-            confidence: threatData.confidence || 0.5,
-            source_ip: threatData.source_ip || 'unknown',
-            matched_signature: threatData.matched_signature || 'unknown',
-            mitigation: threatData.mitigation || 'Monitor and investigate'
-        })
-    });
+  return request(OPS_BASE, '/traffic/translate', {
+    method: 'POST',
+    body: JSON.stringify({
+      threat_type: threatData.threat_type || 'unknown',
+      severity: threatData.severity || 'medium',
+      confidence: threatData.confidence || 0.5,
+      source_ip: threatData.source_ip || 'unknown',
+      matched_signature: threatData.matched_signature || 'unknown',
+      mitigation: threatData.mitigation || 'Monitor and investigate'
+    })
+  });
 }
 
 /**
  * Check if Ollama is running locally
  */
 export async function checkOllamaStatus() {
-    return request(OPS_BASE, '/ollama/status', {
-        method: 'GET'
-    });
+  return request(OPS_BASE, '/ollama/status', {
+    method: 'GET'
+  });
 }
 
 /**
  * Run a test translation with a sample threat
  */
 export async function testOllamaTranslation() {
-    return request(OPS_BASE, '/ollama/test', {
-        method: 'POST',
-        body: JSON.stringify({})
-    });
+  return request(OPS_BASE, '/ollama/test', {
+    method: 'POST',
+    body: JSON.stringify({})
+  });
 }
 export const analyzeTraffic = (traffic) => opsRequest('/traffic/analyze', { method: 'POST', body: JSON.stringify({ traffic }) });
 export const discoverAssets = () => opsRequest('/assets/discover', { method: 'POST' });
@@ -361,12 +452,15 @@ export async function analyzeFile(file, source_ip = '') {
 
 // ─── Layer 1 → Layer 2: Packet Scan Endpoints ────────────────────────────────
 
-export async function startScan(packetCount = 100) {
+export async function startScan(packetCount = 200, continuous = false) {
   const url = `${OPS_BASE}/scan/start`;
+  const body = continuous
+    ? { packet_count: packetCount, continuous: true }
+    : { packet_count: packetCount };
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ packet_count: packetCount }),
+    body: JSON.stringify(body),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
@@ -375,12 +469,29 @@ export async function startScan(packetCount = 100) {
   return res.json();
 }
 
-export async function getScanStatus(jobId) {
-  const url = `${OPS_BASE}/scan/status/${encodeURIComponent(jobId)}`;
-  const res = await fetch(url);
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || `Status check failed: ${res.status}`);
+export async function getScanStatus(job_id) {
+  const url = job_id ? `${OPS_BASE}/scan/status/${job_id}` : `${OPS_BASE}/scan/status`;
+  try {
+    const res = await fetch(url, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
+    if (!res.ok) return { status: 'idle', progress: 0, phase: 'starting' };
+    return await res.json();
+  } catch (err) {
+    console.warn('Scan status check failed:', err);
+    return { status: 'idle', progress: 0, phase: 'starting' };
   }
+}
+
+/**
+ * Best-effort stop signal to the Flask backend.
+ * The backend may not implement /api/scan/stop yet — callers should catch errors.
+ */
+export async function stopScan(job_id = null) {
+  const url = `${OPS_BASE}/scan/stop`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(job_id ? { job_id } : {}),
+  });
+  if (!res.ok) throw new Error(`Stop request failed: ${res.status}`);
   return res.json();
 }

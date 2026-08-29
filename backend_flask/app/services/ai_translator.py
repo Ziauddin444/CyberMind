@@ -11,6 +11,7 @@ Features:
 
 import json
 import logging
+import os
 import platform
 import requests
 import threading
@@ -21,11 +22,14 @@ from typing import Dict, Optional
 logger = logging.getLogger(__name__)
 
 # Ollama service configuration
-OLLAMA_API_BASE = "http://localhost:11434/api"
+# Reads OLLAMA_HOST from environment so Docker Compose can override it.
+# Fallback: host.docker.internal reaches the Mac host from inside any container.
+_OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://host.docker.internal:11434").rstrip("/")
+OLLAMA_API_BASE        = f"{_OLLAMA_HOST}/api"
 OLLAMA_GENERATE_ENDPOINT = f"{OLLAMA_API_BASE}/generate"
-OLLAMA_TAGS_ENDPOINT = f"{OLLAMA_API_BASE}/tags"
-OLLAMA_MODEL = "mistral"
-OLLAMA_REQUEST_TIMEOUT = 30  # seconds
+OLLAMA_TAGS_ENDPOINT     = f"{OLLAMA_API_BASE}/tags"
+OLLAMA_MODEL             = "mistral"
+OLLAMA_REQUEST_TIMEOUT   = 30  # seconds
 
 
 class AITranslator:
@@ -83,7 +87,7 @@ class AITranslator:
                 return self.ollama_available
         except requests.exceptions.ConnectionError:
             self.ollama_available = False
-            logger.debug("Ollama not running at http://localhost:11434")
+            logger.debug("Ollama not running at %s", _OLLAMA_HOST)
             return False
         except requests.exceptions.Timeout:
             self.ollama_available = False
@@ -362,6 +366,25 @@ Respond ONLY with a valid JSON object in this exact format, no other text:
             "timestamp": datetime.utcnow().isoformat() + "Z",
         }
 
+    def get_status(self) -> dict:
+        """
+        Returns current status of the AI translator service.
+        Called by Flask __init__.py on /api/status endpoint.
+        """
+        ollama_status = self.check_ollama_status()
+        return {
+            "service": "ai_translator",
+            "status": "operational",
+            "mode": "ollama_mistral" if ollama_status["available"] else "rule_based_fallback",
+            "ollama_available": ollama_status["available"],
+            "ollama_models": ollama_status.get("models", []),
+            "message": (
+                "Ollama Mistral active — free local LLM translation"
+                if ollama_status["available"]
+                else "Ollama offline — using rule-based fallback"
+            )
+        }
+
     def get_ollama_install_instructions(self) -> str:
         """
         Get platform-specific Ollama installation instructions.
@@ -462,3 +485,7 @@ def get_ai_translator() -> AITranslator:
     if _translator_instance is None:
         _translator_instance = AITranslator()
     return _translator_instance
+
+
+
+
