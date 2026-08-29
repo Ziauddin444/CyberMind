@@ -3,17 +3,17 @@
 # Last security audit: 2026-08-21
 
 # ── Core Framework ────────────────────────────────────────────────────────────
-Flask==3.0.3
-Flask-CORS==5.0.0
-python-dotenv==1.0.1
+Flask==3.1.3
+Flask-CORS==6.0.0
+python-dotenv==1.2.2
 
 # ── Security & Authentication ─────────────────────────────────────────────────
-PyJWT==2.9.0
+PyJWT==2.13.0
 bcrypt==4.2.0
-cryptography==43.0.3
+cryptography==50.0.0
 
 # ── HTTP & Networking ─────────────────────────────────────────────────────────
-requests==2.32.3
+requests==2.33.0
 urllib3==2.7.0
 
 # ── System Monitoring ─────────────────────────────────────────────────────────
@@ -36,4 +36,4 @@ python-json-logger==2.0.7
 gunicorn==22.0.0
 
 # ── Packet Capture ───────────────────────────────────────────────────────────
-scapy==2.6.1
+scapy==2.7.0rc1
