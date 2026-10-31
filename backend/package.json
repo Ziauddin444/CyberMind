@@ -11,7 +11,7 @@
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "express": "^4.22.2",
-    "nodemailer": "^10.0.10"
+    "nodemailer": "^10.1.4"
   },
   "overrides": {
     "tar": "^7.5.22",
